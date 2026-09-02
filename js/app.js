@@ -88,7 +88,8 @@ async function startCamera() {
       video: true,
       audio: true
     });
-
+const video = document.getElementById("previewVideo");
+video.srcObject = cameraStream;
     alert("Camera and microphone are ready!");
   } catch (error) {
     alert("Camera or microphone permission was denied.");
