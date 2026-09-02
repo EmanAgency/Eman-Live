@@ -29,8 +29,4 @@ async function startCamera() {
   } catch (error) {
     alert("Camera or microphone permission was denied.");
   }
-}    ' coins deducted (demo).'
-  );
-
-  closeModal('giftModal');
 }
