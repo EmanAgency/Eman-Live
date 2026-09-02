@@ -80,7 +80,20 @@ function gift(name,c){
     alert('Not enough Eman Coins.');
     return;
   }
+let cameraStream;
 
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+
+    alert("Camera and microphone are ready!");
+  } catch (error) {
+    alert("Camera or microphone permission was denied.");
+  }
+}
   balance-=c;
 
   document.getElementById('coinBalance').textContent=
