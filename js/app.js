@@ -52,9 +52,6 @@ function openGifts(){
 
 function openLive(){
   document.getElementById('liveModal').classList.add('open');
-}l
-
-  document.getElementById('liveModal').classList.add('open');
 }
 
 function openParty(index=0){
