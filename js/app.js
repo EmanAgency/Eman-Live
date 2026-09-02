@@ -50,9 +50,10 @@ function openGifts(){
   document.getElementById('giftModal').classList.add('open');
 }
 
-function openLive() {
-  document.getElementById("liveModal").classList.add("show");
-        }
+function openLive(){
+  document.getElementById('liveModal').classList.add('open');
+}l
+
   document.getElementById('liveModal').classList.add('open');
 }
 
