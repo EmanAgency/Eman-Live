@@ -1,9 +1,9 @@
-const LIVEKIT_URL = "wss://eman-live-ckbb612s.livekit.cloud";
 const TOKEN_SERVER_ID = "emanlive-2j2epi";
 
 let room = null;
 let localVideoTrack = null;
 let localAudioTrack = null;
+let cameraStream = null;
 
 function openLive() {
   const modal = document.getElementById("liveModal");
@@ -31,7 +31,7 @@ function gift(name, cost) {
 
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    cameraStream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true
     });
@@ -39,23 +39,136 @@ async function startCamera() {
     const video = document.getElementById("previewVideo");
 
     if (video) {
-      video.srcObject = stream;
+      video.srcObject = cameraStream;
       video.muted = true;
       video.playsInline = true;
       await video.play();
     }
 
-    alert("Camera is working!");
+    console.log("Camera and microphone ready.");
   } catch (error) {
     console.error(error);
     alert("Camera could not start: " + error.message);
   }
 }
 
-function goLive() {
-  alert("Camera is ready. Live streaming is the next step.");
+async function goLive() {
+  try {
+    if (!window.LivekitClient) {
+      alert("LiveKit is not loaded. Please refresh the page.");
+      return;
+    }
+
+    const tokenSource =
+      LivekitClient.TokenSource.developmentTokenServer(
+        TOKEN_SERVER_ID
+      );
+
+    const roomName = "eman-live-" + Date.now();
+
+    const credentials = await tokenSource.fetch({
+      roomName: roomName,
+      participantName: "Eman Host"
+    });
+
+    room = new LivekitClient.Room();
+
+    await room.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
+
+    localVideoTrack =
+      await LivekitClient.createLocalVideoTrack();
+
+    localAudioTrack =
+      await LivekitClient.createLocalAudioTrack();
+
+    await room.localParticipant.publishTrack(
+      localVideoTrack
+    );
+
+    await room.localParticipant.publishTrack(
+      localAudioTrack
+    );
+
+    const video = document.getElementById("previewVideo");
+
+    if (video) {
+      video.srcObject = new MediaStream([
+        localVideoTrack.mediaStreamTrack
+      ]);
+
+      video.muted = true;
+      video.playsInline = true;
+
+      await video.play();
+    }
+
+    const liveButton =
+      document.getElementById("goLiveButton");
+
+    if (liveButton) {
+      liveButton.innerText = "🔴 LIVE";
+    }
+
+    alert("🔴 EMAN LIVE is now LIVE!");
+
+    console.log("Live room:", roomName);
+
+  } catch (error) {
+    console.error("LiveKit error:", error);
+
+    alert(
+      "LiveKit error: " +
+      (error.message || error)
+    );
+  }
 }
 
-function stopLive() {
-  alert("END LIVE button is working!");
+async function stopLive() {
+  try {
+    if (room) {
+      await room.disconnect();
+      room = null;
+    }
+
+    if (localVideoTrack) {
+      localVideoTrack.stop();
+      localVideoTrack = null;
+    }
+
+    if (localAudioTrack) {
+      localAudioTrack.stop();
+      localAudioTrack = null;
+    }
+
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => {
+        track.stop();
+      });
+
+      cameraStream = null;
+    }
+
+    const video =
+      document.getElementById("previewVideo");
+
+    if (video) {
+      video.srcObject = null;
+    }
+
+    const liveButton =
+      document.getElementById("goLiveButton");
+
+    if (liveButton) {
+      liveButton.innerText = "🔴 GO LIVE";
+    }
+
+    alert("Live stream ended.");
+
+  } catch (error) {
+    console.error(error);
+    alert("Could not end the live stream.");
+  }
 }
