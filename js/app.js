@@ -15,9 +15,6 @@ function openGifts() {
 }
 
 async function startCamera() {
-  function goLive() {
-  alert("🔴 You are now LIVE!");
-  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -28,8 +25,15 @@ async function startCamera() {
 
     if (video) {
       video.srcObject = stream;
+      video.play();
     }
+
+    alert("Camera and microphone are ready!");
   } catch (error) {
     alert("Camera or microphone permission was denied.");
   }
+}
+
+function goLive() {
+  alert("🔴 You are now LIVE!");
 }
