@@ -291,36 +291,39 @@
 
 <!-- GO LIVE MODAL -->
 <div class="modal" id="liveModal">
-
   <div class="modalbox">
 
-    <button class="close" onclick="closeModal('liveModal')">
-      ×
-    </button>
+    <button class="close" onclick="closeModal('liveModal')">×</button>
 
     <h2>🎥 Go Live</h2>
 
-    <p class="small">
-      Your camera, microphone and live-stream provider will be
-      connected in the next backend build.
-    </p>
-
     <input
       class="field"
-      placeholder="Live title"
+      id="liveTitle"
+      placeholder="Enter your live title"
     >
-<video id="previewVideo" autoplay muted playsinline style="width:100%;border-radius:15px;"></video>
+
+    <video
+      id="previewVideo"
+      autoplay
+      muted
+      playsinline
+      style="width:100%;border-radius:15px;background:#000;"
+    ></video>
+
+    <button class="btn full" onclick="startCamera()">
+      🎥 Start Camera
+    </button>
+
     <button
-      class="btn full"
-      onclick="alert('Demo: Live session created.')"
+      class="btn secondary"
+      onclick="alert('Live session started!')"
     >
-      Start Live
+      🔴 GO LIVE
     </button>
 
   </div>
-
 </div>
-
 
 <!-- JAVASCRIPT -->
 <script src="/Eman-Live/js/app.js"></script>
