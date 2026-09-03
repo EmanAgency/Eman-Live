@@ -110,8 +110,7 @@ async function goLive() {
   } catch (error) {
     console.error("LiveKit error:", error);
     alert(
-      "Could not start the live stream. Please try again."
-    );
+      alert("LiveKit error: " + error.message);
   }
 }
 
