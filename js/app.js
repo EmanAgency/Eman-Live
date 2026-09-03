@@ -86,6 +86,7 @@ currentRoomName = roomName;
 
     // Let LiveKit open and publish the camera and microphone.
     await room.localParticipant.enableCameraAndMicrophone();
+    
 console.log("Camera published:", room.localParticipant.isCameraEnabled);
 console.log("Microphone published:", room.localParticipant.isMicrophoneEnabled);
     const video = document.getElementById("previewVideo");
