@@ -1,5 +1,5 @@
 const TOKEN_SERVER_ID = "emanlive-2j2epi";
-
+let currentRoomName = null;
 let room = null;
 let localVideoTrack = null;
 let localAudioTrack = null;
@@ -70,8 +70,8 @@ async function goLive() {
         TOKEN_SERVER_ID
       );
 
-    const roomName = "eman-live-" + Date.now();
-
+    const roomName = "eman-live-main";
+currentRoomName = roomName;
     const credentials = await tokenSource.fetch({
       roomName: roomName,
       participantName: "Eman Host"
