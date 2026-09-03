@@ -15,14 +15,15 @@ function openGifts() {
 }
 
 async function startCamera() {
+  function goLive() {
+  alert("🔴 You are now LIVE!");
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true
     });
-function goLive() {
-  alert("🔴 You are now LIVE!");
-}
+
     const video = document.getElementById("previewVideo");
 
     if (video) {
