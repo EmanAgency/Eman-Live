@@ -256,3 +256,24 @@ async function watchLive() {
     );
   }
 }
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const messages = document.getElementById("chatMessages");
+
+  if (!input || !messages) return;
+
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  const newMessage = document.createElement("p");
+
+  newMessage.innerHTML =
+    "<b>You:</b> " + message;
+
+  messages.appendChild(newMessage);
+
+  input.value = "";
+
+  messages.scrollTop = messages.scrollHeight;
+}
