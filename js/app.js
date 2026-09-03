@@ -1,5 +1,5 @@
 const LIVEKIT_URL = "wss://eman-live-ckbb612s.livekit.cloud";
-const TOKEN_SERVER_URL = "https://emanlive-2j2epi.sandbox.livekit.io";
+const TOKEN_SERVER_ID = "emanlive-2j2epi";
 
 let room = null;
 let localVideoTrack = null;
@@ -47,42 +47,48 @@ async function startCamera() {
 async function goLive() {
   try {
     if (!window.LivekitClient) {
-      alert("LiveKit is still loading. Please refresh the page.");
+      alert("LiveKit is not loaded. Please refresh the page.");
       return;
     }
 
+    const tokenSource =
+      LivekitClient.TokenSource.developmentTokenServer(
+        TOKEN_SERVER_ID
+      );
+
     const roomName = "eman-live-" + Date.now();
 
-    const response = await fetch(
-      TOKEN_SERVER_URL + "/getToken?roomName=" +
-      encodeURIComponent(roomName) +
-      "&participantName=Host"
-    );
-
-    if (!response.ok) {
-      throw new Error("Could not get LiveKit token.");
-    }
-
-    const data = await response.json();
+    const credentials = await tokenSource.fetch({
+      roomName: roomName,
+      participantName: "Eman Host"
+    });
 
     room = new LivekitClient.Room();
 
-    await room.connect(LIVEKIT_URL, data.token);
+    await room.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
 
-    const camera = await LivekitClient.createLocalVideoTrack();
-    const microphone = await LivekitClient.createLocalAudioTrack();
+    localVideoTrack =
+      await LivekitClient.createLocalVideoTrack();
 
-    await room.localParticipant.publishTrack(camera);
-    await room.localParticipant.publishTrack(microphone);
+    localAudioTrack =
+      await LivekitClient.createLocalAudioTrack();
 
-    localVideoTrack = camera;
-    localAudioTrack = microphone;
+    await room.localParticipant.publishTrack(
+      localVideoTrack
+    );
+
+    await room.localParticipant.publishTrack(
+      localAudioTrack
+    );
 
     const video = document.getElementById("previewVideo");
 
     if (video) {
       video.srcObject = new MediaStream([
-        camera.mediaStreamTrack
+        localVideoTrack.mediaStreamTrack
       ]);
 
       video.muted = true;
@@ -90,7 +96,8 @@ async function goLive() {
       await video.play();
     }
 
-    const liveButton = document.getElementById("goLiveButton");
+    const liveButton =
+      document.getElementById("goLiveButton");
 
     if (liveButton) {
       liveButton.innerText = "🔴 LIVE";
@@ -98,46 +105,44 @@ async function goLive() {
 
     alert("🔴 Eman Live is now LIVE!");
 
-    console.log("Connected to LiveKit room:", roomName);
+    console.log("Connected to Eman Live room:", roomName);
 
   } catch (error) {
     console.error("LiveKit error:", error);
-    alert("Could not start the live stream. Check your connection and try again.");
+    alert(
+      "Could not start the live stream. Please try again."
+    );
   }
 }
 
 async function stopLive() {
-  try {
-    if (room) {
-      await room.disconnect();
-      room = null;
-    }
-
-    if (localVideoTrack) {
-      localVideoTrack.stop();
-      localVideoTrack = null;
-    }
-
-    if (localAudioTrack) {
-      localAudioTrack.stop();
-      localAudioTrack = null;
-    }
-
-    const video = document.getElementById("previewVideo");
-
-    if (video) {
-      video.srcObject = null;
-    }
-
-    const liveButton = document.getElementById("goLiveButton");
-
-    if (liveButton) {
-      liveButton.innerText = "GO LIVE";
-    }
-
-    alert("Live stream ended.");
-
-  } catch (error) {
-    console.error(error);
+  if (room) {
+    await room.disconnect();
+    room = null;
   }
+
+  if (localVideoTrack) {
+    localVideoTrack.stop();
+    localVideoTrack = null;
+  }
+
+  if (localAudioTrack) {
+    localAudioTrack.stop();
+    localAudioTrack = null;
+  }
+
+  const video = document.getElementById("previewVideo");
+
+  if (video) {
+    video.srcObject = null;
+  }
+
+  const liveButton =
+    document.getElementById("goLiveButton");
+
+  if (liveButton) {
+    liveButton.innerText = "GO LIVE";
+  }
+
+  alert("Live stream ended.");
 }
