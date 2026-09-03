@@ -55,8 +55,14 @@ async function startCamera() {
 async function goLive() {
   try {
     if (!window.LivekitClient) {
-      alert("LiveKit is not loaded. Please refresh the page.");
+      alert("LiveKit is not loaded.");
       return;
+    }
+
+    // Stop the preview camera first.
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
     }
 
     const tokenSource =
@@ -78,31 +84,18 @@ async function goLive() {
       credentials.participantToken
     );
 
-    localVideoTrack =
-      await LivekitClient.createLocalVideoTrack();
-
-    localAudioTrack =
-      await LivekitClient.createLocalAudioTrack();
-
-    await room.localParticipant.publishTrack(
-      localVideoTrack
-    );
-
-    await room.localParticipant.publishTrack(
-      localAudioTrack
-    );
+    // Let LiveKit open and publish the camera and microphone.
+    await room.localParticipant.enableCameraAndMicrophone();
 
     const video = document.getElementById("previewVideo");
 
-    if (video) {
-      video.srcObject = new MediaStream([
-        localVideoTrack.mediaStreamTrack
-      ]);
+    const publication =
+      room.localParticipant.getTrackPublication(
+        LivekitClient.Track.Source.Camera
+      );
 
-      video.muted = true;
-      video.playsInline = true;
-
-      await video.play();
+    if (publication && publication.track && video) {
+      publication.track.attach(video);
     }
 
     const liveButton =
