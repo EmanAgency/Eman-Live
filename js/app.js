@@ -1,3 +1,8 @@
+const LIVEKIT_URL = "wss://eman-live-ckbb612s.livekit.cloud";
+
+let localStream = null;
+let liveStarted = false;
+
 function openLive() {
   document.getElementById("liveModal").classList.add("open");
 }
@@ -16,7 +21,7 @@ function openGifts() {
 
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true
     });
@@ -24,16 +29,49 @@ async function startCamera() {
     const video = document.getElementById("previewVideo");
 
     if (video) {
-      video.srcObject = stream;
-      video.play();
+      video.srcObject = localStream;
+      video.muted = true;
+      video.playsInline = true;
+      await video.play();
     }
 
-    alert("Camera and microphone are ready!");
+    console.log("Camera and microphone ready.");
   } catch (error) {
+    console.error(error);
     alert("Camera or microphone permission was denied.");
   }
 }
 
 function goLive() {
-  alert("🔴 You are now LIVE!");
+  if (!localStream) {
+    alert("Please start your camera first.");
+    return;
+  }
+
+  liveStarted = true;
+
+  alert("🔴 Eman Live is now LIVE!");
+
+  const liveButton = document.getElementById("goLiveButton");
+
+  if (liveButton) {
+    liveButton.innerText = "🔴 LIVE";
+  }
+}
+
+function stopLive() {
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+
+  liveStarted = false;
+
+  const video = document.getElementById("previewVideo");
+
+  if (video) {
+    video.srcObject = null;
+  }
+
+  alert("Live stream ended.");
 }
