@@ -165,3 +165,62 @@ async function stopLive() {
     alert("Could not end the live stream.");
   }
 }
+async function watchLive() {
+  try {
+    if (!window.LivekitClient) {
+      alert("LiveKit is not loaded.");
+      return;
+    }
+
+    const tokenSource =
+      LivekitClient.TokenSource.developmentTokenServer(
+        TOKEN_SERVER_ID
+      );
+
+    const credentials = await tokenSource.fetch({
+      roomName: "eman-live-main",
+      participantName: "Eman Viewer"
+    });
+
+    const viewerRoom = new LivekitClient.Room();
+
+    await viewerRoom.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
+
+    viewerRoom.on(
+      LivekitClient.RoomEvent.TrackSubscribed,
+      (track) => {
+        if (track.kind === LivekitClient.Track.Kind.Video) {
+
+          const video = document.createElement("video");
+
+          video.autoplay = true;
+          video.playsInline = true;
+          video.style.width = "100%";
+          video.style.borderRadius = "15px";
+
+          track.attach(video);
+
+          const rooms = document.getElementById("rooms");
+
+          if (rooms) {
+            rooms.innerHTML = "";
+            rooms.appendChild(video);
+          }
+        }
+      }
+    );
+
+    alert("👀 You joined Eman Live!");
+
+  } catch (error) {
+    console.error("Viewer error:", error);
+
+    alert(
+      "Viewer error: " +
+      (error.message || error)
+    );
+  }
+}
