@@ -20,7 +20,9 @@ async function startCamera() {
       video: true,
       audio: true
     });
-
+function goLive() {
+  alert("🔴 You are now LIVE!");
+}
     const video = document.getElementById("previewVideo");
 
     if (video) {
