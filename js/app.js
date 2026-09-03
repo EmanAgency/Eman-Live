@@ -29,12 +29,31 @@ function gift(name, cost) {
   alert(name + " selected — " + cost + " coins");
 }
 
-function startCamera() {
-  alert("Camera button is working!");
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+
+    const video = document.getElementById("previewVideo");
+
+    if (video) {
+      video.srcObject = stream;
+      video.muted = true;
+      video.playsInline = true;
+      await video.play();
+    }
+
+    alert("Camera is working!");
+  } catch (error) {
+    console.error(error);
+    alert("Camera could not start: " + error.message);
+  }
 }
 
 function goLive() {
-  alert("GO LIVE button is working!");
+  alert("Camera is ready. Live streaming is the next step.");
 }
 
 function stopLive() {
