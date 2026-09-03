@@ -1,6 +1,5 @@
 const LIVEKIT_URL = "wss://eman-live-ckbb612s.livekit.cloud";
 const TOKEN_SERVER_ID = "emanlive-2j2epi";
-
 let room = null;
 let localVideoTrack = null;
 let localAudioTrack = null;
