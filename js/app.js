@@ -184,32 +184,62 @@ async function watchLive() {
 
     const viewerRoom = new LivekitClient.Room();
 
+    function showVideo(track) {
+      if (!track || track.kind !== LivekitClient.Track.Kind.Video) {
+        return;
+      }
+
+      const rooms = document.getElementById("rooms");
+
+      if (!rooms) return;
+
+      rooms.innerHTML = "";
+
+      const video = document.createElement("video");
+
+      video.autoplay = true;
+      video.playsInline = true;
+      video.controls = false;
+      video.style.width = "100%";
+      video.style.maxWidth = "600px";
+      video.style.borderRadius = "15px";
+      video.style.background = "#000";
+
+      track.attach(video);
+
+      rooms.appendChild(video);
+
+      video.play().catch(() => {});
+
+      console.log("Host video displayed.");
+    }
+
+    viewerRoom.on(
+      LivekitClient.RoomEvent.TrackSubscribed,
+      (track) => {
+        showVideo(track);
+      }
+    );
+
     await viewerRoom.connect(
       credentials.serverUrl,
       credentials.participantToken
     );
 
-    viewerRoom.on(
-      LivekitClient.RoomEvent.TrackSubscribed,
-      (track) => {
-        if (track.kind === LivekitClient.Track.Kind.Video) {
+    // Check tracks that are already available.
+    viewerRoom.remoteParticipants.forEach(
+      (participant) => {
 
-          const video = document.createElement("video");
+        participant.trackPublications.forEach(
+          (publication) => {
 
-          video.autoplay = true;
-          video.playsInline = true;
-          video.style.width = "100%";
-          video.style.borderRadius = "15px";
+            if (publication.track) {
+              showVideo(publication.track);
+            }
 
-          track.attach(video);
-
-          const rooms = document.getElementById("rooms");
-
-          if (rooms) {
-            rooms.innerHTML = "";
-            rooms.appendChild(video);
           }
-        }
+        );
+
       }
     );
 
