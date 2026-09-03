@@ -138,9 +138,9 @@
     🏠 Home
   </button>
 
-  <button onclick="goLive()">GO LIVE</button>
-    🎥 Live
-  </button>
+  <button onclick="openLive()">
+  🎥 Live
+</button>
 
   <button onclick="openParty()">
     🎉 Party
@@ -311,11 +311,25 @@
       style="width:100%;border-radius:15px;background:#000;"
     ></video>
 
-    <button onclick="startCamera()">Start Camera</button>
-<button onclick="goLive()">🔴 GO LIVE</button>
-<button onclick="stopLive()">END LIVE</button>
+    <button class="btn" onclick="startCamera()">
+      📹 Start Camera
+    </button>
+
+    <button class="btn" id="goLiveButton" onclick="goLive()">
+      🔴 GO LIVE
+    </button>
+
+    <button class="btn secondary" onclick="stopLive()">
+      END LIVE
+    </button>
+
+  </div>
+</div>
+
+
 <!-- JAVASCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 <script src="/Eman-Live/js/app.js"></script>
+
 </body>
 </html>
