@@ -83,7 +83,25 @@ currentRoomName = roomName;
       credentials.serverUrl,
       credentials.participantToken
     );
+room.on(
+  LivekitClient.RoomEvent.DataReceived,
+  (payload, participant) => {
+    try {
+      const data = JSON.parse(
+        new TextDecoder().decode(payload)
+      );
 
+      if (data.type === "chat") {
+        addChatMessage(
+          data.name || "Viewer",
+          data.message
+        );
+      }
+    } catch (error) {
+      console.error("Chat message error:", error);
+    }
+  }
+);
     // Let LiveKit open and publish the camera and microphone.
     await room.localParticipant.enableCameraAndMicrophone();
     
