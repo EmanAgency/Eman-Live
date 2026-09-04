@@ -1,4 +1,5 @@
 const TOKEN_SERVER_ID = "emanlive-2j2epi";
+
 let currentRoomName = null;
 let room = null;
 let localVideoTrack = null;
@@ -79,34 +80,161 @@ async function goLive() {
 
     room = new LivekitClient.Room();
 
-    // Receive chat messages from viewers
-    room.on(
-      LivekitClient.RoomEvent.DataReceived,
-      (payload, participant) => {
-        try {
-          const data = JSON.parse(
-            new TextDecoder().decode(payload)
-          );
+    await room.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
 
-          if (data.type === "chat") {
-            addChatMessage(
-              data.name || "Viewer",
-              data.message
-            );
+    await room.localParticipant.enableCameraAndMicrophone();
+
+    const video = document.getElementById("previewVideo");
+
+    const publication =
+      room.localParticipant.getTrackPublication(
+        LivekitClient.Track.Source.Camera
+      );
+
+    if (publication && publication.track && video) {
+      publication.track.attach(video);
+    }
+
+    const liveButton =
+      document.getElementById("goLiveButton");
+
+    if (liveButton) {
+      liveButton.innerText = "🔴 LIVE";
+    }
+
+    alert("🔴 EMAN LIVE is now LIVE!");
+
+  } catch (error) {
+    console.error("LiveKit error:", error);
+
+    alert(
+      "LiveKit error: " +
+      (error.message || error)
+    );
+  }
+}
+
+async function stopLive() {
+  if (room) {
+    await room.disconnect();
+    room = null;
+  }
+
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+
+  const video = document.getElementById("previewVideo");
+
+  if (video) {
+    video.srcObject = null;
+  }
+
+  const liveButton =
+    document.getElementById("goLiveButton");
+
+  if (liveButton) {
+    liveButton.innerText = "🔴 GO LIVE";
+  }
+
+  alert("Live stream ended.");
+}
+
+async function watchLive() {
+  try {
+    if (!window.LivekitClient) {
+      alert("LiveKit is not loaded.");
+      return;
+    }
+
+    const tokenSource =
+      LivekitClient.TokenSource.developmentTokenServer(
+        TOKEN_SERVER_ID
+      );
+
+    const credentials = await tokenSource.fetch({
+      roomName: "eman-live-main",
+      participantName: "Eman Viewer"
+    });
+
+    const viewerRoom = new LivekitClient.Room();
+
+    await viewerRoom.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
+
+    viewerRoom.on(
+      LivekitClient.RoomEvent.TrackSubscribed,
+      (track) => {
+        if (track.kind === LivekitClient.Track.Kind.Video) {
+          const video = document.createElement("video");
+
+          video.autoplay = true;
+          video.playsInline = true;
+          video.style.width = "100%";
+          video.style.borderRadius = "15px";
+
+          track.attach(video);
+
+          const rooms = document.getElementById("rooms");
+
+          if (rooms) {
+            rooms.innerHTML = "";
+            rooms.appendChild(video);
           }
-        } catch (error) {
-          console.error("Chat error:", error);
         }
       }
     );
 
-    // Update viewer count when someone joins
-    room.on(
-      LivekitClient.RoomEvent.ParticipantConnected,
-      () => {
-        updateViewerCount();
-      }
+    alert("👀 You joined Eman Live!");
+
+  } catch (error) {
+    console.error("Viewer error:", error);
+
+    alert(
+      "Viewer error: " +
+      (error.message || error)
     );
+  }
+}
+
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const messages = document.getElementById("chatMessages");
+
+  if (!input || !messages) return;
+
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  const newMessage = document.createElement("p");
+
+  newMessage.innerHTML =
+    "<b>You:</b> " + message;
+
+  messages.appendChild(newMessage);
+
+  input.value = "";
+}
+
+function addChatMessage(name, message) {
+  const messages = document.getElementById("chatMessages");
+
+  if (!messages) return;
+
+  const p = document.createElement("p");
+
+  p.innerHTML =
+    "<b>" + name + ":</b> " + message;
+
+  messages.appendChild(p);
+}    );
 
     // Update viewer count when someone leaves
     room.on(
