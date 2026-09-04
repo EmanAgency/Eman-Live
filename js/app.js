@@ -277,3 +277,49 @@ function sendChatMessage() {
 
   messages.scrollTop = messages.scrollHeight;
 }
+async function sendLiveChat() {
+  const input = document.getElementById("chatInput");
+  const messages = document.getElementById("chatMessages");
+
+  if (!input || !messages || !room) {
+    return;
+  }
+
+  const message = input.value.trim();
+
+  if (!message) {
+    return;
+  }
+
+  const data = new TextEncoder().encode(
+    JSON.stringify({
+      type: "chat",
+      name: "User",
+      message: message
+    })
+  );
+
+  await room.localParticipant.publishData(
+    data,
+    {
+      reliable: true
+    }
+  );
+
+  addChatMessage("You", message);
+
+  input.value = "";
+}
+
+function addChatMessage(name, message) {
+  const messages = document.getElementById("chatMessages");
+
+  if (!messages) return;
+
+  const p = document.createElement("p");
+
+  p.innerHTML =
+    "<b>" + name + ":</b> " + message;
+
+  messages.appendChild(p);
+}
