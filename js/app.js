@@ -59,7 +59,6 @@ async function goLive() {
       return;
     }
 
-    // Stop the preview camera first.
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
@@ -71,7 +70,8 @@ async function goLive() {
       );
 
     const roomName = "eman-live-main";
-currentRoomName = roomName;
+    currentRoomName = roomName;
+
     const credentials = await tokenSource.fetch({
       roomName: roomName,
       participantName: "Eman Host"
@@ -79,29 +79,83 @@ currentRoomName = roomName;
 
     room = new LivekitClient.Room();
 
+    // Receive chat messages from viewers
+    room.on(
+      LivekitClient.RoomEvent.DataReceived,
+      (payload, participant) => {
+        try {
+          const data = JSON.parse(
+            new TextDecoder().decode(payload)
+          );
+
+          if (data.type === "chat") {
+            addChatMessage(
+              data.name || "Viewer",
+              data.message
+            );
+          }
+        } catch (error) {
+          console.error("Chat error:", error);
+        }
+      }
+    );
+
+    // Update viewer count when someone joins
+    room.on(
+      LivekitClient.RoomEvent.ParticipantConnected,
+      () => {
+        updateViewerCount();
+      }
+    );
+
+    // Update viewer count when someone leaves
+    room.on(
+      LivekitClient.RoomEvent.ParticipantDisconnected,
+      () => {
+        updateViewerCount();
+      }
+    );
+
     await room.connect(
       credentials.serverUrl,
       credentials.participantToken
     );
-room.on(
-  LivekitClient.RoomEvent.DataReceived,
-  (payload, participant) => {
-    try {
-      const data = JSON.parse(
-        new TextDecoder().decode(payload)
+
+    await room.localParticipant.enableCameraAndMicrophone();
+
+    updateViewerCount();
+
+    const video = document.getElementById("previewVideo");
+
+    const publication =
+      room.localParticipant.getTrackPublication(
+        LivekitClient.Track.Source.Camera
       );
 
-      if (data.type === "chat") {
-        addChatMessage(
-          data.name || "Viewer",
-          data.message
-        );
-      }
-    } catch (error) {
-      console.error("Chat message error:", error);
+    if (publication && publication.track && video) {
+      publication.track.attach(video);
     }
+
+    const liveButton =
+      document.getElementById("goLiveButton");
+
+    if (liveButton) {
+      liveButton.innerText = "🔴 LIVE";
+    }
+
+    alert("🔴 EMAN LIVE is now LIVE!");
+
+    console.log("Live room:", roomName);
+
+  } catch (error) {
+    console.error("LiveKit error:", error);
+
+    alert(
+      "LiveKit error: " +
+      (error.message || error)
+    );
   }
-);
+}
     // Let LiveKit open and publish the camera and microphone.
     await room.localParticipant.enableCameraAndMicrophone();
     
@@ -358,4 +412,18 @@ function addChatMessage(name, message) {
     "<b>" + name + ":</b> " + message;
 
   messages.appendChild(p);
+}
+function updateViewerCount() {
+  if (!room) return;
+
+  const count = room.remoteParticipants.size + 1;
+
+  const viewerCount =
+    document.getElementById("viewerCount");
+
+  if (viewerCount) {
+    viewerCount.innerText = count;
+  }
+
+  console.log("Viewer count:", count);
 }
