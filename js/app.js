@@ -203,7 +203,25 @@ async function watchLive() {
     });
 
     const viewerRoom = new LivekitClient.Room();
+viewerRoom.on(
+  LivekitClient.RoomEvent.DataReceived,
+  (payload, participant) => {
+    try {
+      const data = JSON.parse(
+        new TextDecoder().decode(payload)
+      );
 
+      if (data.type === "chat") {
+        addChatMessage(
+          data.name || "User",
+          data.message
+        );
+      }
+    } catch (error) {
+      console.error("Chat receive error:", error);
+    }
+  }
+);
     function showVideo(track) {
       if (!track || track.kind !== LivekitClient.Track.Kind.Video) {
         return;
