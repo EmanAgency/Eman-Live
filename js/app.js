@@ -712,6 +712,23 @@ async function goLive() {
 // FULLSCREEN
 // =========================
 
+async function startLiveFromFullscreen() {
+
+  // If camera is already running,
+  // stop the preview tracks before LiveKit takes over.
+  if (cameraStream) {
+
+    cameraStream
+      .getTracks()
+      .forEach(track => track.stop());
+
+    cameraStream = null;
+  }
+
+  await goLive();
+
+}
+
 function openFullscreenLive() {
 
   const screen =
