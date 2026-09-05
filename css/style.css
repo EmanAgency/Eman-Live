@@ -1,12 +1,14 @@
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
 body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
+  width: 100%;
+  min-height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
   background: #f5f5f7;
   color: #222;
 }
@@ -15,235 +17,158 @@ body {
   padding-bottom: 75px;
 }
 
-header {
-  background: linear-gradient(135deg, #6c2bd9, #e91e63);
-  color: white;
-  padding: 16px;
+/* =========================
+   HEADER
+========================= */
+
+.topHeader {
+  height: 60px;
+  width: 100%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #ddd;
   position: sticky;
   top: 0;
-  z-index: 10;
-  box-shadow: 0 3px 12px rgba(0,0,0,.2);
+  z-index: 100;
 }
 
 .brand {
-  font-size: 25px;
-  font-weight: 800;
-}
-
-.coins {
-  margin-top: 6px;
-  font-size: 15px;
-  font-weight: bold;
-}
-
-main {
-  max-width: 700px;
-  margin: auto;
-  padding: 15px;
-}
-
-.hero {
-  background: linear-gradient(135deg, #fff, #f0e7ff);
-  padding: 25px 18px;
-  border-radius: 20px;
-  margin-bottom: 18px;
-  box-shadow: 0 3px 12px rgba(0,0,0,.08);
-}
-
-.hero h1 {
-  font-size: 32px;
-  margin: 0 0 10px;
-}
-
-.hero p {
-  color: #666;
-  font-size: 16px;
-}
-
-section {
-  margin: 20px 0;
-}
-
-section h2 {
-  font-size: 25px;
-  margin-bottom: 12px;
-}
-
-button {
-  border: 0;
-  border-radius: 12px;
-  padding: 11px 16px;
-  margin: 4px;
-  background: #6c2bd9;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,.15);
-}
-
-button:hover {
-  opacity: .9;
-}
-
-.btn {
-  width: 100%;
-  margin: 6px 0;
-}
-
-.secondary {
-  background: #333;
-}
-
-.tabs {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  margin-bottom: 15px;
-}
-
-.tab {
-  background: white;
-  color: #333;
-  white-space: nowrap;
-}
-
-.tab.active {
-  background: #6c2bd9;
-  color: white;
-}
-
-.panel {
-  background: white;
-  border-radius: 16px;
-  padding: 16px;
-  margin: 10px 0;
-  box-shadow: 0 3px 12px rgba(0,0,0,.08);
-}
-
-.room {
-  background: white;
-  border-radius: 18px;
-  padding: 12px;
-  margin: 12px 0;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  box-shadow: 0 3px 12px rgba(0,0,0,.08);
-}
-
-.thumb {
-  width: 85px;
-  height: 85px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #6c2bd9, #ff4081);
-  color: white;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.info {
-  flex: 1;
-}
-
-.name {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.small {
-  color: #777;
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-.live {
-  display: inline-block;
-  background: #e91e63;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.partyCard {
-  background: linear-gradient(135deg, #ffffff, #f4eaff);
-  border-radius: 18px;
-  padding: 15px;
-  margin: 12px 0;
-  box-shadow: 0 3px 12px rgba(0,0,0,.08);
-}
-
-.miniGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  margin: 10px 0;
-}
-
-.video {
-  background: #222;
-  color: white;
-  min-height: 80px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 20px;
   font-weight: bold;
 }
 
-.partyFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+.brandIcon {
+  font-size: 25px;
 }
 
-.wallet {
-  background: linear-gradient(135deg, #fff7d6, #ffffff);
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 3px 12px rgba(0,0,0,.08);
-}
-
-.gifts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.gift {
-  background: white;
-  color: #333;
-  border: 1px solid #ddd;
+.coinDisplay {
+  background: #fff4c2;
+  border-radius: 20px;
+  padding: 8px 13px;
+  font-weight: bold;
 }
 
 /* =========================
-   BOTTOM NAVIGATION
+   HOME
+========================= */
+
+.home {
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.hero {
+  background: linear-gradient(135deg, #7b2cff, #d84cff);
+  color: white;
+  border-radius: 22px;
+  padding: 40px 20px;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.hero h1 {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+
+.hero p {
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
+.mainLiveButton,
+.primaryButton {
+  border: none;
+  border-radius: 30px;
+  padding: 14px 24px;
+  background: #ffffff;
+  color: #6b20d9;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.mainLiveButton:active,
+.primaryButton:active {
+  transform: scale(.97);
+}
+
+/* =========================
+   LIVE SECTION
+========================= */
+
+.liveSection {
+  background: white;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.sectionTitle {
+  margin-bottom: 15px;
+}
+
+.sectionTitle h2 {
+  font-size: 20px;
+}
+
+.liveList {
+  min-height: 100px;
+}
+
+.emptyLive {
+  text-align: center;
+  color: #888;
+  padding: 30px 10px;
+}
+
+/* =========================
+   BOTTOM NAV
 ========================= */
 
 .bottom {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  bottom: 0;
+  height: 70px;
+  background: #ffffff;
+  border-top: 1px solid #ddd;
   display: flex;
   justify-content: space-around;
-  padding: 8px;
-  box-shadow: 0 -3px 12px rgba(0,0,0,.15);
-  z-index: 20;
+  align-items: center;
+  z-index: 100000;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .bottom button {
   flex: 1;
-  margin: 2px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: #555;
   font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom button span {
+  display: block;
+  margin-top: 3px;
+}
+
+.bottom button.active {
+  color: #7b2cff;
 }
 
 /* =========================
@@ -253,9 +178,12 @@ button:hover {
 .modal {
   display: none;
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.65);
-  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, .75);
+  z-index: 200000;
   align-items: center;
   justify-content: center;
   padding: 15px;
@@ -265,32 +193,244 @@ button:hover {
   display: flex;
 }
 
-.modalbox,
 .modalBox,
 .partyBox {
-  background: white;
   width: 100%;
   max-width: 600px;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow-y: auto;
+  background: #ffffff;
   border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+  padding: 22px;
+  position: relative;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, .35);
+}
+
+.modalBox h2,
+.partyBox h2 {
+  margin-bottom: 10px;
+}
+
+.modalBox p {
+  margin-bottom: 15px;
+  color: #666;
 }
 
 .close {
-  float: right;
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
   background: #eee;
-  color: #333;
+  color: #222;
+  font-size: 26px;
+  line-height: 38px;
+  cursor: pointer;
+  z-index: 10;
+  touch-action: manipulation;
 }
 
-input {
+/* =========================
+   CAMERA PREVIEW
+========================= */
+
+#previewVideo {
+  display: block;
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
+  height: 300px;
+  object-fit: cover;
+  background: #000;
+  border-radius: 15px;
+  margin: 15px 0;
+}
+
+.modalBox .primaryButton {
+  width: 100%;
+  background: #7b2cff;
+  color: white;
+}
+
+/* =========================
+   PARTY ROOM
+========================= */
+
+.partyBox {
+  max-width: 700px;
+}
+
+.partyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 40px;
+  margin-bottom: 15px;
+}
+
+.partyHeader h2 {
+  margin-bottom: 5px;
+}
+
+.small {
+  color: #777;
+  font-size: 13px;
+}
+
+.live {
+  color: #e00000;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.videoGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.partySeat {
+  height: 150px;
+  border-radius: 12px;
+  background: #202020;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.partySeat video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.seatIcon {
+  font-size: 40px;
+}
+
+.partyControls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.partyControls button {
+  min-height: 45px;
+  border: none;
   border-radius: 10px;
-  margin: 6px 0;
-  font-size: 15px;
+  background: #eeeeee;
+  cursor: pointer;
+  font-weight: bold;
+  touch-action: manipulation;
+}
+
+.chat {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.chat b {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.chat p {
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.chatSend {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.chatSend input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 0 14px;
+  outline: none;
+}
+
+.chatSend button {
+  width: 44px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: #7b2cff;
+  color: white;
+  cursor: pointer;
+}
+
+/* =========================
+   WALLET
+========================= */
+
+.walletBox {
+  text-align: center;
+}
+
+.walletBalance {
+  background: #f6f0ff;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.walletBalance span {
+  display: block;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+.walletBalance strong {
+  font-size: 35px;
+}
+
+.walletBox h3 {
+  margin: 15px 0;
+}
+
+.giftGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.giftGrid button {
+  min-height: 80px;
+  border: none;
+  border-radius: 15px;
+  background: #f1f1f1;
+  font-size: 30px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.giftGrid small {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.walletBox .primaryButton {
+  width: 100%;
+  background: #7b2cff;
+  color: white;
 }
 
 /* =========================
@@ -298,143 +438,93 @@ input {
 ========================= */
 
 #liveFullscreen {
-  display: none !important;
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: #000 !important;
-  z-index: 99999 !important;
-  overflow: hidden !important;
-  isolation: isolate !important;
-  pointer-events: none !important;
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 300000;
+  overflow: hidden;
 }
 
 #liveFullscreen.open {
-  display: block !important;
-  pointer-events: auto !important;
+  display: block;
 }
 
-/* CAMERA */
-
 #fullLiveVideo {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  background: #000 !important;
-  z-index: 1 !important;
-  pointer-events: none !important;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  z-index: 1;
 }
 
 /* =========================
-   TOP BAR
+   LIVE TOP BAR
 ========================= */
 
 .liveTopBar {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  padding: 15px !important;
-  padding-top: calc(15px + env(safe-area-inset-top)) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  z-index: 100 !important;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  min-height: 60px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 500;
+  color: white;
   background: linear-gradient(
-    to bottom,
     rgba(0,0,0,.65),
     transparent
   );
 }
 
-.liveHost {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: white;
+.liveTitle {
   font-weight: bold;
+  flex: 1;
 }
 
-.liveBadge {
-  background: #e91e63;
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 12px;
+.viewerCount {
+  font-size: 14px;
 }
 
-.viewerBadge {
-  background: rgba(0,0,0,.55);
+.liveCloseButton {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
   color: white;
-  padding: 7px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-}
-
-.fullClose {
-  width: 42px !important;
-  height: 42px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border-radius: 50% !important;
-  background: rgba(0,0,0,.55) !important;
-  color: white !important;
-  font-size: 22px !important;
-  z-index: 101 !important;
+  font-size: 25px;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 /* =========================
    JOIN NOTIFICATIONS
 ========================= */
 
-.joinOverlay {
-  position: absolute !important;
-  top: 95px !important;
-  left: 12px !important;
-  z-index: 200 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 7px !important;
-  pointer-events: none !important;
+.joinNotifications {
+  position: absolute;
+  left: 12px;
+  top: 75px;
+  width: 220px;
+  z-index: 600;
+  pointer-events: none;
 }
 
 .joinNotice {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  max-width: 270px;
-  background: rgba(0,0,0,.62);
+  background: rgba(0,0,0,.65);
   color: white;
-  border-radius: 22px;
-  padding: 7px 12px 7px 7px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  margin-bottom: 6px;
   font-size: 13px;
-  animation: joinIn .3s ease;
-}
-
-.joinAvatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg,#6c2bd9,#e91e63);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-@keyframes joinIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* =========================
@@ -442,234 +532,212 @@ input {
 ========================= */
 
 .fullChat {
-  position: absolute !important;
-  left: 12px !important;
-  bottom: 100px !important;
-  width: min(75%, 390px) !important;
-  max-height: 260px !important;
-  overflow: hidden !important;
-  z-index: 300 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-end !important;
-  pointer-events: none !important;
-}
-
-#fullChatMessages {
+  position: absolute;
+  left: 10px;
+  right: 70px;
+  bottom: 125px;
+  max-height: 35vh;
   overflow-y: auto;
-  scrollbar-width: none;
-}
-
-#fullChatMessages::-webkit-scrollbar {
-  display: none;
+  z-index: 600;
+  pointer-events: none;
 }
 
 .fullChatMessage {
+  display: table;
+  max-width: 90%;
+  background: rgba(0,0,0,.55);
   color: white;
-  background: rgba(0,0,0,.42);
-  width: fit-content;
-  max-width: 100%;
-  padding: 6px 10px;
+  padding: 7px 10px;
   border-radius: 15px;
-  margin: 3px 0;
+  margin-top: 6px;
   font-size: 13px;
-  word-break: break-word;
 }
-
-.fullChatMessage b {
-  color: white;
-}
-
-/* =========================
-   CHAT INPUT
-========================= */
 
 /* =========================
    CHAT INPUT
 ========================= */
 
 .fullChatInput {
-  position: absolute !important;
-  left: 15px !important;
-  right: 15px !important;
-  bottom: 125px !important;
-  z-index: 400 !important;
-  display: flex !important;
-  gap: 8px !important;
-  pointer-events: auto !important;
+  position: absolute;
+  left: 10px;
+  right: 70px;
+  bottom: 15px;
+  height: 45px;
+  display: flex;
+  gap: 7px;
+  z-index: 1000;
 }
 
 .fullChatInput input {
   flex: 1;
   min-width: 0;
-  height: 48px;
   border: none;
-  border-radius: 24px;
-  padding: 0 18px;
-  font-size: 16px;
   outline: none;
+  border-radius: 23px;
+  padding: 0 15px;
+  background: rgba(255,255,255,.95);
 }
 
 .fullChatInput button {
-  width: 48px;
-  height: 48px;
+  width: 45px;
+  height: 45px;
   border: none;
   border-radius: 50%;
-  font-size: 20px;
+  background: #7b2cff;
+  color: white;
+  font-size: 18px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 /* =========================
-   LIVE CONTROLS - TOUCH FIX
+   LIVE CONTROLS
 ========================= */
 
 .liveControls {
-  position: absolute !important;
-  left: 10px !important;
-  right: 10px !important;
-  bottom: 55px !important;
-
-  z-index: 9999 !important;
-
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-
-  gap: 10px !important;
-
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 65px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  z-index: 1100;
+  pointer-events: auto;
 }
 
 .liveControls button {
-  position: relative !important;
-
-  z-index: 10000 !important;
-
-  min-width: 52px !important;
-  width: auto !important;
-  height: 52px !important;
-
-  margin: 0 !important;
-
-  border: none !important;
-  border-radius: 26px !important;
-
-  font-size: 20px !important;
-
-  cursor: pointer !important;
-
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-
-  -webkit-tap-highlight-color: transparent !important;
+  min-width: 52px;
+  height: 52px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 28px;
+  background: rgba(255,255,255,.9);
+  color: #222;
+  font-size: 19px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .liveControls .endLiveButton {
-  min-width: 95px !important;
-  padding: 0 15px !important;
+  background: #e00000;
+  color: white;
 }
 
 /* =========================
-   GO LIVE BUTTON
-========================= */
-
-/* =========================
-   GO LIVE BUTTON
+   FULLSCREEN GO LIVE
 ========================= */
 
 .fullscreenGoLive {
-  position: absolute !important;
-  left: 50% !important;
-  bottom: 120px !important;
-  transform: translateX(-50%) !important;
-  z-index: 700 !important;
-  pointer-events: auto !important;
+  position: absolute;
+  left: 50%;
+  bottom: 135px;
+  transform: translateX(-50%);
+  z-index: 1050;
 }
 
 .fullscreenGoLive button {
-  background: #e91e63;
+  border: none;
+  border-radius: 25px;
+  padding: 13px 22px;
+  background: #e00000;
   color: white;
-  border-radius: 30px;
-  padding: 14px 30px;
-  font-size: 16px;
-  box-shadow: 0 5px 20px rgba(0,0,0,.4);
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
-#liveFullscreen.isLive .fullscreenGoLive {
-  display: none !important;
-}
 /* =========================
-   FLOATING GIFT BUTTON
+   FLOATING GIFT
 ========================= */
 
 .giftFloating {
-  position: absolute !important;
-  right: 15px !important;
-  bottom: 180px !important;
-  z-index: 500 !important;
-  pointer-events: auto !important;
-}
-
-.giftFloating button {
-  width: 52px !important;
-  height: 52px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border-radius: 50% !important;
-  font-size: 25px !important;
-}
-/* =========================
-   GIFT MODAL ABOVE FULLSCREEN
-========================= */
-
-#giftModal {
-  z-index: 100001 !important;
+  position: absolute;
+  right: 15px;
+  bottom: 180px;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 25px;
+  z-index: 1200;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 /* =========================
    MOBILE
 ========================= */
 
-@media (max-width: 500px) {
+@media (max-width: 600px) {
+
+  .home {
+    padding: 12px;
+  }
+
+  .hero {
+    padding: 30px 15px;
+  }
 
   .hero h1 {
-    font-size: 27px;
+    font-size: 25px;
   }
 
-  .room {
-    padding: 10px;
+  .modal {
+    padding: 8px;
   }
 
-  .thumb {
-    width: 70px;
-    height: 70px;
+  .modalBox,
+  .partyBox {
+    max-height: 95vh;
+    border-radius: 16px;
+    padding: 17px;
   }
 
-  .gifts {
-    grid-template-columns: repeat(2, 1fr);
+  #previewVideo {
+    height: 240px;
+  }
+
+  .partySeat {
+    height: 125px;
+  }
+
+  .partyControls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .giftGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .liveControls {
+    bottom: 65px;
+    gap: 7px;
+  }
+
+  .liveControls button {
+    min-width: 48px;
+    height: 48px;
+    font-size: 17px;
+  }
+
+  .fullChatInput {
+    right: 12px;
+    bottom: 10px;
   }
 
   .fullChat {
-    width: 78% !important;
-    bottom: 100px !important;
+    right: 12px;
+    bottom: 115px;
   }
-}
-/* FINAL MODAL FIX */
 
-.modal {
-  display: none !important;
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 99999 !important;
-  align-items: center !important;
-  justify-content: center !important;
-  pointer-events: none !important;
-}
+  .giftFloating {
+    right: 12px;
+    bottom: 175px;
+  }
 
-.modal.open {
-  display: flex !important;
-  pointer-events: auto !important;
-}
+  }
