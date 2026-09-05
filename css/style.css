@@ -550,10 +550,14 @@ input {
    GO LIVE BUTTON
 ========================= */
 
+/* =========================
+   GO LIVE BUTTON
+========================= */
+
 .fullscreenGoLive {
   position: absolute !important;
   left: 50% !important;
-  bottom: 25px !important;
+  bottom: 120px !important;
   transform: translateX(-50%) !important;
   z-index: 700 !important;
   pointer-events: auto !important;
@@ -571,7 +575,6 @@ input {
 #liveFullscreen.isLive .fullscreenGoLive {
   display: none !important;
 }
-
 /* =========================
    FLOATING GIFT BUTTON
 ========================= */
