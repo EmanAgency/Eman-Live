@@ -1799,7 +1799,8 @@ function toggleLiveMute() {
   const button =
     document.getElementById("liveMuteButton");
 
-  if (button) {
+    if (button) {
+
     button.textContent =
       enabled ? "🔇" : "🎤";
   }
