@@ -1781,6 +1781,10 @@ async function stopLive() {
 // MUTE / UNMUTE MICROPHONE
 // =========================
 
+// =========================
+// MUTE
+// =========================
+
 function toggleLiveMute() {
 
   if (!localAudioTrack) {
@@ -1788,8 +1792,7 @@ function toggleLiveMute() {
     return;
   }
 
-  const enabled =
-    localAudioTrack.isEnabled;
+  const enabled = localAudioTrack.isEnabled;
 
   localAudioTrack.enable(!enabled);
 
@@ -1800,17 +1803,11 @@ function toggleLiveMute() {
     button.textContent =
       enabled ? "🔇" : "🎤";
   }
-
-  console.log(
-    enabled
-      ? "Microphone muted."
-      : "Microphone unmuted."
-  );
 }
 
 
 // =========================
-// CAMERA ON / OFF
+// CAMERA
 // =========================
 
 function toggleLiveCamera() {
@@ -1820,8 +1817,7 @@ function toggleLiveCamera() {
     return;
   }
 
-  const enabled =
-    localVideoTrack.isEnabled;
+  const enabled = localVideoTrack.isEnabled;
 
   localVideoTrack.enable(!enabled);
 
@@ -1830,99 +1826,56 @@ function toggleLiveCamera() {
 
   if (button) {
     button.textContent =
-      enabled ? "📵" : "📹";
+      enabled ? "📹" : "🚫";
   }
-
-  console.log(
-    enabled
-      ? "Camera turned off."
-      : "Camera turned on."
-  );
 }
 
 
 // =========================
-// FRONT / BACK CAMERA
+// FLIP CAMERA
 // =========================
 
 async function flipLiveCamera() {
 
-  if (!room || !room.localParticipant) {
-    alert("You must be LIVE to switch the camera.");
-    return;
-  }
+  facingMode =
+    facingMode === "user"
+      ? "environment"
+      : "user";
 
   try {
 
-    // Change camera
-    facingMode =
-      facingMode === "user"
-        ? "environment"
-        : "user";
+    if (cameraStream) {
 
-    console.log(
-      "Switching camera to:",
-      facingMode
-    );
+      cameraStream
+        .getTracks()
+        .forEach(track => track.stop());
 
-
-    // Turn current camera off
-    await room.localParticipant
-      .setCameraEnabled(false);
-
-
-    // Turn camera back on using the new camera
-    await room.localParticipant
-      .setCameraEnabled(true, {
-        facingMode: facingMode
-      });
-
-
-    // Get the new camera track
-    localVideoTrack =
-      room.localParticipant
-        .getTrackPublication(
-          LivekitClient.Track.Source.Camera
-        )?.track || null;
-
-
-    // Attach new track to fullscreen video
-    const video =
-      document.getElementById(
-        "fullLiveVideo"
-      );
-
-
-    if (
-      localVideoTrack &&
-      video
-    ) {
-
-      localVideoTrack.detach();
-
-      localVideoTrack.attach(video);
-
-      video.muted = true;
-      video.playsInline = true;
-
-      await video.play()
-        .catch(() => {});
+      cameraStream = null;
     }
 
+    await startCamera();
 
-    console.log(
-      "Camera switched successfully."
-    );
+    if (
+      room &&
+      room.localParticipant
+    ) {
+
+      await room.localParticipant
+        .setCameraEnabled(false);
+
+      await room.localParticipant
+        .setCameraEnabled(true);
+    }
 
   } catch (error) {
 
     console.error(
-      "Camera flip error:",
+      "Flip camera error:",
       error
     );
 
     alert(
-      "Could not switch camera: " +
+      "Could not flip camera: " +
       (error.message || error)
     );
   }
@@ -1937,18 +1890,7 @@ async function stopLive() {
 
   try {
 
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track =>
-          track.stop()
-        );
-
-      cameraStream = null;
-    }
-
-
+    // Stop LiveKit room
     if (room) {
 
       room.disconnect();
@@ -1957,34 +1899,31 @@ async function stopLive() {
     }
 
 
+    // Stop viewer room
+    if (viewerRoom) {
+
+      viewerRoom.disconnect();
+
+      viewerRoom = null;
+    }
+
+
+    // Stop camera
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(track => track.stop());
+
+      cameraStream = null;
+    }
+
+
     localVideoTrack = null;
     localAudioTrack = null;
 
 
-    if (databaseRoomId) {
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("live_rooms")
-          .update({
-            is_live: false
-          })
-          .eq(
-            "id",
-            databaseRoomId
-          );
-
-      if (error) {
-        console.error(
-          "Could not end live room:",
-          error
-        );
-      }
-    }
-
-
+    // Stop realtime
     if (realtimeChannel) {
 
       await supabaseClient
@@ -1996,8 +1935,22 @@ async function stopLive() {
     }
 
 
-    databaseRoomId = null;
-    currentRoomName = null;
+    // Close fullscreen
+    closeFullscreenLive();
+
+
+    // Close modal
+    closeModal("liveModal");
+
+
+    const video =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+    if (video) {
+      video.srcObject = null;
+    }
 
 
     const preview =
@@ -2005,25 +1958,10 @@ async function stopLive() {
         "previewVideo"
       );
 
-    const fullVideo =
-      document.getElementById(
-        "fullLiveVideo"
-      );
-
-
     if (preview) {
       preview.srcObject = null;
     }
 
-
-    if (fullVideo) {
-      fullVideo.srcObject = null;
-    }
-
-
-    closeFullscreenLive();
-
-    closeModal("liveModal");
 
     document.body.style.overflow = "";
 
@@ -2032,7 +1970,6 @@ async function stopLive() {
       "🔴 Eman Live has ended."
     );
 
-
   } catch (error) {
 
     console.error(
@@ -2040,9 +1977,5 @@ async function stopLive() {
       error
     );
 
-    alert(
-      "Could not end live: " +
-      (error.message || error)
-    );
   }
 }
