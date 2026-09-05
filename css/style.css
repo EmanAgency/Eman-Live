@@ -223,6 +223,10 @@ button:hover {
   border: 1px solid #ddd;
 }
 
+/* =========================
+   BOTTOM NAVIGATION
+========================= */
+
 .bottom {
   position: fixed;
   bottom: 0;
@@ -241,6 +245,10 @@ button:hover {
   margin: 2px;
   font-size: 12px;
 }
+
+/* =========================
+   MODALS
+========================= */
 
 .modal {
   display: none;
@@ -290,7 +298,7 @@ input {
 ========================= */
 
 #liveFullscreen {
-  display: none;
+  display: none !important;
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
@@ -298,36 +306,43 @@ input {
   background: #000 !important;
   z-index: 99999 !important;
   overflow: hidden !important;
+  isolation: isolate !important;
+  pointer-events: none !important;
 }
 
 #liveFullscreen.open {
   display: block !important;
+  pointer-events: auto !important;
 }
 
-#liveFullscreen.open {
-  display: block;
-}
+/* CAMERA */
 
 #fullLiveVideo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: #000;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background: #000 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
 }
 
+/* =========================
+   TOP BAR
+========================= */
+
 .liveTopBar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 15px;
-  padding-top: calc(15px + env(safe-area-inset-top));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 10;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  padding: 15px !important;
+  padding-top: calc(15px + env(safe-area-inset-top)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  z-index: 100 !important;
   background: linear-gradient(
     to bottom,
     rgba(0,0,0,.65),
@@ -359,94 +374,30 @@ input {
 }
 
 .fullClose {
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  margin: 0;
-  border-radius: 50%;
-
-  /* Eman Live fullscreen touch fix */
-
-#liveFullscreen:not(.open) {
-  display: none !important;
-  pointer-events: none !important;
+  width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(0,0,0,.55) !important;
+  color: white !important;
+  font-size: 22px !important;
+  z-index: 101 !important;
 }
 
-#liveFullscreen.open {
-  display: block !important;
-  pointer-events: auto !important;
-}
-
-#fullLiveVideo {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  z-index: 1 !important;
-  pointer-events: none !important;
-}
-
-.liveTopBar,
-.joinOverlay,
-.fullChat,
-.fullChatInput,
-.giftFloating,
-.liveControls,
-.fullscreenGoLive {
-  position: absolute !important;
-}
-
-.liveTopBar {
-  z-index: 100 !important;
-}
+/* =========================
+   JOIN NOTIFICATIONS
+========================= */
 
 .joinOverlay {
+  position: absolute !important;
+  top: 95px !important;
+  left: 12px !important;
   z-index: 200 !important;
-}
-
-.fullChat {
-  z-index: 300 !important;
-  pointer-events: auto !important;
-}
-
-.fullChatInput {
-  z-index: 400 !important;
-  pointer-events: auto !important;
-}
-
-.giftFloating {
-  z-index: 500 !important;
-  pointer-events: auto !important;
-}
-
-.liveControls {
-  z-index: 600 !important;
-  pointer-events: auto !important;
-}
-
-.fullscreenGoLive {
-  z-index: 700 !important;
-  pointer-events: auto !important;
-}
-
-/* Gift window must appear above fullscreen */
-#giftModal {
-  z-index: 100001 !important;
-  }
-  background: rgba(0,0,0,.55);
-  font-size: 22px;
-}
-
-.joinOverlay {
-  position: absolute;
-  top: 95px;
-  left: 12px;
-  z-index: 15;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  pointer-events: none;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+  pointer-events: none !important;
 }
 
 .joinNotice {
@@ -479,24 +430,29 @@ input {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
 
+/* =========================
+   FULLSCREEN CHAT
+========================= */
+
 .fullChat {
-  position: absolute;
-  left: 12px;
-  bottom: 100px;
-  width: min(75%, 390px);
-  max-height: 260px;
-  overflow: hidden;
-  z-index: 12;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  pointer-events: none;
+  position: absolute !important;
+  left: 12px !important;
+  bottom: 100px !important;
+  width: min(75%, 390px) !important;
+  max-height: 260px !important;
+  overflow: hidden !important;
+  z-index: 300 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  pointer-events: none !important;
 }
 
 #fullChatMessages {
@@ -521,17 +477,22 @@ input {
 }
 
 .fullChatMessage b {
-  color: #fff;
+  color: white;
 }
 
+/* =========================
+   CHAT INPUT
+========================= */
+
 .fullChatInput {
-  position: absolute;
-  left: 12px;
-  right: 75px;
-  bottom: 25px;
-  z-index: 20;
-  display: flex;
-  gap: 5px;
+  position: absolute !important;
+  left: 12px !important;
+  right: 75px !important;
+  bottom: 25px !important;
+  z-index: 400 !important;
+  display: flex !important;
+  gap: 5px !important;
+  pointer-events: auto !important;
 }
 
 .fullChatInput input {
@@ -555,11 +516,16 @@ input {
   border-radius: 50%;
 }
 
+/* =========================
+   GIFT BUTTON
+========================= */
+
 .giftFloating {
-  position: absolute;
-  right: 15px;
-  bottom: 90px;
-  z-index: 20;
+  position: absolute !important;
+  right: 15px !important;
+  bottom: 90px !important;
+  z-index: 500 !important;
+  pointer-events: auto !important;
 }
 
 .giftFloating button {
@@ -573,13 +539,18 @@ input {
   box-shadow: 0 5px 20px rgba(0,0,0,.35);
 }
 
+/* =========================
+   LIVE CONTROLS
+========================= */
+
 .liveControls {
-  position: absolute;
-  right: 15px;
-  bottom: 20px;
-  z-index: 20;
-  display: flex;
-  gap: 7px;
+  position: absolute !important;
+  right: 15px !important;
+  bottom: 20px !important;
+  z-index: 600 !important;
+  display: flex !important;
+  gap: 7px !important;
+  pointer-events: auto !important;
 }
 
 .liveControls button {
@@ -599,6 +570,44 @@ input {
   border-radius: 22px;
   font-size: 12px;
 }
+
+/* =========================
+   GO LIVE BUTTON
+========================= */
+
+.fullscreenGoLive {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: 25px !important;
+  transform: translateX(-50%) !important;
+  z-index: 700 !important;
+  pointer-events: auto !important;
+}
+
+.fullscreenGoLive button {
+  background: #e91e63;
+  color: white;
+  border-radius: 30px;
+  padding: 14px 30px;
+  font-size: 16px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.4);
+}
+
+#liveFullscreen.isLive .fullscreenGoLive {
+  display: none !important;
+}
+
+/* =========================
+   GIFT MODAL ABOVE FULLSCREEN
+========================= */
+
+#giftModal {
+  z-index: 100001 !important;
+}
+
+/* =========================
+   MOBILE
+========================= */
 
 @media (max-width: 500px) {
 
@@ -620,83 +629,7 @@ input {
   }
 
   .fullChat {
-    width: 78%;
-    bottom: 100px;
+    width: 78% !important;
+    bottom: 100px !important;
   }
-  }
-
-/* =========================
-   FULLSCREEN FIX
-========================= */
-
-#liveFullscreen {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 99999 !important;
-  background: #000 !important;
-  overflow: hidden !important;
-}
-
-#liveFullscreen.open {
-  display: block !important;
-}
-
-#fullLiveVideo {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  z-index: 1 !important;
-}
-
-/* EVERYTHING ABOVE CAMERA */
-
-.liveTopBar {
-  z-index: 100 !important;
-}
-
-.joinOverlay {
-  z-index: 200 !important;
-}
-
-.fullChat {
-  z-index: 200 !important;
-}
-
-.fullChatInput {
-  z-index: 300 !important;
-}
-
-.giftFloating {
-  z-index: 400 !important;
-}
-
-.liveControls {
-  z-index: 400 !important;
-}
-
-.fullscreenGoLive {
-  position: absolute;
-  left: 50%;
-  bottom: 25px;
-  transform: translateX(-50%);
-  z-index: 500;
-}
-
-.fullscreenGoLive button {
-  background: #e91e63;
-  color: white;
-  border-radius: 30px;
-  padding: 14px 30px;
-  font-size: 16px;
-  box-shadow: 0 5px 20px rgba(0,0,0,.4);
-}
-
-/* Hide GO LIVE after the stream starts */
-
-#liveFullscreen.isLive .fullscreenGoLive {
-  display: none;
 }
