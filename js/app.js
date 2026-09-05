@@ -11,12 +11,15 @@ const supabaseClient = window.supabase.createClient(
 let currentRoomName = null;
 let room = null;
 let viewerRoom = null;
+
 let localVideoTrack = null;
 let localAudioTrack = null;
 let cameraStream = null;
 
 let databaseRoomId = null;
 let realtimeChannel = null;
+
+let facingMode = "user";
 
 
 // =========================
@@ -106,6 +109,12 @@ function gift(name, cost) {
 }
 
 
+function openGiftsFromLive() {
+
+  openGifts();
+}
+
+
 // =========================
 // CAMERA PREVIEW
 // =========================
@@ -114,14 +123,44 @@ async function startCamera() {
 
   try {
 
+    if (
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia
+    ) {
+
+      alert(
+        "Your browser does not support camera access."
+      );
+
+      return;
+    }
+
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(track => track.stop());
+    }
+
+
     cameraStream =
       await navigator.mediaDevices.getUserMedia({
-        video: true,
+
+        video: {
+          facingMode: facingMode
+        },
+
         audio: true
+
       });
 
+
     const video =
-      document.getElementById("previewVideo");
+      document.getElementById(
+        "previewVideo"
+      );
+
 
     if (video) {
 
@@ -131,8 +170,10 @@ async function startCamera() {
       video.muted = true;
       video.playsInline = true;
 
-      await video.play();
+      await video.play()
+        .catch(() => {});
     }
+
 
     console.log(
       "Camera and microphone ready."
@@ -151,71 +192,75 @@ async function startCamera() {
 
 
 // =========================
-// GET / CREATE DATABASE ROOM
+// DATABASE ROOM
 // =========================
 
 async function getOrCreateDatabaseRoom(
   hostName = "Eman Host"
 ) {
 
-  try {
-
-    // Look for existing live room
-    const { data: existingRoom, error: findError } =
-      await supabaseClient
-        .from("live_rooms")
-        .select("*")
-        .eq("is_live", true)
-        .eq("title", "Live Stream")
-        .order("created_at", {
-          ascending: false
-        })
-        .limit(1)
-        .maybeSingle();
-
-    if (findError) {
-      throw findError;
-    }
-
-    if (existingRoom) {
-
-      databaseRoomId =
-        existingRoom.id;
-
-      return existingRoom;
-    }
+  const {
+    data: existingRoom,
+    error: findError
+  } =
+    await supabaseClient
+      .from("live_rooms")
+      .select("*")
+      .eq("is_live", true)
+      .eq("title", "Live Stream")
+      .order("created_at", {
+        ascending: false
+      })
+      .limit(1)
+      .maybeSingle();
 
 
-    // Create a new room
-    const { data: newRoom, error: createError } =
-      await supabaseClient
-        .from("live_rooms")
-        .insert({
-          host_name: hostName,
-          title: "Live Stream",
-          is_live: true
-        })
-        .select()
-        .single();
+  if (findError) {
+    throw findError;
+  }
 
-    if (createError) {
-      throw createError;
-    }
+
+  if (existingRoom) {
 
     databaseRoomId =
-      newRoom.id;
+      existingRoom.id;
 
-    return newRoom;
-
-  } catch (error) {
-
-    console.error(
-      "Database room error:",
-      error
-    );
-
-    throw error;
+    return existingRoom;
   }
+
+
+  const {
+    data: newRoom,
+    error: createError
+  } =
+    await supabaseClient
+      .from("live_rooms")
+      .insert({
+
+        host_name:
+          hostName,
+
+        title:
+          "Live Stream",
+
+        is_live:
+          true
+
+      })
+      .select()
+      .single();
+
+
+  if (createError) {
+    throw createError;
+  }
+
+
+  databaseRoomId =
+    newRoom.id;
+
+
+  return newRoom;
 }
 
 
@@ -241,7 +286,6 @@ function subscribeToLive(roomId) {
         "eman-live-" + roomId
       )
 
-      // New chat / join / leave events
       .on(
         "postgres_changes",
         {
@@ -251,6 +295,7 @@ function subscribeToLive(roomId) {
           filter:
             "room_id=eq." + roomId
         },
+
         payload => {
 
           const data =
@@ -259,6 +304,7 @@ function subscribeToLive(roomId) {
           if (!data) return;
 
 
+          // USER JOINED
           if (
             data.event_type ===
             "join"
@@ -270,10 +316,17 @@ function subscribeToLive(roomId) {
               " joined the live"
             );
 
+
+            showJoinNotification(
+              data.user_name
+            );
+
+
             return;
           }
 
 
+          // USER LEFT
           if (
             data.event_type ===
             "leave"
@@ -285,10 +338,12 @@ function subscribeToLive(roomId) {
               " left the live"
             );
 
+
             return;
           }
 
 
+          // CHAT
           if (
             data.event_type ===
             "message"
@@ -299,6 +354,7 @@ function subscribeToLive(roomId) {
               data.message,
               false
             );
+
           }
 
         }
@@ -316,7 +372,7 @@ function subscribeToLive(roomId) {
 
 
 // =========================
-// SEND DATABASE EVENT
+// SEND EVENT
 // =========================
 
 async function sendLiveEvent(
@@ -328,15 +384,27 @@ async function sendLiveEvent(
 
   try {
 
-    const { error } =
+    const {
+      error
+    } =
       await supabaseClient
         .from("live_messages")
         .insert({
-          room_id: roomId,
-          user_name: userName,
-          message: message,
-          event_type: eventType
+
+          room_id:
+            roomId,
+
+          user_name:
+            userName,
+
+          message:
+            message,
+
+          event_type:
+            eventType
+
         });
+
 
     if (error) {
       throw error;
@@ -374,20 +442,23 @@ async function goLive() {
       "Eman Host";
 
 
-    // Create database room
+    // DATABASE ROOM
     const dbRoom =
       await getOrCreateDatabaseRoom(
         hostName
       );
 
 
-    // Start Supabase realtime
+    databaseRoomId =
+      dbRoom.id;
+
+
     subscribeToLive(
-      dbRoom.id
+      databaseRoomId
     );
 
 
-    // Stop preview camera
+    // STOP PREVIEW
     if (cameraStream) {
 
       cameraStream
@@ -396,7 +467,8 @@ async function goLive() {
           track.stop()
         );
 
-      cameraStream = null;
+      cameraStream =
+        null;
     }
 
 
@@ -409,6 +481,7 @@ async function goLive() {
 
     const roomName =
       "eman-live-main";
+
 
     currentRoomName =
       roomName;
@@ -430,9 +503,10 @@ async function goLive() {
       new LivekitClient.Room();
 
 
-    // Viewer joins/leaves
+    // PARTICIPANT JOIN
     room.on(
       LivekitClient.RoomEvent.ParticipantConnected,
+
       participant => {
 
         console.log(
@@ -440,13 +514,17 @@ async function goLive() {
           participant.identity
         );
 
+
         updateViewerCount();
+
       }
     );
 
 
+    // PARTICIPANT LEAVE
     room.on(
       LivekitClient.RoomEvent.ParticipantDisconnected,
+
       participant => {
 
         console.log(
@@ -454,7 +532,9 @@ async function goLive() {
           participant.identity
         );
 
+
         updateViewerCount();
+
       }
     );
 
@@ -465,41 +545,74 @@ async function goLive() {
     );
 
 
-    // Camera + microphone
+    // CAMERA + MICROPHONE
     await room.localParticipant
       .enableCameraAndMicrophone();
 
 
-    // Show host camera
+    localVideoTrack =
+      room.localParticipant
+        .getTrackPublication(
+          LivekitClient.Track.Source.Camera
+        )?.track || null;
+
+
+    localAudioTrack =
+      room.localParticipant
+        .getTrackPublication(
+          LivekitClient.Track.Source.Microphone
+        )?.track || null;
+
+
+    // FULLSCREEN VIDEO
     const video =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+
+    if (
+      localVideoTrack &&
+      video
+    ) {
+
+      localVideoTrack.attach(
+        video
+      );
+
+      video.muted =
+        true;
+
+      video.playsInline =
+        true;
+
+      await video.play()
+        .catch(() => {});
+    }
+
+
+    // OLD PREVIEW
+    const preview =
       document.getElementById(
         "previewVideo"
       );
 
 
-    const publication =
-      room.localParticipant
-        .getTrackPublication(
-          LivekitClient.Track.Source.Camera
-        );
-
-
     if (
-      publication &&
-      publication.track &&
-      video
+      localVideoTrack &&
+      preview
     ) {
 
-      publication.track.attach(
-        video
+      localVideoTrack.attach(
+        preview
       );
 
-      video.muted = true;
-      video.playsInline = true;
+      preview.muted =
+        true;
 
-      await video
-        .play()
-        .catch(() => {});
+      preview.playsInline =
+        true;
+
     }
 
 
@@ -516,7 +629,18 @@ async function goLive() {
 
       liveButton.innerText =
         "🔴 LIVE";
+
     }
+
+
+    // CLOSE GO LIVE MODAL
+    closeModal(
+      "liveModal"
+    );
+
+
+    // OPEN FULLSCREEN
+    openFullscreenLive();
 
 
     alert(
@@ -524,17 +648,13 @@ async function goLive() {
     );
 
 
-    console.log(
-      "Eman Live room:",
-      roomName
-    );
-
   } catch (error) {
 
     console.error(
       "LiveKit error:",
       error
     );
+
 
     alert(
       "LiveKit error: " +
@@ -545,17 +665,153 @@ async function goLive() {
 
 
 // =========================
+// FULLSCREEN
+// =========================
+
+function openFullscreenLive() {
+
+  const screen =
+    document.getElementById(
+      "liveFullscreen"
+    );
+
+
+  if (!screen) return;
+
+
+  screen.classList.add(
+    "open"
+  );
+
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function closeFullscreenLive() {
+
+  const screen =
+    document.getElementById(
+      "liveFullscreen"
+    );
+
+
+  if (screen) {
+
+    screen.classList.remove(
+      "open"
+    );
+
+  }
+
+
+  document.body.style.overflow =
+    "";
+}
+
+
+// =========================
+// JOIN NOTIFICATION
+// =========================
+
+function showJoinNotification(
+  userName
+) {
+
+  const container =
+    document.getElementById(
+      "joinOverlay"
+    );
+
+
+  if (!container) return;
+
+
+  const notice =
+    document.createElement(
+      "div"
+    );
+
+
+  notice.className =
+    "joinNotice";
+
+
+  const avatar =
+    document.createElement(
+      "span"
+    );
+
+
+  avatar.className =
+    "joinAvatar";
+
+
+  avatar.textContent =
+    userName
+      .charAt(0)
+      .toUpperCase();
+
+
+  const text =
+    document.createElement(
+      "span"
+    );
+
+
+  text.textContent =
+    userName +
+    " joined the live";
+
+
+  notice.appendChild(
+    avatar
+  );
+
+
+  notice.appendChild(
+    text
+  );
+
+
+  container.appendChild(
+    notice
+  );
+
+
+  setTimeout(() => {
+
+    notice.remove();
+
+  }, 5000);
+}
+
+
+// =========================
 // VIEWER COUNT
 // =========================
 
 function updateViewerCount() {
 
-  if (!room) return;
+  let count = 1;
 
 
-  const count =
-    room.remoteParticipants.size +
-    1;
+  if (room) {
+
+    count =
+      room.remoteParticipants.size +
+      1;
+
+  }
+
+
+  if (viewerRoom) {
+
+    count =
+      viewerRoom.remoteParticipants.size;
+
+  }
 
 
   const viewerCount =
@@ -564,17 +820,26 @@ function updateViewerCount() {
     );
 
 
+  const fullViewerCount =
+    document.getElementById(
+      "fullViewerCount"
+    );
+
+
   if (viewerCount) {
 
     viewerCount.innerText =
       count;
+
   }
 
 
-  console.log(
-    "Viewer count:",
-    count
-  );
+  if (fullViewerCount) {
+
+    fullViewerCount.innerText =
+      count;
+
+  }
 }
 
 
@@ -596,8 +861,10 @@ async function watchLive() {
     }
 
 
-    // Find current live room
-    const { data: liveRoom, error } =
+    const {
+      data: liveRoom,
+      error
+    } =
       await supabaseClient
         .from("live_rooms")
         .select("*")
@@ -632,27 +899,39 @@ async function watchLive() {
       getUserName();
 
 
-    // Subscribe BEFORE announcing join
     subscribeToLive(
       databaseRoomId
     );
 
 
-    // Add participant
-    await supabaseClient
-      .from("live_participants")
-      .insert({
+    // REGISTER VIEWER
+    const {
+      error: participantError
+    } =
+      await supabaseClient
+        .from("live_participants")
+        .insert({
 
-        room_id:
-          databaseRoomId,
+          room_id:
+            databaseRoomId,
 
-        user_name:
-          userName
+          user_name:
+            userName
 
-      });
+        });
 
 
-    // Announce join
+    if (participantError) {
+
+      console.error(
+        "Participant error:",
+        participantError
+      );
+
+    }
+
+
+    // JOIN EVENT
     await sendLiveEvent(
       databaseRoomId,
       userName,
@@ -684,9 +963,10 @@ async function watchLive() {
       new LivekitClient.Room();
 
 
-    // Receive host video
+    // HOST VIDEO
     viewerRoom.on(
       LivekitClient.RoomEvent.TrackSubscribed,
+
       (
         track,
         publication,
@@ -701,20 +981,39 @@ async function watchLive() {
           showViewerVideo(
             track
           );
+
         }
+
       }
     );
 
 
-    // Viewer connected
+    // PARTICIPANT JOIN
     viewerRoom.on(
       LivekitClient.RoomEvent.ParticipantConnected,
+
       participant => {
 
         console.log(
           "Connected:",
           participant.identity
         );
+
+
+        updateViewerCount();
+
+      }
+    );
+
+
+    // PARTICIPANT LEAVE
+    viewerRoom.on(
+      LivekitClient.RoomEvent.ParticipantDisconnected,
+
+      participant => {
+
+        updateViewerCount();
+
       }
     );
 
@@ -725,26 +1024,37 @@ async function watchLive() {
     );
 
 
-    // Existing host tracks
-    viewerRoom.remoteParticipants.forEach(
-      participant => {
+    // EXISTING TRACKS
+    viewerRoom.remoteParticipants
+      .forEach(
+        participant => {
 
-        participant.trackPublications
-          .forEach(
-            publication => {
+          participant.trackPublications
+            .forEach(
+              publication => {
 
-              if (
-                publication.track
-              ) {
-
-                showViewerVideo(
+                if (
                   publication.track
-                );
+                ) {
+
+                  showViewerVideo(
+                    publication.track
+                  );
+
+                }
+
               }
-            }
-          );
-      }
-    );
+            );
+
+        }
+      );
+
+
+    updateViewerCount();
+
+
+    // FULLSCREEN
+    openFullscreenLive();
 
 
     alert(
@@ -759,10 +1069,12 @@ async function watchLive() {
       error
     );
 
+
     alert(
       "Viewer error: " +
       (error.message || error)
     );
+
   }
 }
 
@@ -788,48 +1100,72 @@ function showViewerVideo(track) {
     );
 
 
-  if (!rooms) return;
-
-
-  rooms.innerHTML = "";
-
-
   const video =
-    document.createElement(
-      "video"
+    document.getElementById(
+      "fullLiveVideo"
     );
 
 
-  video.autoplay = true;
-  video.playsInline = true;
-  video.controls = false;
+  if (video) {
+
+    video.muted =
+      true;
+
+    video.playsInline =
+      true;
 
 
-  video.style.width =
-    "100%";
-
-  video.style.maxWidth =
-    "600px";
-
-  video.style.borderRadius =
-    "15px";
-
-  video.style.background =
-    "#000";
+    track.attach(
+      video
+    );
 
 
-  track.attach(
-    video
-  );
+    video.play()
+      .catch(() => {});
+
+  }
 
 
-  rooms.appendChild(
-    video
-  );
+  if (rooms) {
+
+    rooms.innerHTML = "";
 
 
-  video.play()
-    .catch(() => {});
+    const smallVideo =
+      document.createElement(
+        "video"
+      );
+
+
+    smallVideo.autoplay =
+      true;
+
+    smallVideo.playsInline =
+      true;
+
+    smallVideo.controls =
+      false;
+
+    smallVideo.style.width =
+      "100%";
+
+    smallVideo.style.borderRadius =
+      "15px";
+
+    smallVideo.style.background =
+      "#000";
+
+
+    track.attach(
+      smallVideo
+    );
+
+
+    rooms.appendChild(
+      smallVideo
+    );
+
+  }
 
 
   console.log(
@@ -842,35 +1178,24 @@ function showViewerVideo(track) {
 // CHAT
 // =========================
 
-async function sendLiveChat() {
+async function sendLiveChat(
+  inputId = "chatInput"
+) {
 
   const input =
     document.getElementById(
-      "chatInput"
+      inputId
     );
 
 
-  const messages =
-    document.getElementById(
-      "chatMessages"
-    );
-
-
-  if (
-    !input ||
-    !messages
-  ) {
-    return;
-  }
+  if (!input) return;
 
 
   const message =
     input.value.trim();
 
 
-  if (!message) {
-    return;
-  }
+  if (!message) return;
 
 
   if (!databaseRoomId) {
@@ -880,6 +1205,7 @@ async function sendLiveChat() {
     );
 
     return;
+
   }
 
 
@@ -889,7 +1215,9 @@ async function sendLiveChat() {
 
   try {
 
-    const { error } =
+    const {
+      error
+    } =
       await supabaseClient
         .from("live_messages")
         .insert({
@@ -914,8 +1242,8 @@ async function sendLiveChat() {
     }
 
 
-    input.value = "";
-
+    input.value =
+      "";
 
   } catch (error) {
 
@@ -924,16 +1252,18 @@ async function sendLiveChat() {
       error
     );
 
+
     alert(
       "Could not send message: " +
       error.message
     );
+
   }
 }
 
 
 // =========================
-// DISPLAY CHAT MESSAGE
+// DISPLAY CHAT
 // =========================
 
 function addChatMessage(
@@ -942,34 +1272,104 @@ function addChatMessage(
   mine = false
 ) {
 
+  // NORMAL CHAT
   const messages =
     document.getElementById(
       "chatMessages"
     );
 
 
-  if (!messages) return;
+  if (messages) {
+
+    const p =
+      document.createElement(
+        "p"
+      );
 
 
-  const p =
-    document.createElement(
-      "p"
+    const bold =
+      document.createElement(
+        "b"
+      );
+
+
+    bold.textContent =
+      name + ":";
+
+
+    p.appendChild(
+      bold
     );
 
 
-  p.textContent =
-    name +
-    ": " +
-    message;
+    p.appendChild(
+      document.createTextNode(
+        " " + message
+      )
+    );
 
 
-  messages.appendChild(
-    p
-  );
+    messages.appendChild(
+      p
+    );
 
 
-  messages.scrollTop =
-    messages.scrollHeight;
+    messages.scrollTop =
+      messages.scrollHeight;
+
+  }
+
+
+  // FULLSCREEN CHAT
+  const fullMessages =
+    document.getElementById(
+      "fullChatMessages"
+    );
+
+
+  if (fullMessages) {
+
+    const div =
+      document.createElement(
+        "div"
+      );
+
+
+    div.className =
+      "fullChatMessage";
+
+
+    const bold =
+      document.createElement(
+        "b"
+      );
+
+
+    bold.textContent =
+      name + ":";
+
+
+    div.appendChild(
+      bold
+    );
+
+
+    div.appendChild(
+      document.createTextNode(
+        " " + message
+      )
+    );
+
+
+    fullMessages.appendChild(
+      div
+    );
+
+
+    fullMessages.scrollTop =
+      fullMessages.scrollHeight;
+
+  }
 }
 
 
@@ -987,157 +1387,174 @@ function addSystemMessage(
     );
 
 
-  if (!messages) return;
+  if (messages) {
+
+    const p =
+      document.createElement(
+        "p"
+      );
 
 
-  const p =
-    document.createElement(
-      "p"
+    p.textContent =
+      message;
+
+
+    messages.appendChild(
+      p
     );
 
 
-  p.textContent =
-    message;
+    messages.scrollTop =
+      messages.scrollHeight;
+
+  }
+}
 
 
-  messages.appendChild(
-    p
+// =========================
+// OLD CHAT BUTTON
+// =========================
+
+function sendChatMessage() {
+
+  sendLiveChat(
+    "chatInput"
+  );
+
+}
+
+
+// =========================
+// MUTE
+// =========================
+
+function toggleLiveMute() {
+
+  if (!localAudioTrack) {
+
+    alert(
+      "Microphone is not available."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    localAudioTrack.isEnabled;
+
+
+  localAudioTrack.enable(
+    !enabled
   );
 
 
-  messages.scrollTop =
-    messages.scrollHeight;
-}
+  const button =
+    document.getElementById(
+      "liveMuteButton"
+    );
 
 
-// Compatibility with old button
-function sendChatMessage() {
-  sendLiveChat();
+  if (button) {
+
+    button.textContent =
+      enabled
+        ? "🔇"
+        : "🎤";
+
+  }
 }
 
 
 // =========================
-// END LIVE
+// CAMERA ON/OFF
 // =========================
 
-async function stopLive() {
+function toggleLiveCamera() {
+
+  if (!localVideoTrack) {
+
+    alert(
+      "Camera is not available."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    localVideoTrack.isEnabled;
+
+
+  localVideoTrack.enable(
+    !enabled
+  );
+
+
+  const button =
+    document.getElementById(
+      "liveCameraButton"
+    );
+
+
+  if (button) {
+
+    button.textContent =
+      enabled
+        ? "🚫"
+        : "📹";
+
+  }
+}
+
+
+// =========================
+// FLIP CAMERA
+// =========================
+
+async function flipLiveCamera() {
+
+  facingMode =
+    facingMode === "user"
+      ? "environment"
+      : "user";
+
 
   try {
 
-    // Tell viewers host stopped
-    if (databaseRoomId) {
+    if (!room) {
 
-      await sendLiveEvent(
-        databaseRoomId,
-        "Eman Host",
-        "leave",
-        "ended the live"
+      await startCamera();
+
+      return;
+
+    }
+
+
+    await room.localParticipant
+      .setCameraEnabled(
+        false
       );
 
 
-      await supabaseClient
-        .from("live_rooms")
-        .update({
-          is_live: false
-        })
-        .eq(
-          "id",
-          databaseRoomId
-        );
-    }
+    await room.localParticipant
+      .setCameraEnabled(
+        true,
+        {
+          facingMode:
+            facingMode
+        }
+      );
 
 
-    if (room) {
-
-      await room.disconnect();
-
-      room = null;
-    }
-
-
-    if (viewerRoom) {
-
-      await viewerRoom.disconnect();
-
-      viewerRoom = null;
-    }
-
-
-    if (localVideoTrack) {
-
-      localVideoTrack.stop();
-
-      localVideoTrack = null;
-    }
-
-
-    if (localAudioTrack) {
-
-      localAudioTrack.stop();
-
-      localAudioTrack = null;
-    }
-
-
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track =>
-          track.stop()
-        );
-
-      cameraStream = null;
-    }
-
-
-    if (realtimeChannel) {
-
-      await supabaseClient
-        .removeChannel(
-          realtimeChannel
-        );
-
-      realtimeChannel = null;
-    }
+    localVideoTrack =
+      room.localParticipant
+        .getTrackPublication(
+          LivekitClient.Track.Source.Camera
+        )?.track || null;
 
 
     const video =
-      document.getElementById(
-        "previewVideo"
-      );
-
-
-    if (video) {
-
-      video.srcObject =
-        null;
-    }
-
-
-    const liveButton =
-      document.getElementById(
-        "goLiveButton"
-      );
-
-
-    if (liveButton) {
-
-      liveButton.innerText =
-        "🔴 GO LIVE";
-    }
-
-
-    alert(
-      "Live stream ended."
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "End live error:",
-      error
-    );
-  }
-}
+      doc
