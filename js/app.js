@@ -117,13 +117,14 @@ function closeModal(id) {
 
 
 function openParty() {
+  const modal = document.getElementById("partyModal");
 
-  const modal =
-    document.getElementById("partyModal");
-
-  if (modal) {
-    modal.classList.add("open");
+  if (!modal) {
+    alert("Party modal was not found.");
+    return;
   }
+
+  modal.classList.add("open");
 }
 
 
