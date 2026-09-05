@@ -1506,38 +1506,28 @@ function toggleLiveMute() {
     );
 
     return;
-
   }
-
 
   const enabled =
     localAudioTrack.isEnabled;
 
-
-  localAudioTrack.enable(
-    !enabled
-  );
-
+  localAudioTrack.enable(!enabled);
 
   const button =
     document.getElementById(
       "liveMuteButton"
     );
 
-
   if (button) {
 
     button.textContent =
-      enabled
-        ? "🔇"
-        : "🎤";
-
+      enabled ? "🔇" : "🎤";
   }
 }
 
 
 // =========================
-// CAMERA ON/OFF
+// CAMERA ON / OFF
 // =========================
 
 function toggleLiveCamera() {
@@ -1549,32 +1539,22 @@ function toggleLiveCamera() {
     );
 
     return;
-
   }
-
 
   const enabled =
     localVideoTrack.isEnabled;
 
-
-  localVideoTrack.enable(
-    !enabled
-  );
-
+  localVideoTrack.enable(!enabled);
 
   const button =
     document.getElementById(
       "liveCameraButton"
     );
 
-
   if (button) {
 
     button.textContent =
-      enabled
-        ? "🚫"
-        : "📹";
-
+      enabled ? "📵" : "📹";
   }
 }
 
@@ -1590,40 +1570,237 @@ async function flipLiveCamera() {
       ? "environment"
       : "user";
 
+  try {
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(track =>
+          track.stop()
+        );
+
+      cameraStream = null;
+    }
+
+    // If already LIVE, switch LiveKit camera
+    if (
+      room &&
+      room.localParticipant
+    ) {
+
+      await room.localParticipant
+        .setCameraEnabled(false);
+
+      await room.localParticipant
+        .setCameraEnabled(true, {
+          facingMode: facingMode
+        });
+
+      localVideoTrack =
+        room.localParticipant
+          .getTrackPublication(
+            LivekitClient.Track.Source.Camera
+          )?.track || null;
+
+      const video =
+        document.getElementById(
+          "fullLiveVideo"
+        );
+
+      if (
+        localVideoTrack &&
+        video
+      ) {
+
+        localVideoTrack.detach();
+
+        localVideoTrack.attach(video);
+
+        video.muted = true;
+        video.playsInline = true;
+
+        await video.play()
+          .catch(() => {});
+      }
+
+      return;
+    }
+
+    // Otherwise restart preview camera
+    await startCamera();
+
+    const preview =
+      document.getElementById(
+        "previewVideo"
+      );
+
+    const fullVideo =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+    if (
+      cameraStream &&
+      fullVideo
+    ) {
+
+      fullVideo.srcObject =
+        cameraStream;
+
+      fullVideo.muted = true;
+      fullVideo.playsInline = true;
+
+      await fullVideo.play()
+        .catch(() => {});
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Flip camera error:",
+      error
+    );
+
+    alert(
+      "Could not flip camera: " +
+      (error.message || error)
+    );
+  }
+}
+
+
+// =========================
+// STOP LIVE
+// =========================
+
+async function stopLive() {
 
   try {
 
-    if (!room) {
+    // Stop camera preview
+    if (cameraStream) {
 
-      await startCamera();
+      cameraStream
+        .getTracks()
+        .forEach(track =>
+          track.stop()
+        );
 
-      return;
-
+      cameraStream = null;
     }
 
 
-    await room.localParticipant
-      .setCameraEnabled(
-        false
-      );
+    // Disconnect host
+    if (room) {
 
+      room.disconnect();
 
-    await room.localParticipant
-      .setCameraEnabled(
-        true,
-        {
-          facingMode:
-            facingMode
-        }
-      );
+      room = null;
+    }
 
 
     localVideoTrack =
-      room.localParticipant
-        .getTrackPublication(
-          LivekitClient.Track.Source.Camera
-        )?.track || null;
+      null;
+
+    localAudioTrack =
+      null;
 
 
-    const video =
-      doc
+    // Mark database room as not live
+    if (databaseRoomId) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("live_rooms")
+          .update({
+            is_live: false
+          })
+          .eq(
+            "id",
+            databaseRoomId
+          );
+
+      if (error) {
+
+        console.error(
+          "Could not end live room:",
+          error
+        );
+      }
+    }
+
+
+    // Remove realtime channel
+    if (realtimeChannel) {
+
+      await supabaseClient
+        .removeChannel(
+          realtimeChannel
+        );
+
+      realtimeChannel =
+        null;
+    }
+
+
+    databaseRoomId =
+      null;
+
+    currentRoomName =
+      null;
+
+
+    // Clear videos
+    const preview =
+      document.getElementById(
+        "previewVideo"
+      );
+
+    const fullVideo =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+    if (preview) {
+      preview.srcObject = null;
+    }
+
+    if (fullVideo) {
+      fullVideo.srcObject = null;
+    }
+
+
+    // Close fullscreen
+    closeFullscreenLive();
+
+
+    // Close modal
+    closeModal(
+      "liveModal"
+    );
+
+
+    document.body.style.overflow =
+      "";
+
+
+    alert(
+      "🔴 Eman Live has ended."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Stop Live error:",
+      error
+    );
+
+    alert(
+      "Could not end live: " +
+      (error.message || error)
+    );
+  }
+}
