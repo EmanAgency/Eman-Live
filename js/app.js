@@ -50,13 +50,57 @@ function getUserName() {
 // MODALS
 // =========================
 
-function openLive() {
+async function openLive() {
 
-  const modal =
-    document.getElementById("liveModal");
+  try {
 
-  if (modal) {
-    modal.classList.add("open");
+    // Open camera immediately
+    await startCamera();
+
+    // Close the old Go Live popup
+    closeModal("liveModal");
+
+    // Show fullscreen camera
+    const screen =
+      document.getElementById("liveFullscreen");
+
+    if (screen) {
+      screen.classList.add("open");
+    }
+
+    document.body.style.overflow = "hidden";
+
+    // Put preview camera into fullscreen video
+    const preview =
+      document.getElementById("previewVideo");
+
+    const fullVideo =
+      document.getElementById("fullLiveVideo");
+
+    if (
+      preview &&
+      fullVideo &&
+      cameraStream
+    ) {
+
+      fullVideo.srcObject =
+        cameraStream;
+
+      fullVideo.muted = true;
+      fullVideo.autoplay = true;
+      fullVideo.playsInline = true;
+
+      await fullVideo.play()
+        .catch(() => {});
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Open Live error:",
+      error
+    );
+
   }
 }
 
