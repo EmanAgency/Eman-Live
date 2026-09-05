@@ -519,33 +519,57 @@ input {
   cursor: pointer;
 }
 
+/* =========================
+   LIVE CONTROLS - TOUCH FIX
+========================= */
+
 .liveControls {
   position: absolute !important;
-  left: 15px !important;
-  right: 15px !important;
+  left: 10px !important;
+  right: 10px !important;
   bottom: 55px !important;
-  z-index: 600 !important;
+
+  z-index: 9999 !important;
+
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  gap: 12px !important;
-  padding-bottom: env(safe-area-inset-bottom) !important;
+
+  gap: 10px !important;
+
   pointer-events: auto !important;
+  touch-action: manipulation !important;
 }
 
 .liveControls button {
-  min-width: 52px;
-  height: 48px;
-  border: none;
-  border-radius: 24px;
-  font-size: 18px;
-  cursor: pointer;
+  position: relative !important;
+
+  z-index: 10000 !important;
+
+  min-width: 52px !important;
+  width: auto !important;
+  height: 52px !important;
+
+  margin: 0 !important;
+
+  border: none !important;
+  border-radius: 26px !important;
+
+  font-size: 20px !important;
+
+  cursor: pointer !important;
+
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 .liveControls .endLiveButton {
-  min-width: 95px;
-  padding: 0 15px;
+  min-width: 95px !important;
+  padding: 0 15px !important;
 }
+
 /* =========================
    GO LIVE BUTTON
 ========================= */
