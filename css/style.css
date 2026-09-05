@@ -655,3 +655,21 @@ input {
     bottom: 100px !important;
   }
 }
+/* FINAL MODAL FIX */
+
+.modal {
+  display: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+}
+
+.modal.open {
+  display: flex !important;
+  pointer-events: auto !important;
+}
