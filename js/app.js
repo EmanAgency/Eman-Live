@@ -1,107 +1,110 @@
-const TOKEN_SERVER_ID = "emanlive-2j2epi";
+/* =========================================================
+   EMAN LIVE
+   COMPLETE APP.JS
+========================================================= */
 
-const SUPABASE_URL = "https://kzuaaihvehqhipwmrzal.supabase.co";
-const SUPABASE_KEY = "sb_publishable_LsGL8Os9cgqLmItWgk0ADg_nBWuLs7I";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+  "https://kzuaaihvehqhipwmrzal.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_LsGL8Os9cgqLmItWgk0ADg_nBWuLs7I";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   LIVEKIT
+========================================================= */
+
+const TOKEN_SERVER_ID =
+  "emanlive-2j2epi";
+
+
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
 
 let currentRoomName = null;
+
 let room = null;
+
 let viewerRoom = null;
 
 let localVideoTrack = null;
+
 let localAudioTrack = null;
+
 let cameraStream = null;
 
-let databaseRoomId = null;
 let realtimeChannel = null;
 
 let facingMode = "user";
 
+let viewerCount = 0;
 
-// =========================
-// USER NAME
-// =========================
+let coins = 0;
 
-function getUserName() {
 
-  let name = localStorage.getItem("emanLiveUserName");
+/* =========================================================
+   STARTUP
+========================================================= */
 
-  if (!name) {
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
 
-    name =
-      "User-" +
-      Math.floor(1000 + Math.random() * 9000);
+    console.log("Eman Live loaded.");
 
-    localStorage.setItem(
-      "emanLiveUserName",
-      name
-    );
+    updateCoinDisplay();
+
+    loadLiveRooms();
+
   }
+);
 
-  return name;
+
+/* =========================================================
+   BASIC NAVIGATION
+========================================================= */
+
+function goHome() {
+
+  closeModal("liveModal");
+
+  closeModal("partyModal");
+
+  closeModal("giftModal");
+
 }
 
 
-// =========================
-// MODALS
-// =========================
+/* =========================================================
+   MODALS
+========================================================= */
 
-async function openLive() {
+function openLive() {
 
-  try {
+  const modal =
+    document.getElementById("liveModal");
 
-    // Open camera immediately
-    await startCamera();
-
-    // Close the old Go Live popup
-    closeModal("liveModal");
-
-    // Show fullscreen camera
-    const screen =
-      document.getElementById("liveFullscreen");
-
-    if (screen) {
-      screen.classList.add("open");
-    }
-
-    document.body.style.overflow = "hidden";
-
-    // Put preview camera into fullscreen video
-    const preview =
-      document.getElementById("previewVideo");
-
-    const fullVideo =
-      document.getElementById("fullLiveVideo");
-
-    if (
-      preview &&
-      fullVideo &&
-      cameraStream
-    ) {
-
-      fullVideo.srcObject =
-        cameraStream;
-
-      fullVideo.muted = true;
-      fullVideo.autoplay = true;
-      fullVideo.playsInline = true;
-
-      await fullVideo.play()
-        .catch(() => {});
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Open Live error:",
-      error
-    );
-
+  if (!modal) {
+    alert("Live window could not be found.");
+    return;
   }
+
+  modal.classList.add("open");
+
+  startCamera();
+
 }
 
 
@@ -113,21 +116,24 @@ function closeModal(id) {
   if (modal) {
     modal.classList.remove("open");
   }
+
 }
 
 
 function openParty() {
-  const modal = document.getElementById("partyModal");
+
+  const modal =
+    document.getElementById("partyModal");
 
   if (!modal) {
-    alert("ERROR: partyModal not found");
+    alert("Party Room could not be found.");
     return;
   }
 
-  modal.style.display = "flex";
   modal.classList.add("open");
 
-  console.log("Party Room opened");
+  console.log("Party Room opened.");
+
 }
 
 
@@ -136,36 +142,32 @@ function openGifts() {
   const modal =
     document.getElementById("giftModal");
 
-  if (modal) {
-    modal.classList.add("open");
+  if (!modal) {
+    alert("Wallet could not be found.");
+    return;
   }
+
+  modal.classList.add("open");
+
+  updateCoinDisplay();
+
+  console.log("Wallet opened.");
+
 }
 
 
-// =========================
-// GIFTS
-// =========================
-
-function gift(name, cost) {
+function openProfile() {
 
   alert(
-    name +
-    " selected — " +
-    cost +
-    " coins"
+    "👤 Profile feature is coming soon."
   );
+
 }
 
 
-function openGiftsFromLive() {
-
-  openGifts();
-}
-
-
-// =========================
-// CAMERA PREVIEW
-// =========================
+/* =========================================================
+   CAMERA
+========================================================= */
 
 async function startCamera() {
 
@@ -181,6 +183,7 @@ async function startCamera() {
       );
 
       return;
+
     }
 
 
@@ -188,7 +191,10 @@ async function startCamera() {
 
       cameraStream
         .getTracks()
-        .forEach(track => track.stop());
+        .forEach(
+          track => track.stop()
+        );
+
     }
 
 
@@ -204,22 +210,29 @@ async function startCamera() {
       });
 
 
-    const video =
+    const preview =
       document.getElementById(
         "previewVideo"
       );
 
 
-    if (video) {
+    if (preview) {
 
-      video.srcObject =
+      preview.srcObject =
         cameraStream;
 
-      video.muted = true;
-      video.playsInline = true;
+      preview.muted = true;
 
-      await video.play()
-        .catch(() => {});
+      preview.autoplay = true;
+
+      preview.playsInline = true;
+
+      await preview
+        .play()
+        .catch(
+          () => {}
+        );
+
     }
 
 
@@ -227,334 +240,129 @@ async function startCamera() {
       "Camera and microphone ready."
     );
 
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "Camera could not start: " +
-      (error.message || error)
-    );
-  }
-}
-
-
-// =========================
-// DATABASE ROOM
-// =========================
-
-async function getOrCreateDatabaseRoom(
-  hostName = "Eman Host"
-) {
-
-  const {
-    data: existingRoom,
-    error: findError
-  } =
-    await supabaseClient
-      .from("live_rooms")
-      .select("*")
-      .eq("is_live", true)
-      .eq("title", "Live Stream")
-      .order("created_at", {
-        ascending: false
-      })
-      .limit(1)
-      .maybeSingle();
-
-
-  if (findError) {
-    throw findError;
-  }
-
-
-  if (existingRoom) {
-
-    databaseRoomId =
-      existingRoom.id;
-
-    return existingRoom;
-  }
-
-
-  const {
-    data: newRoom,
-    error: createError
-  } =
-    await supabaseClient
-      .from("live_rooms")
-      .insert({
-
-        host_name:
-          hostName,
-
-        title:
-          "Live Stream",
-
-        is_live:
-          true
-
-      })
-      .select()
-      .single();
-
-
-  if (createError) {
-    throw createError;
-  }
-
-
-  databaseRoomId =
-    newRoom.id;
-
-
-  return newRoom;
-}
-
-
-// =========================
-// REALTIME
-// =========================
-
-function subscribeToLive(roomId) {
-
-  if (realtimeChannel) {
-
-    supabaseClient.removeChannel(
-      realtimeChannel
-    );
-
-    realtimeChannel = null;
-  }
-
-
-  realtimeChannel =
-    supabaseClient
-      .channel(
-        "eman-live-" + roomId
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "live_messages",
-          filter:
-            "room_id=eq." + roomId
-        },
-
-        payload => {
-
-          const data =
-            payload.new;
-
-          if (!data) return;
-
-
-          // USER JOINED
-          if (
-            data.event_type ===
-            "join"
-          ) {
-
-            addSystemMessage(
-              "👋 " +
-              data.user_name +
-              " joined the live"
-            );
-
-
-            showJoinNotification(
-              data.user_name
-            );
-
-
-            return;
-          }
-
-
-          // USER LEFT
-          if (
-            data.event_type ===
-            "leave"
-          ) {
-
-            addSystemMessage(
-              "🚪 " +
-              data.user_name +
-              " left the live"
-            );
-
-
-            return;
-          }
-
-
-          // CHAT
-          if (
-            data.event_type ===
-            "message"
-          ) {
-
-            addChatMessage(
-              data.user_name,
-              data.message,
-              false
-            );
-
-          }
-
-        }
-      )
-
-      .subscribe(status => {
-
-        console.log(
-          "Eman Live Realtime:",
-          status
-        );
-
-      });
-}
-
-
-// =========================
-// SEND EVENT
-// =========================
-
-async function sendLiveEvent(
-  roomId,
-  userName,
-  eventType,
-  message
-) {
-
-  try {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("live_messages")
-        .insert({
-
-          room_id:
-            roomId,
-
-          user_name:
-            userName,
-
-          message:
-            message,
-
-          event_type:
-            eventType
-
-        });
-
-
-    if (error) {
-      throw error;
-    }
 
   } catch (error) {
 
     console.error(
-      "Realtime event error:",
+      "Camera error:",
       error
     );
+
+    alert(
+      "Camera could not start: " +
+      (
+        error.message ||
+        error
+      )
+    );
+
   }
+
 }
 
 
-// =========================
-// GO LIVE
-// =========================
+/* =========================================================
+   GO LIVE
+========================================================= */
+
+async function startLiveFromFullscreen() {
+
+  if (cameraStream) {
+
+    cameraStream
+      .getTracks()
+      .forEach(
+        track => track.stop()
+      );
+
+    cameraStream = null;
+
+  }
+
+  await goLive();
+
+}
+
 
 async function goLive() {
 
   try {
 
-    if (!window.LivekitClient) {
+    if (
+      !window.LivekitClient
+    ) {
 
       alert(
-        "LiveKit is not loaded. Please refresh the page."
+        "LiveKit is not loaded."
       );
 
       return;
+
     }
 
 
-    const hostName =
-      "Eman Host";
-
-
-    // DATABASE ROOM
-    const dbRoom =
-      await getOrCreateDatabaseRoom(
-        hostName
-      );
-
-
-    databaseRoomId =
-      dbRoom.id;
-
-
-    subscribeToLive(
-      databaseRoomId
+    console.log(
+      "Starting Eman Live..."
     );
 
 
-    // STOP PREVIEW
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track =>
-          track.stop()
-        );
-
-      cameraStream =
-        null;
-    }
-
-
-    const tokenSource =
-      LivekitClient.TokenSource
-        .developmentTokenServer(
-          TOKEN_SERVER_ID
-        );
-
-
-    const roomName =
+    currentRoomName =
       "eman-live-main";
 
 
-    currentRoomName =
-      roomName;
+    /*
+      Create/update live room
+    */
+
+    await createLiveRoom();
 
 
-    const credentials =
-      await tokenSource.fetch({
+    /*
+      Realtime
+    */
 
-        roomName:
-          roomName,
+    subscribeToLive();
 
-        participantName:
-          hostName
+
+    /*
+      Get LiveKit token
+    */
+
+    const token =
+      await getLiveKitToken(
+        currentRoomName
+      );
+
+
+    if (!token) {
+
+      throw new Error(
+        "LiveKit token was not received."
+      );
+
+    }
+
+
+    /*
+      Create LiveKit room
+    */
+
+    room =
+      new LivekitClient.Room({
+
+        adaptiveStream: true,
+
+        dynacast: true
 
       });
 
 
-    room =
-      new LivekitClient.Room();
+    /*
+      Local participant joined
+    */
 
-
-    // PARTICIPANT JOIN
     room.on(
       LivekitClient.RoomEvent.ParticipantConnected,
-
       participant => {
 
         console.log(
@@ -562,17 +370,25 @@ async function goLive() {
           participant.identity
         );
 
+        viewerCount++;
 
         updateViewerCount();
+
+        addSystemMessage(
+          participant.identity +
+          " joined the live."
+        );
 
       }
     );
 
 
-    // PARTICIPANT LEAVE
+    /*
+      Participant left
+    */
+
     room.on(
       LivekitClient.RoomEvent.ParticipantDisconnected,
-
       participant => {
 
         console.log(
@@ -580,128 +396,242 @@ async function goLive() {
           participant.identity
         );
 
+        if (viewerCount > 0) {
+          viewerCount--;
+        }
 
         updateViewerCount();
+
+        addSystemMessage(
+          participant.identity +
+          " left the live."
+        );
 
       }
     );
 
 
-    await room.connect(
-      credentials.serverUrl,
-      credentials.participantToken
+    /*
+      Track subscribed
+    */
+
+    room.on(
+      LivekitClient.RoomEvent.TrackSubscribed,
+      (
+        track,
+        publication,
+        participant
+      ) => {
+
+        console.log(
+          "Track subscribed:",
+          participant.identity
+        );
+
+        const element =
+          track.attach();
+
+        if (
+          track.kind ===
+          LivekitClient.Track.Kind.Video
+        ) {
+
+          element.style.width =
+            "100%";
+
+          element.style.height =
+            "100%";
+
+          element.style.objectFit =
+            "cover";
+
+          element.autoplay =
+            true;
+
+          element.playsInline =
+            true;
+
+          element.muted =
+            true;
+
+          document
+            .getElementById(
+              "videoGrid"
+            )
+            ?.appendChild(
+              element
+            );
+
+        }
+
+      }
     );
 
 
-    // CAMERA + MICROPHONE
+    /*
+      Connect
+    */
+
+    const wsUrl =
+      "wss://" +
+      TOKEN_SERVER_ID +
+      ".livekit.cloud";
+
+
+    await room.connect(
+      wsUrl,
+      token
+    );
+
+
+    console.log(
+      "Connected to LiveKit."
+    );
+
+
+    /*
+      Publish camera
+    */
+
     await room.localParticipant
-      .enableCameraAndMicrophone();
+      .setCameraEnabled(true);
 
 
-    localVideoTrack =
-      room.localParticipant
-        .getTrackPublication(
-          LivekitClient.Track.Source.Camera
-        )?.track || null;
+    /*
+      Publish microphone
+    */
+
+    await room.localParticipant
+      .setMicrophoneEnabled(true);
 
 
-    localAudioTrack =
-      room.localParticipant
-        .getTrackPublication(
-          LivekitClient.Track.Source.Microphone
-        )?.track || null;
+    /*
+      Get local tracks
+    */
+
+    room
+      .localParticipant
+      .trackPublications
+      .forEach(
+        publication => {
+
+          if (
+            publication.kind ===
+            LivekitClient.Track.Kind.Video
+          ) {
+
+            localVideoTrack =
+              publication.track;
+
+          }
+
+          if (
+            publication.kind ===
+            LivekitClient.Track.Kind.Audio
+          ) {
+
+            localAudioTrack =
+              publication.track;
+
+          }
+
+        }
+      );
 
 
-    // FULLSCREEN VIDEO
-    const video =
+    /*
+      Fullscreen
+    */
+
+    const fullscreen =
       document.getElementById(
-        "fullLiveVideo"
+        "liveFullscreen"
       );
 
 
-    if (
-      localVideoTrack &&
-      video
-    ) {
+    if (fullscreen) {
 
-      localVideoTrack.attach(
-        video
+      fullscreen.classList.add(
+        "open"
       );
-
-      video.muted =
-        true;
-
-      video.playsInline =
-        true;
-
-      await video.play()
-        .catch(() => {});
-    }
-
-
-    // OLD PREVIEW
-    const preview =
-      document.getElementById(
-        "previewVideo"
-      );
-
-
-    if (
-      localVideoTrack &&
-      preview
-    ) {
-
-      localVideoTrack.attach(
-        preview
-      );
-
-      preview.muted =
-        true;
-
-      preview.playsInline =
-        true;
 
     }
 
 
-    updateViewerCount();
+    /*
+      Attach local camera
+    */
 
+    if (localVideoTrack) {
 
-    const liveButton =
-      document.getElementById(
-        "goLiveButton"
-      );
+      const video =
+        document.getElementById(
+          "fullLiveVideo"
+        );
 
+      if (video) {
 
-    if (liveButton) {
+        localVideoTrack.attach(
+          video
+        );
 
-      liveButton.innerText =
-        "🔴 LIVE";
+        video.autoplay =
+          true;
+
+        video.playsInline =
+          true;
+
+        video.muted =
+          true;
+
+      }
 
     }
 
 
-    // CLOSE GO LIVE MODAL
+    /*
+      Hide Go Live button
+    */
+
+    const goLiveButton =
+      document.querySelector(
+        ".fullscreenGoLive"
+      );
+
+
+    if (goLiveButton) {
+
+      goLiveButton.style.display =
+        "none";
+
+    }
+
+
+    /*
+      Close setup modal
+    */
+
     closeModal(
       "liveModal"
     );
 
 
-    // OPEN FULLSCREEN
-    openFullscreenLive();
+    document.body.style.overflow =
+      "hidden";
 
-const fullscreen =
-  document.getElementById(
-    "liveFullscreen"
-  );
 
-if (fullscreen) {
-  fullscreen.classList.add("isLive");
-}
+    /*
+      Mark live
+    */
 
-alert(
-  "🔴 EMAN LIVE is now LIVE!"
-);
+    addSystemMessage(
+      "🔴 You are now LIVE!"
+    );
+
+
+    alert(
+      "🔴 EMAN LIVE is now LIVE!"
+    );
 
 
   } catch (error) {
@@ -711,35 +641,1253 @@ alert(
       error
     );
 
-
     alert(
       "LiveKit error: " +
-      (error.message || error)
+      (
+        error.message ||
+        error
+      )
     );
+
   }
+
 }
 
 
-// =========================
-// FULLSCREEN
-// =========================
+/* =========================================================
+   CREATE LIVE ROOM
+========================================================= */
 
-async function startLiveFromFullscreen() {
+async function createLiveRoom() {
 
-  // If camera is already running,
-  // stop the preview tracks before LiveKit takes over.
-  if (cameraStream) {
+  try {
 
-    cameraStream
-      .getTracks()
-      .forEach(track => track.stop());
+    /*
+      First check whether room exists
+    */
 
-    cameraStream = null;
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("live_rooms")
+        .select("*")
+        .eq(
+          "room_name",
+          currentRoomName
+        )
+        .maybeSingle();
+
+
+    if (error) {
+
+      console.error(
+        "Live room lookup error:",
+        error
+      );
+
+      /*
+        Don't stop LiveKit if
+        database permissions are
+        temporarily unavailable.
+      */
+
+      return;
+
+    }
+
+
+    if (data) {
+
+      const {
+        error:
+        updateError
+      } =
+        await supabaseClient
+          .from("live_rooms")
+          .update({
+
+            is_live: true,
+
+            viewer_count: 0
+
+          })
+          .eq(
+            "room_name",
+            currentRoomName
+          );
+
+
+      if (updateError) {
+
+        console.error(
+          "Room update error:",
+          updateError
+        );
+
+      }
+
+
+    } else {
+
+      const {
+        error:
+        insertError
+      } =
+        await supabaseClient
+          .from("live_rooms")
+          .insert({
+
+            room_name:
+              currentRoomName,
+
+            host_name:
+              "Eman Live Host",
+
+            is_live:
+              true,
+
+            viewer_count:
+              0
+
+          });
+
+
+      if (insertError) {
+
+        console.error(
+          "Room insert error:",
+          insertError
+        );
+
+      }
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Create live room error:",
+      error
+    );
+
   }
 
-  await goLive();
+}
+
+
+/* =========================================================
+   LIVEKIT TOKEN
+========================================================= */
+
+async function getLiveKitToken(
+  roomName
+) {
+
+  /*
+    This uses the development
+    LiveKit token endpoint.
+  */
+
+  const url =
+    "https://cloud-api.livekit.io/api/sandbox/connection-details";
+
+
+  const response =
+    await fetch(
+      url,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body: JSON.stringify({
+
+          room_name:
+            roomName
+
+        })
+
+      }
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "Could not obtain LiveKit token."
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  return (
+    data.participant_token ||
+    data.token ||
+    data.participantToken
+  );
 
 }
+
+
+/* =========================================================
+   REALTIME
+========================================================= */
+
+function subscribeToLive() {
+
+  try {
+
+    if (realtimeChannel) {
+
+      supabaseClient
+        .removeChannel(
+          realtimeChannel
+        );
+
+    }
+
+
+    realtimeChannel =
+      supabaseClient
+        .channel(
+          "eman-live-" +
+          currentRoomName
+        )
+
+
+        .on(
+
+          "postgres_changes",
+
+          {
+            event: "INSERT",
+
+            schema: "public",
+
+            table: "live_messages",
+
+            filter:
+              "room_name=eq." +
+              currentRoomName
+
+          },
+
+          payload => {
+
+            console.log(
+              "New live message:",
+              payload.new
+            );
+
+
+            const message =
+              payload.new;
+
+
+            if (
+              message.event_type ===
+              "message"
+            ) {
+
+              addChatMessage(
+                message.user_name ||
+                "User",
+
+                message.message ||
+                ""
+              );
+
+            }
+
+
+            if (
+              message.event_type ===
+              "join"
+            ) {
+
+              addJoinNotification(
+                message.user_name ||
+                "Someone"
+              );
+
+            }
+
+          }
+
+        )
+
+
+        .subscribe(
+
+          status => {
+
+            console.log(
+              "Realtime status:",
+              status
+            );
+
+          }
+
+        );
+
+  } catch (error) {
+
+    console.error(
+      "Realtime error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   WATCH LIVE
+========================================================= */
+
+async function watchLive() {
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("live_rooms")
+        .select("*")
+        .eq(
+          "is_live",
+          true
+        )
+        .limit(1)
+        .maybeSingle();
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    if (!data) {
+
+      alert(
+        "There are no live streams right now."
+      );
+
+      return;
+
+    }
+
+
+    currentRoomName =
+      data.room_name;
+
+
+    const token =
+      await getLiveKitToken(
+        currentRoomName
+      );
+
+
+    viewerRoom =
+      new LivekitClient.Room({
+
+        adaptiveStream: true,
+
+        dynacast: true
+
+      });
+
+
+    viewerRoom.on(
+
+      LivekitClient.RoomEvent.TrackSubscribed,
+
+      (
+        track,
+        publication,
+        participant
+      ) => {
+
+        const element =
+          track.attach();
+
+
+        if (
+          track.kind ===
+          LivekitClient.Track.Kind.Video
+        ) {
+
+          const video =
+            document.getElementById(
+              "fullLiveVideo"
+            );
+
+
+          if (video) {
+
+            video.srcObject =
+              null;
+
+            video.replaceWith(
+              element
+            );
+
+            element.id =
+              "fullLiveVideo";
+
+            element.autoplay =
+              true;
+
+            element.playsInline =
+              true;
+
+            element.style.position =
+              "absolute";
+
+            element.style.inset =
+              "0";
+
+            element.style.width =
+              "100%";
+
+            element.style.height =
+              "100%";
+
+            element.style.objectFit =
+              "cover";
+
+          }
+
+        }
+
+      }
+
+    );
+
+
+    const wsUrl =
+      "wss://" +
+      TOKEN_SERVER_ID +
+      ".livekit.cloud";
+
+
+    await viewerRoom.connect(
+      wsUrl,
+      token
+    );
+
+
+    await registerViewer();
+
+
+    const fullscreen =
+      document.getElementById(
+        "liveFullscreen"
+      );
+
+
+    if (fullscreen) {
+
+      fullscreen.classList.add(
+        "open"
+      );
+
+    }
+
+
+    document.body.style.overflow =
+      "hidden";
+
+
+    alert(
+      "👀 You joined the live!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Watch live error:",
+      error
+    );
+
+    alert(
+      "Could not join live: " +
+      (
+        error.message ||
+        error
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REGISTER VIEWER
+========================================================= */
+
+async function registerViewer() {
+
+  try {
+
+    if (!currentRoomName) {
+      return;
+    }
+
+
+    await supabaseClient
+      .from(
+        "live_participants"
+      )
+      .insert({
+
+        room_name:
+          currentRoomName,
+
+        user_name:
+          "Viewer",
+
+        role:
+          "viewer"
+
+      });
+
+
+    await supabaseClient
+      .from(
+        "live_messages"
+      )
+      .insert({
+
+        room_name:
+          currentRoomName,
+
+        user_name:
+          "Viewer",
+
+        message:
+          "joined the live",
+
+        event_type:
+          "join"
+
+      });
+
+
+  } catch (error) {
+
+    console.error(
+      "Register viewer error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+async function sendLiveChat() {
+
+  const input =
+    document.getElementById(
+      "liveChatInput"
+    );
+
+
+  if (!input) {
+    return;
+  }
+
+
+  const message =
+    input.value.trim();
+
+
+  if (!message) {
+    return;
+  }
+
+
+  try {
+
+    if (!currentRoomName) {
+
+      addChatMessage(
+        "You",
+        message
+      );
+
+      input.value = "";
+
+      return;
+
+    }
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("live_messages")
+        .insert({
+
+          room_name:
+            currentRoomName,
+
+          user_name:
+            "You",
+
+          message:
+            message,
+
+          event_type:
+            "message"
+
+        });
+
+
+    if (error) {
+
+      console.error(
+        "Chat error:",
+        error
+      );
+
+      addChatMessage(
+        "You",
+        message
+      );
+
+    }
+
+
+    input.value = "";
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PARTY CHAT
+========================================================= */
+
+function sendPartyChat() {
+
+  const input =
+    document.getElementById(
+      "partyChatInput"
+    );
+
+
+  const messages =
+    document.getElementById(
+      "partyChatMessages"
+    );
+
+
+  if (!input || !messages) {
+    return;
+  }
+
+
+  const message =
+    input.value.trim();
+
+
+  if (!message) {
+    return;
+  }
+
+
+  const p =
+    document.createElement(
+      "p"
+    );
+
+
+  p.textContent =
+    "You: " +
+    message;
+
+
+  messages.appendChild(
+    p
+  );
+
+
+  input.value = "";
+
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+}
+
+
+/* =========================================================
+   CHAT DISPLAY
+========================================================= */
+
+function addChatMessage(
+  user,
+  message
+) {
+
+  const normalChat =
+    document.getElementById(
+      "fullChatMessages"
+    );
+
+
+  if (!normalChat) {
+    return;
+  }
+
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+
+  div.className =
+    "fullChatMessage";
+
+
+  div.textContent =
+    user +
+    ": " +
+    message;
+
+
+  normalChat.appendChild(
+    div
+  );
+
+
+  normalChat.scrollTop =
+    normalChat.scrollHeight;
+
+}
+
+
+function addSystemMessage(
+  message
+) {
+
+  addChatMessage(
+    "SYSTEM",
+    message
+  );
+
+}
+
+
+/* =========================================================
+   JOIN NOTIFICATION
+========================================================= */
+
+function addJoinNotification(
+  username
+) {
+
+  const container =
+    document.getElementById(
+      "joinNotifications"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+
+  div.className =
+    "joinNotice";
+
+
+  div.textContent =
+    "👋 " +
+    username +
+    " joined";
+
+
+  container.appendChild(
+    div
+  );
+
+
+  setTimeout(
+    () => {
+
+      div.remove();
+
+    },
+    5000
+  );
+
+}
+
+
+/* =========================================================
+   VIEWER COUNT
+========================================================= */
+
+function updateViewerCount() {
+
+  const element =
+    document.getElementById(
+      "viewerCount"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      viewerCount;
+
+  }
+
+}
+
+
+/* =========================================================
+   MICROPHONE
+========================================================= */
+
+function toggleLiveMute() {
+
+  if (!localAudioTrack) {
+
+    alert(
+      "Microphone is not available."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    localAudioTrack.isEnabled;
+
+
+  localAudioTrack.enable(
+    !enabled
+  );
+
+
+  const button =
+    document.getElementById(
+      "liveMuteButton"
+    );
+
+
+  if (button) {
+
+    button.textContent =
+      enabled
+        ? "🔇"
+        : "🎤";
+
+  }
+
+}
+
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+function toggleLiveCamera() {
+
+  if (!localVideoTrack) {
+
+    alert(
+      "Camera is not available."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    localVideoTrack.isEnabled;
+
+
+  localVideoTrack.enable(
+    !enabled
+  );
+
+
+  const button =
+    document.getElementById(
+      "liveCameraButton"
+    );
+
+
+  if (button) {
+
+    button.textContent =
+      enabled
+        ? "🚫"
+        : "📹";
+
+  }
+
+}
+
+
+/* =========================================================
+   FLIP CAMERA
+========================================================= */
+
+async function flipLiveCamera() {
+
+  facingMode =
+    facingMode === "user"
+      ? "environment"
+      : "user";
+
+
+  try {
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(
+          track => track.stop()
+        );
+
+      cameraStream = null;
+
+    }
+
+
+    if (room) {
+
+      await room
+        .localParticipant
+        .setCameraEnabled(
+          false
+        );
+
+    }
+
+
+    await startCamera();
+
+
+    if (room) {
+
+      await room
+        .localParticipant
+        .setCameraEnabled(
+          true
+        );
+
+
+      room
+        .localParticipant
+        .trackPublications
+        .forEach(
+          publication => {
+
+            if (
+              publication.kind ===
+              LivekitClient.Track.Kind.Video
+            ) {
+
+              localVideoTrack =
+                publication.track;
+
+            }
+
+          }
+        );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Flip camera error:",
+      error
+    );
+
+
+    alert(
+      "Could not flip camera: " +
+      (
+        error.message ||
+        error
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PARTY CAMERA / MIC
+========================================================= */
+
+function togglePartyMute() {
+
+  if (!localAudioTrack) {
+
+    alert(
+      "Party microphone is not connected yet."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    localAudioTrack.isEnabled;
+
+
+  localAudioTrack.enable(
+    !enabled
+  );
+
+}
+
+
+function togglePartyCamera() {
+
+  if (!localVideoTrack) {
+
+    alert(
+      "Party camera is not connected yet."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    localVideoTrack.isEnabled;
+
+
+  localVideoTrack.enable(
+    !enabled
+  );
+
+}
+
+
+/* =========================================================
+   STOP LIVE
+========================================================= */
+
+async function stopLive() {
+
+  try {
+
+    if (room) {
+
+      room.disconnect();
+
+      room = null;
+
+    }
+
+
+    if (viewerRoom) {
+
+      viewerRoom.disconnect();
+
+      viewerRoom = null;
+
+    }
+
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(
+          track => track.stop()
+        );
+
+      cameraStream = null;
+
+    }
+
+
+    localVideoTrack =
+      null;
+
+    localAudioTrack =
+      null;
+
+
+    if (realtimeChannel) {
+
+      await supabaseClient
+        .removeChannel(
+          realtimeChannel
+        );
+
+      realtimeChannel =
+        null;
+
+    }
+
+
+    /*
+      Mark room offline
+    */
+
+    if (currentRoomName) {
+
+      await supabaseClient
+        .from("live_rooms")
+        .update({
+
+          is_live: false,
+
+          viewer_count: 0
+
+        })
+        .eq(
+          "room_name",
+          currentRoomName
+        )
+        .catch(
+          () => {}
+        );
+
+    }
+
+
+    closeFullscreenLive();
+
+    closeModal(
+      "liveModal"
+    );
+
+
+    const video =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+
+    if (video) {
+
+      video.srcObject =
+        null;
+
+    }
+
+
+    const preview =
+      document.getElementById(
+        "previewVideo"
+      );
+
+
+    if (preview) {
+
+      preview.srcObject =
+        null;
+
+    }
+
+
+    const goLiveButton =
+      document.querySelector(
+        ".fullscreenGoLive"
+      );
+
+
+    if (goLiveButton) {
+
+      goLiveButton.style.display =
+        "";
+
+    }
+
+
+    document.body.style.overflow =
+      "";
+
+
+    viewerCount =
+      0;
+
+
+    updateViewerCount();
+
+
+    currentRoomName =
+      null;
+
+
+    alert(
+      "🔴 Eman Live has ended."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Stop Live error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
 
 function openFullscreenLive() {
 
@@ -749,7 +1897,9 @@ function openFullscreenLive() {
     );
 
 
-  if (!screen) return;
+  if (!screen) {
+    return;
+  }
 
 
   screen.classList.add(
@@ -759,6 +1909,7 @@ function openFullscreenLive() {
 
   document.body.style.overflow =
     "hidden";
+
 }
 
 
@@ -781,1198 +1932,202 @@ function closeFullscreenLive() {
 
   document.body.style.overflow =
     "";
+
 }
 
 
-// =========================
-// JOIN NOTIFICATION
-// =========================
+/* =========================================================
+   WALLET
+========================================================= */
 
-function showJoinNotification(
-  userName
+function updateCoinDisplay() {
+
+  const header =
+    document.getElementById(
+      "coinBalance"
+    );
+
+
+  const wallet =
+    document.getElementById(
+      "walletCoins"
+    );
+
+
+  if (header) {
+
+    header.textContent =
+      coins;
+
+  }
+
+
+  if (wallet) {
+
+    wallet.textContent =
+      coins;
+
+  }
+
+}
+
+
+function buyCoins() {
+
+  alert(
+    "🪙 Coin purchase will be added next."
+  );
+
+}
+
+
+function sendGift(
+  gift,
+  price
 ) {
 
-  const container =
-    document.getElementById(
-      "joinOverlay"
+  if (coins < price) {
+
+    alert(
+      "You don't have enough coins for " +
+      gift +
+      "."
     );
 
+    return;
 
-  if (!container) return;
-
-
-  const notice =
-    document.createElement(
-      "div"
-    );
+  }
 
 
-  notice.className =
-    "joinNotice";
+  coins -= price;
 
 
-  const avatar =
-    document.createElement(
-      "span"
-    );
+  updateCoinDisplay();
 
 
-  avatar.className =
-    "joinAvatar";
-
-
-  avatar.textContent =
-    userName
-      .charAt(0)
-      .toUpperCase();
-
-
-  const text =
-    document.createElement(
-      "span"
-    );
-
-
-  text.textContent =
-    userName +
-    " joined the live";
-
-
-  notice.appendChild(
-    avatar
+  addChatMessage(
+    "You",
+    "sent " +
+    gift +
+    " (" +
+    price +
+    " coins)"
   );
 
 
-  notice.appendChild(
-    text
+  alert(
+    gift +
+    " gift sent!"
   );
 
-
-  container.appendChild(
-    notice
-  );
-
-
-  setTimeout(() => {
-
-    notice.remove();
-
-  }, 5000);
 }
 
 
-// =========================
-// VIEWER COUNT
-// =========================
+/* =========================================================
+   LIVE ROOM LIST
+========================================================= */
 
-function updateViewerCount() {
-
-  let count = 1;
-
-
-  if (room) {
-
-    count =
-      room.remoteParticipants.size +
-      1;
-
-  }
-
-
-  if (viewerRoom) {
-
-    count =
-      viewerRoom.remoteParticipants.size;
-
-  }
-
-
-  const viewerCount =
-    document.getElementById(
-      "viewerCount"
-    );
-
-
-  const fullViewerCount =
-    document.getElementById(
-      "fullViewerCount"
-    );
-
-
-  if (viewerCount) {
-
-    viewerCount.innerText =
-      count;
-
-  }
-
-
-  if (fullViewerCount) {
-
-    fullViewerCount.innerText =
-      count;
-
-  }
-}
-
-
-// =========================
-// WATCH LIVE
-// =========================
-
-async function watchLive() {
+async function loadLiveRooms() {
 
   try {
 
-    if (!window.LivekitClient) {
-
-      alert(
-        "LiveKit is not loaded."
-      );
-
-      return;
-    }
-
-
     const {
-      data: liveRoom,
+      data,
       error
     } =
       await supabaseClient
         .from("live_rooms")
         .select("*")
-        .eq("is_live", true)
-        .order("created_at", {
-          ascending: false
-        })
-        .limit(1)
-        .maybeSingle();
+        .eq(
+          "is_live",
+          true
+        );
 
 
     if (error) {
-      throw error;
-    }
-
-
-    if (!liveRoom) {
-
-      alert(
-        "There is no live stream right now."
-      );
-
-      return;
-    }
-
-
-    databaseRoomId =
-      liveRoom.id;
-
-
-    const userName =
-      getUserName();
-
-
-    subscribeToLive(
-      databaseRoomId
-    );
-
-
-    // REGISTER VIEWER
-    const {
-      error: participantError
-    } =
-      await supabaseClient
-        .from("live_participants")
-        .insert({
-
-          room_id:
-            databaseRoomId,
-
-          user_name:
-            userName
-
-        });
-
-
-    if (participantError) {
 
       console.error(
-        "Participant error:",
-        participantError
+        "Live list error:",
+        error
       );
+
+      return;
 
     }
 
 
-    // JOIN EVENT
-    await sendLiveEvent(
-      databaseRoomId,
-      userName,
-      "join",
-      "joined the live"
-    );
-
-
-    const tokenSource =
-      LivekitClient.TokenSource
-        .developmentTokenServer(
-          TOKEN_SERVER_ID
-        );
-
-
-    const credentials =
-      await tokenSource.fetch({
-
-        roomName:
-          "eman-live-main",
-
-        participantName:
-          userName
-
-      });
-
-
-    viewerRoom =
-      new LivekitClient.Room();
-
-
-    // HOST VIDEO
-    viewerRoom.on(
-      LivekitClient.RoomEvent.TrackSubscribed,
-
-      (
-        track,
-        publication,
-        participant
-      ) => {
-
-        if (
-          track.kind ===
-          LivekitClient.Track.Kind.Video
-        ) {
-
-          showViewerVideo(
-            track
-          );
-
-        }
-
-      }
-    );
-
-
-    // PARTICIPANT JOIN
-    viewerRoom.on(
-      LivekitClient.RoomEvent.ParticipantConnected,
-
-      participant => {
-
-        console.log(
-          "Connected:",
-          participant.identity
-        );
-
-
-        updateViewerCount();
-
-      }
-    );
-
-
-    // PARTICIPANT LEAVE
-    viewerRoom.on(
-      LivekitClient.RoomEvent.ParticipantDisconnected,
-
-      participant => {
-
-        updateViewerCount();
-
-      }
-    );
-
-
-    await viewerRoom.connect(
-      credentials.serverUrl,
-      credentials.participantToken
-    );
-
-
-    // EXISTING TRACKS
-    viewerRoom.remoteParticipants
-      .forEach(
-        participant => {
-
-          participant.trackPublications
-            .forEach(
-              publication => {
-
-                if (
-                  publication.track
-                ) {
-
-                  showViewerVideo(
-                    publication.track
-                  );
-
-                }
-
-              }
-            );
-
-        }
+    const list =
+      document.getElementById(
+        "liveList"
       );
 
 
-    updateViewerCount();
-
-
-    // FULLSCREEN
-    openFullscreenLive();
-
-
-    alert(
-      "👀 You joined Eman Live!"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Viewer error:",
-      error
-    );
-
-
-    alert(
-      "Viewer error: " +
-      (error.message || error)
-    );
-
-  }
-}
-
-
-// =========================
-// SHOW VIEWER VIDEO
-// =========================
-
-function showViewerVideo(track) {
-
-  if (
-    !track ||
-    track.kind !==
-    LivekitClient.Track.Kind.Video
-  ) {
-    return;
-  }
-
-
-  const rooms =
-    document.getElementById(
-      "rooms"
-    );
-
-
-  const video =
-    document.getElementById(
-      "fullLiveVideo"
-    );
-
-
-  if (video) {
-
-    video.muted =
-      true;
-
-    video.playsInline =
-      true;
-
-
-    track.attach(
-      video
-    );
-
-
-    video.play()
-      .catch(() => {});
-
-  }
-
-
-  if (rooms) {
-
-    rooms.innerHTML = "";
-
-
-    const smallVideo =
-      document.createElement(
-        "video"
-      );
-
-
-    smallVideo.autoplay =
-      true;
-
-    smallVideo.playsInline =
-      true;
-
-    smallVideo.controls =
-      false;
-
-    smallVideo.style.width =
-      "100%";
-
-    smallVideo.style.borderRadius =
-      "15px";
-
-    smallVideo.style.background =
-      "#000";
-
-
-    track.attach(
-      smallVideo
-    );
-
-
-    rooms.appendChild(
-      smallVideo
-    );
-
-  }
-
-
-  console.log(
-    "Host video displayed."
-  );
-}
-
-
-// =========================
-// CHAT
-// =========================
-
-async function sendLiveChat(
-  inputId = "chatInput"
-) {
-
-  const input =
-    document.getElementById(
-      inputId
-    );
-
-
-  if (!input) return;
-
-
-  const message =
-    input.value.trim();
-
-
-  if (!message) return;
-
-
-  if (!databaseRoomId) {
-
-    alert(
-      "You must join a live room first."
-    );
-
-    return;
-
-  }
-
-
-  const userName =
-    getUserName();
-
-
-  try {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("live_messages")
-        .insert({
-
-          room_id:
-            databaseRoomId,
-
-          user_name:
-            userName,
-
-          message:
-            message,
-
-          event_type:
-            "message"
-
-        });
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    input.value =
-      "";
-
-  } catch (error) {
-
-    console.error(
-      "Chat send error:",
-      error
-    );
-
-
-    alert(
-      "Could not send message: " +
-      error.message
-    );
-
-  }
-}
-
-
-// =========================
-// DISPLAY CHAT
-// =========================
-
-function addChatMessage(
-  name,
-  message,
-  mine = false
-) {
-
-  // NORMAL CHAT
-  const messages =
-    document.getElementById(
-      "chatMessages"
-    );
-
-
-  if (messages) {
-
-    const p =
-      document.createElement(
-        "p"
-      );
-
-
-    const bold =
-      document.createElement(
-        "b"
-      );
-
-
-    bold.textContent =
-      name + ":";
-
-
-    p.appendChild(
-      bold
-    );
-
-
-    p.appendChild(
-      document.createTextNode(
-        " " + message
-      )
-    );
-
-
-    messages.appendChild(
-      p
-    );
-
-
-    messages.scrollTop =
-      messages.scrollHeight;
-
-  }
-
-
-  // FULLSCREEN CHAT
-  const fullMessages =
-    document.getElementById(
-      "fullChatMessages"
-    );
-
-
-  if (fullMessages) {
-
-    const div =
-      document.createElement(
-        "div"
-      );
-
-
-    div.className =
-      "fullChatMessage";
-
-
-    const bold =
-      document.createElement(
-        "b"
-      );
-
-
-    bold.textContent =
-      name + ":";
-
-
-    div.appendChild(
-      bold
-    );
-
-
-    div.appendChild(
-      document.createTextNode(
-        " " + message
-      )
-    );
-
-
-    fullMessages.appendChild(
-      div
-    );
-
-
-    fullMessages.scrollTop =
-      fullMessages.scrollHeight;
-
-  }
-}
-
-
-// =========================
-// SYSTEM MESSAGE
-// =========================
-
-function addSystemMessage(
-  message
-) {
-
-  const messages =
-    document.getElementById(
-      "chatMessages"
-    );
-
-
-  if (messages) {
-
-    const p =
-      document.createElement(
-        "p"
-      );
-
-
-    p.textContent =
-      message;
-
-
-    messages.appendChild(
-      p
-    );
-
-
-    messages.scrollTop =
-      messages.scrollHeight;
-
-  }
-}
-
-
-// =========================
-// OLD CHAT BUTTON
-// =========================
-
-function sendChatMessage() {
-
-  sendLiveChat(
-    "chatInput"
-  );
-
-}
-
-
-// =========================
-// MUTE
-// =========================
-
-function toggleLiveMute() {
-
-  if (!localAudioTrack) {
-    alert("Microphone is not available.");
-    return;
-  }
-
-  const enabled = localAudioTrack.isEnabled;
-
-  localAudioTrack.enable(!enabled);
-
-  const button =
-    document.getElementById("liveMuteButton");
-
-  if (button) {
-    button.textContent =
-      enabled ? "🔇" : "🎤";
-  }
-}
-
-
-// =========================
-// CAMERA ON / OFF
-// =========================
-
-function toggleLiveCamera() {
-
-  if (!localVideoTrack) {
-
-    alert(
-      "Camera is not available."
-    );
-
-    return;
-  }
-
-  const enabled =
-    localVideoTrack.isEnabled;
-
-  localVideoTrack.enable(!enabled);
-
-  const button =
-    document.getElementById(
-      "liveCameraButton"
-    );
-
-  if (button) {
-
-    button.textContent =
-      enabled ? "📵" : "📹";
-  }
-}
-
-
-// =========================
-// FLIP CAMERA
-// =========================
-
-async function flipLiveCamera() {
-
-  facingMode =
-    facingMode === "user"
-      ? "environment"
-      : "user";
-
-  try {
-
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track =>
-          track.stop()
-        );
-
-      cameraStream = null;
-    }
-
-    // If already LIVE, switch LiveKit camera
-    if (
-      room &&
-      room.localParticipant
-    ) {
-
-      await room.localParticipant
-        .setCameraEnabled(false);
-
-      await room.localParticipant
-        .setCameraEnabled(true, {
-          facingMode: facingMode
-        });
-
-      localVideoTrack =
-        room.localParticipant
-          .getTrackPublication(
-            LivekitClient.Track.Source.Camera
-          )?.track || null;
-
-      const video =
-        document.getElementById(
-          "fullLiveVideo"
-        );
-
-      if (
-        localVideoTrack &&
-        video
-      ) {
-
-        localVideoTrack.detach();
-
-        localVideoTrack.attach(video);
-
-        video.muted = true;
-        video.playsInline = true;
-
-        await video.play()
-          .catch(() => {});
-      }
-
+    if (!list) {
       return;
     }
 
-    // Otherwise restart preview camera
-    await startCamera();
 
-    const preview =
-      document.getElementById(
-        "previewVideo"
-      );
+    list.innerHTML =
+      "";
 
-    const fullVideo =
-      document.getElementById(
-        "fullLiveVideo"
-      );
 
     if (
-      cameraStream &&
-      fullVideo
+      !data ||
+      data.length === 0
     ) {
 
-      fullVideo.srcObject =
-        cameraStream;
+      list.innerHTML =
+        '<div class="emptyLive">No live streams yet.</div>';
 
-      fullVideo.muted = true;
-      fullVideo.playsInline = true;
+      return;
 
-      await fullVideo.play()
-        .catch(() => {});
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Flip camera error:",
-      error
-    );
-
-    alert(
-      "Could not flip camera: " +
-      (error.message || error)
-    );
-  }
-}
-
-
-// =========================
-// STOP LIVE
-// =========================
-
-async function stopLive() {
-
-  try {
-
-    // Stop camera preview
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track =>
-          track.stop()
-        );
-
-      cameraStream = null;
     }
 
 
-    // Disconnect host
-    if (room) {
+    data.forEach(
+      liveRoom => {
 
-      room.disconnect();
-
-      room = null;
-    }
-
-
-    localVideoTrack =
-      null;
-
-    localAudioTrack =
-      null;
-
-
-    // Mark database room as not live
-    if (databaseRoomId) {
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("live_rooms")
-          .update({
-            is_live: false
-          })
-          .eq(
-            "id",
-            databaseRoomId
+        const button =
+          document.createElement(
+            "button"
           );
 
-      if (error) {
 
-        console.error(
-          "Could not end live room:",
-          error
+        button.type =
+          "button";
+
+
+        button.className =
+          "liveRoomButton";
+
+
+        button.textContent =
+          "🔴 " +
+          (
+            liveRoom.host_name ||
+            "Eman Live"
+          );
+
+
+        button.onclick =
+          watchLive;
+
+
+        list.appendChild(
+          button
         );
+
       }
-    }
+    );
 
-
-    // Remove realtime channel
-    if (realtimeChannel) {
-
-      await supabaseClient
-        .removeChannel(
-          realtimeChannel
-        );
-
-      realtimeChannel =
-        null;
-    }
-
-
-    databaseRoomId =
-      null;
-
-    currentRoomName =
-      null;
-
-
-    // Clear videos
-    const preview =
-      document.getElementById(
-        "previewVideo"
-      );
-
-    const fullVideo =
-      document.getElementById(
-        "fullLiveVideo"
-      );
-
-    if (preview) {
-      preview.srcObject = null;
-    }
-
-    if (fullVideo) {
-      fullVideo.srcObject = null;
-    }
-
-
-    // Close fullscreen
-    closeFullscreenLive();
-
-
-// =========================
-// MUTE / UNMUTE MICROPHONE
-// =========================
-
-// =========================
-// MUTE
-// =========================
-
-function toggleLiveMute() {
-
-  if (!localAudioTrack) {
-    alert("Microphone is not available.");
-    return;
-  }
-
-  const enabled = localAudioTrack.isEnabled;
-
-  localAudioTrack.enable(!enabled);
-
-  const button =
-    document.getElementById("liveMuteButton");
-
-    if (button) {
-
-    button.textContent =
-      enabled ? "🔇" : "🎤";
-  }
-}
-
-
-// =========================
-// CAMERA
-// =========================
-
-function toggleLiveCamera() {
-
-  if (!localVideoTrack) {
-    alert("Camera is not available.");
-    return;
-  }
-
-  const enabled = localVideoTrack.isEnabled;
-
-  localVideoTrack.enable(!enabled);
-
-  const button =
-    document.getElementById("liveCameraButton");
-
-  if (button) {
-    button.textContent =
-      enabled ? "📹" : "🚫";
-  }
-}
-
-
-// =========================
-// FLIP CAMERA
-// =========================
-
-async function flipLiveCamera() {
-
-  facingMode =
-    facingMode === "user"
-      ? "environment"
-      : "user";
-
-  try {
-
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track => track.stop());
-
-      cameraStream = null;
-    }
-
-    await startCamera();
-
-    if (
-      room &&
-      room.localParticipant
-    ) {
-
-      await room.localParticipant
-        .setCameraEnabled(false);
-
-      await room.localParticipant
-        .setCameraEnabled(true);
-    }
 
   } catch (error) {
 
     console.error(
-      "Flip camera error:",
-      error
-    );
-
-    alert(
-      "Could not flip camera: " +
-      (error.message || error)
-    );
-  }
-}
-
-
-// =========================
-// STOP LIVE
-// =========================
-
-async function stopLive() {
-
-  try {
-
-    // Stop LiveKit room
-    if (room) {
-
-      room.disconnect();
-
-      room = null;
-    }
-
-
-    // Stop viewer room
-    if (viewerRoom) {
-
-      viewerRoom.disconnect();
-
-      viewerRoom = null;
-    }
-
-
-    // Stop camera
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(track => track.stop());
-
-      cameraStream = null;
-    }
-
-
-    localVideoTrack = null;
-    localAudioTrack = null;
-
-
-    // Stop realtime
-    if (realtimeChannel) {
-
-      await supabaseClient
-        .removeChannel(
-          realtimeChannel
-        );
-
-      realtimeChannel = null;
-    }
-
-
-    // Close fullscreen
-    closeFullscreenLive();
-
-
-    // Close modal
-    closeModal("liveModal");
-
-
-    const video =
-      document.getElementById(
-        "fullLiveVideo"
-      );
-
-    if (video) {
-      video.srcObject = null;
-    }
-
-
-    const preview =
-      document.getElementById(
-        "previewVideo"
-      );
-
-    if (preview) {
-      preview.srcObject = null;
-    }
-
-
-    document.body.style.overflow = "";
-
-
-    alert(
-      "🔴 Eman Live has ended."
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Stop Live error:",
+      "Load live rooms error:",
       error
     );
 
   }
+
 }
