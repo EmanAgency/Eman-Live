@@ -1777,19 +1777,261 @@ async function stopLive() {
     closeFullscreenLive();
 
 
-    // Close modal
-    closeModal(
-      "liveModal"
+// =========================
+// MUTE / UNMUTE MICROPHONE
+// =========================
+
+function toggleLiveMute() {
+
+  if (!localAudioTrack) {
+    alert("Microphone is not available.");
+    return;
+  }
+
+  const enabled =
+    localAudioTrack.isEnabled;
+
+  localAudioTrack.enable(!enabled);
+
+  const button =
+    document.getElementById("liveMuteButton");
+
+  if (button) {
+    button.textContent =
+      enabled ? "🔇" : "🎤";
+  }
+
+  console.log(
+    enabled
+      ? "Microphone muted."
+      : "Microphone unmuted."
+  );
+}
+
+
+// =========================
+// CAMERA ON / OFF
+// =========================
+
+function toggleLiveCamera() {
+
+  if (!localVideoTrack) {
+    alert("Camera is not available.");
+    return;
+  }
+
+  const enabled =
+    localVideoTrack.isEnabled;
+
+  localVideoTrack.enable(!enabled);
+
+  const button =
+    document.getElementById("liveCameraButton");
+
+  if (button) {
+    button.textContent =
+      enabled ? "📵" : "📹";
+  }
+
+  console.log(
+    enabled
+      ? "Camera turned off."
+      : "Camera turned on."
+  );
+}
+
+
+// =========================
+// FRONT / BACK CAMERA
+// =========================
+
+async function flipLiveCamera() {
+
+  if (!room || !room.localParticipant) {
+    alert("You must be LIVE to switch the camera.");
+    return;
+  }
+
+  try {
+
+    // Change camera
+    facingMode =
+      facingMode === "user"
+        ? "environment"
+        : "user";
+
+    console.log(
+      "Switching camera to:",
+      facingMode
     );
 
 
-    document.body.style.overflow =
-      "";
+    // Turn current camera off
+    await room.localParticipant
+      .setCameraEnabled(false);
+
+
+    // Turn camera back on using the new camera
+    await room.localParticipant
+      .setCameraEnabled(true, {
+        facingMode: facingMode
+      });
+
+
+    // Get the new camera track
+    localVideoTrack =
+      room.localParticipant
+        .getTrackPublication(
+          LivekitClient.Track.Source.Camera
+        )?.track || null;
+
+
+    // Attach new track to fullscreen video
+    const video =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+
+    if (
+      localVideoTrack &&
+      video
+    ) {
+
+      localVideoTrack.detach();
+
+      localVideoTrack.attach(video);
+
+      video.muted = true;
+      video.playsInline = true;
+
+      await video.play()
+        .catch(() => {});
+    }
+
+
+    console.log(
+      "Camera switched successfully."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Camera flip error:",
+      error
+    );
+
+    alert(
+      "Could not switch camera: " +
+      (error.message || error)
+    );
+  }
+}
+
+
+// =========================
+// STOP LIVE
+// =========================
+
+async function stopLive() {
+
+  try {
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(track =>
+          track.stop()
+        );
+
+      cameraStream = null;
+    }
+
+
+    if (room) {
+
+      room.disconnect();
+
+      room = null;
+    }
+
+
+    localVideoTrack = null;
+    localAudioTrack = null;
+
+
+    if (databaseRoomId) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("live_rooms")
+          .update({
+            is_live: false
+          })
+          .eq(
+            "id",
+            databaseRoomId
+          );
+
+      if (error) {
+        console.error(
+          "Could not end live room:",
+          error
+        );
+      }
+    }
+
+
+    if (realtimeChannel) {
+
+      await supabaseClient
+        .removeChannel(
+          realtimeChannel
+        );
+
+      realtimeChannel = null;
+    }
+
+
+    databaseRoomId = null;
+    currentRoomName = null;
+
+
+    const preview =
+      document.getElementById(
+        "previewVideo"
+      );
+
+    const fullVideo =
+      document.getElementById(
+        "fullLiveVideo"
+      );
+
+
+    if (preview) {
+      preview.srcObject = null;
+    }
+
+
+    if (fullVideo) {
+      fullVideo.srcObject = null;
+    }
+
+
+    closeFullscreenLive();
+
+    closeModal("liveModal");
+
+    document.body.style.overflow = "";
 
 
     alert(
       "🔴 Eman Live has ended."
     );
+
 
   } catch (error) {
 
