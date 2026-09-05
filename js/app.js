@@ -120,11 +120,14 @@ function openParty() {
   const modal = document.getElementById("partyModal");
 
   if (!modal) {
-    alert("Party modal was not found.");
+    alert("ERROR: partyModal not found");
     return;
   }
 
+  modal.style.display = "flex";
   modal.classList.add("open");
+
+  console.log("Party Room opened");
 }
 
 
