@@ -686,10 +686,18 @@ async function goLive() {
     // OPEN FULLSCREEN
     openFullscreenLive();
 
+const fullscreen =
+  document.getElementById(
+    "liveFullscreen"
+  );
 
-    alert(
-      "🔴 EMAN LIVE is now LIVE!"
-    );
+if (fullscreen) {
+  fullscreen.classList.add("isLive");
+}
+
+alert(
+  "🔴 EMAN LIVE is now LIVE!"
+);
 
 
   } catch (error) {
