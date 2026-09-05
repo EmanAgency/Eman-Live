@@ -291,13 +291,17 @@ input {
 
 #liveFullscreen {
   display: none;
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  z-index: 1000;
-  overflow: hidden;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: #000 !important;
+  z-index: 99999 !important;
+  overflow: hidden !important;
+}
+
+#liveFullscreen.open {
+  display: block !important;
 }
 
 #liveFullscreen.open {
@@ -360,6 +364,76 @@ input {
   padding: 0;
   margin: 0;
   border-radius: 50%;
+
+  /* Eman Live fullscreen touch fix */
+
+#liveFullscreen:not(.open) {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#liveFullscreen.open {
+  display: block !important;
+  pointer-events: auto !important;
+}
+
+#fullLiveVideo {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.liveTopBar,
+.joinOverlay,
+.fullChat,
+.fullChatInput,
+.giftFloating,
+.liveControls,
+.fullscreenGoLive {
+  position: absolute !important;
+}
+
+.liveTopBar {
+  z-index: 100 !important;
+}
+
+.joinOverlay {
+  z-index: 200 !important;
+}
+
+.fullChat {
+  z-index: 300 !important;
+  pointer-events: auto !important;
+}
+
+.fullChatInput {
+  z-index: 400 !important;
+  pointer-events: auto !important;
+}
+
+.giftFloating {
+  z-index: 500 !important;
+  pointer-events: auto !important;
+}
+
+.liveControls {
+  z-index: 600 !important;
+  pointer-events: auto !important;
+}
+
+.fullscreenGoLive {
+  z-index: 700 !important;
+  pointer-events: auto !important;
+}
+
+/* Gift window must appear above fullscreen */
+#giftModal {
+  z-index: 100001 !important;
+  }
   background: rgba(0,0,0,.55);
   font-size: 22px;
 }
