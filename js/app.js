@@ -1500,26 +1500,18 @@ function sendChatMessage() {
 function toggleLiveMute() {
 
   if (!localAudioTrack) {
-
-    alert(
-      "Microphone is not available."
-    );
-
+    alert("Microphone is not available.");
     return;
   }
 
-  const enabled =
-    localAudioTrack.isEnabled;
+  const enabled = localAudioTrack.isEnabled;
 
   localAudioTrack.enable(!enabled);
 
   const button =
-    document.getElementById(
-      "liveMuteButton"
-    );
+    document.getElementById("liveMuteButton");
 
   if (button) {
-
     button.textContent =
       enabled ? "🔇" : "🎤";
   }
