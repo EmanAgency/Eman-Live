@@ -431,23 +431,206 @@ async function startCamera() {
    GO LIVE
 ========================================================= */
 
-async function startLiveFromFullscreen() {
+
+   async function startLiveFromFullscreen() {
 
   try {
 
-    if (cameraStream) {
+    /* =====================================================
+       CHECK LIVE COVER
+    ===================================================== */
 
-      cameraStream
-        .getTracks()
-        .forEach(
-          track => track.stop()
-        );
+    if (!liveCoverFile) {
 
-      cameraStream = null;
+      alert(
+        "📸 Please upload a live cover photo first."
+      );
+
+      return;
 
     }
 
-    await goLive();
+
+    /* =====================================================
+       CHECK LIVE TITLE
+    ===================================================== */
+
+    const titleInput =
+      document.getElementById(
+        "liveTitleInput"
+      );
+
+    const liveTitle =
+      titleInput
+        ? titleInput.value.trim()
+        : "";
+
+
+    if (!liveTitle) {
+
+      alert(
+        "Please enter a live title."
+      );
+
+      if (titleInput) {
+        titleInput.focus();
+      }
+
+      return;
+
+    }
+
+
+    /* =====================================================
+       USER
+    ===================================================== */
+
+    const {
+      data: {
+        user
+      }
+    } =
+      await supabaseClient.auth
+        .getUser();
+
+
+    if (!user) {
+
+      alert(
+        "Please log in before going live."
+      );
+
+      return;
+
+    }
+
+
+    /* =====================================================
+       UPLOAD COVER PHOTO
+    ===================================================== */
+
+    const fileExtension =
+      liveCoverFile.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+
+    const fileName =
+      user.id +
+      "_" +
+      Date.now() +
+      "." +
+      fileExtension;
+
+
+    const filePath =
+      user.id +
+      "/" +
+      fileName;
+
+
+    const uploadResult =
+      await supabaseClient.storage
+        .from("live-covers")
+        .upload(
+          filePath,
+          liveCoverFile,
+          {
+            cacheControl: "3600",
+            upsert: false
+          }
+        );
+
+
+    if (uploadResult.error) {
+
+      throw uploadResult.error;
+
+    }
+
+
+    /* =====================================================
+       GET COVER URL
+    ===================================================== */
+
+    const {
+      data: publicUrlData
+    } =
+      supabaseClient.storage
+        .from("live-covers")
+        .getPublicUrl(
+          filePath
+        );
+
+
+    const coverUrl =
+      publicUrlData.publicUrl;
+
+
+    /* =====================================================
+       CREATE ROOM NAME
+    ===================================================== */
+
+    const roomName =
+      "eman-live-" +
+      Date.now();
+
+
+    /* =====================================================
+       CREATE LIVE ROOM
+    ===================================================== */
+
+    const {
+      error: roomError
+    } =
+      await supabaseClient
+        .from("live_rooms")
+        .insert({
+
+          host_id: user.id,
+
+          room_name: roomName,
+
+          title: liveTitle,
+
+          cover_photo: coverUrl,
+
+          live_type: "live",
+
+          status: "live",
+
+          viewer_count: 0
+
+        });
+
+
+    if (roomError) {
+
+      throw roomError;
+
+    }
+
+
+    /* =====================================================
+       START LIVEKIT
+    ===================================================== */
+
+    currentRoomName =
+      roomName;
+
+
+    await goLive(
+      roomName
+    );
+
+
+    /* Close setup modal */
+
+    closeModal(
+      "liveModal"
+    );
+
 
   } catch (error) {
 
@@ -456,201 +639,18 @@ async function startLiveFromFullscreen() {
       error
     );
 
+
+    alert(
+      "Start Live error: " +
+      (
+        error.message ||
+        error
+      )
+    );
+
   }
 
-}
-
-
-async function goLive() {
-
-  try {
-
-    if (!window.LivekitClient) {
-
-      throw new Error(
-        "LiveKit is not loaded."
-      );
-
-    }
-
-
-    console.log(
-      "Starting Eman Live..."
-    );
-
-
-    currentRoomName =
-      "eman-live-main";
-
-
-    /* Create/update Supabase room */
-
-    await createLiveRoom();
-
-
-    /* Realtime */
-
-    subscribeToLive();
-
-
-    /* Get LiveKit credentials */
-
-    const credentials =
-      await getLiveKitToken(
-        currentRoomName
-      );
-
-
-    if (
-      !credentials ||
-      !credentials.serverUrl ||
-      !credentials.participantToken
-    ) {
-
-      throw new Error(
-        "LiveKit credentials were not received."
-      );
-
-    }
-
-
-    console.log(
-      "LiveKit server:",
-      credentials.serverUrl
-    );
-
-
-    /* Create LiveKit room */
-
-    room =
-      new LivekitClient.Room({
-
-        adaptiveStream: true,
-
-        dynacast: true
-
-      });
-
-
-    /* Participant connected */
-
-    room.on(
-
-      LivekitClient.RoomEvent.ParticipantConnected,
-
-      participant => {
-
-        console.log(
-          "Participant joined:",
-          participant.identity
-        );
-
-        viewerCount++;
-
-        updateViewerCount();
-
-        addSystemMessage(
-          participant.identity +
-          " joined the live."
-        );
-
-      }
-
-    );
-
-
-    /* Participant disconnected */
-
-    room.on(
-
-      LivekitClient.RoomEvent.ParticipantDisconnected,
-
-      participant => {
-
-        console.log(
-          "Participant left:",
-          participant.identity
-        );
-
-        if (viewerCount > 0) {
-
-          viewerCount--;
-
-        }
-
-        updateViewerCount();
-
-        addSystemMessage(
-          participant.identity +
-          " left the live."
-        );
-
-      }
-
-    );
-
-
-    /* Track subscribed */
-
-    room.on(
-
-      LivekitClient.RoomEvent.TrackSubscribed,
-
-      (
-        track,
-        publication,
-        participant
-      ) => {
-
-        console.log(
-          "Track subscribed:",
-          participant.identity
-        );
-
-        const element =
-          track.attach();
-
-        if (
-          track.kind ===
-          LivekitClient.Track.Kind.Video
-        ) {
-
-          element.style.width =
-            "100%";
-
-          element.style.height =
-            "100%";
-
-          element.style.objectFit =
-            "cover";
-
-          element.autoplay =
-            true;
-
-          element.playsInline =
-            true;
-
-          element.muted =
-            true;
-
-          const grid =
-            document.getElementById(
-              "videoGrid"
-            );
-
-          if (grid) {
-
-            grid.appendChild(
-              element
-            );
-
-          }
-
-        }
-
-      }
-
-    );
+} 
 
 
     /* =====================================================
