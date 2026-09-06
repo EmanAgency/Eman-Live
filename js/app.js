@@ -1383,27 +1383,28 @@ function attachLocalLiveVideo(
    LIVEKIT TOKEN
 ========================================================= */
 
-async function getLiveKitToken(
-  roomName
-) {
+/* =========================================================
+   LIVEKIT TOKEN
+========================================================= */
+
+async function getLiveKitToken(roomName) {
 
   try {
 
-    console.log(
-      "Getting LiveKit credentials..."
-    );
+    console.log("Getting LiveKit credentials...");
+    console.log("Room:", roomName);
 
-    console.log(
-      "Room:",
-      roomName
-    );
-
+    /* USE LIVEKIT DEVELOPMENT TOKEN SERVER */
 
     if (
+      window.LivekitClient &&
       LivekitClient.TokenSource &&
-      LivekitClient.TokenSource
-        .developmentTokenServer
+      LivekitClient.TokenSource.developmentTokenServer
     ) {
+
+      console.log(
+        "Using LiveKit development token server..."
+      );
 
       const tokenSource =
         LivekitClient.TokenSource
@@ -1411,17 +1412,16 @@ async function getLiveKitToken(
             TOKEN_SERVER_ID
           );
 
-
       const result =
         await tokenSource.fetch({
-          roomName:
-            roomName,
-
+          roomName: roomName,
           participantName:
-            "EmanUser-" +
-            Date.now()
+            "EmanUser-" + Date.now()
         });
 
+      console.log(
+        "LiveKit credentials received."
+      );
 
       if (
         !result ||
@@ -1435,102 +1435,20 @@ async function getLiveKitToken(
 
       }
 
-
       return {
-
         serverUrl:
           result.serverUrl,
 
         participantToken:
           result.participantToken
-
       };
 
     }
 
 
-    const response =
-      await fetch(
-        "https://cloud-api.livekit.io/api/sandbox/connection-details",
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            "X-Sandbox-ID":
-              TOKEN_SERVER_ID
-          },
-
-          body:
-            JSON.stringify({
-              room_name:
-                roomName,
-
-              participant_name:
-                "EmanUser-" +
-                Date.now()
-            })
-        }
-      );
-
-
-    if (!response.ok) {
-
-      const text =
-        await response.text();
-
-      console.error(
-        "Token server response:",
-        text
-      );
-
-
-      throw new Error(
-        "Token server returned " +
-        response.status
-      );
-
-    }
-
-
-    const data =
-      await response.json();
-
-
-    const serverUrl =
-      data.serverUrl ||
-      data.server_url;
-
-
-    const participantToken =
-      data.participantToken ||
-      data.participant_token;
-
-
-    if (
-      !serverUrl ||
-      !participantToken
-    ) {
-
-      throw new Error(
-        "LiveKit token was not returned."
-      );
-
-    }
-
-
-    return {
-
-      serverUrl:
-        serverUrl,
-
-      participantToken:
-        participantToken
-
-    };
+    throw new Error(
+      "LiveKit TokenSource is not available. Please check that the LiveKit JavaScript library is loaded."
+    );
 
 
   } catch (error) {
@@ -1540,9 +1458,8 @@ async function getLiveKitToken(
       error
     );
 
-
     throw new Error(
-      "Could not obtain LiveKit token: " +
+      "LiveKit connection failed: " +
       (error.message || error)
     );
 
