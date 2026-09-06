@@ -734,6 +734,81 @@
 
 </nav>
 
+<!-- =========================
+     AUTH MODAL
+========================= -->
+
+<div class="modal" id="authModal">
+
+  <div class="modalBox authBox">
+
+    <button
+      type="button"
+      class="close"
+      onclick="closeModal('authModal')">
+      ×
+    </button>
+
+    <div class="authHeader">
+
+      <div class="authLogo">
+        👑
+      </div>
+
+      <h2 id="authTitle">Welcome to Eman Live</h2>
+
+      <p id="authSubtitle">
+        Login to continue
+      </p>
+
+    </div>
+
+    <input
+      type="email"
+      id="authEmail"
+      class="authInput"
+      placeholder="Email address"
+      autocomplete="email">
+
+    <input
+      type="password"
+      id="authPassword"
+      class="authInput"
+      placeholder="Password"
+      autocomplete="current-password">
+
+    <input
+      type="password"
+      id="authConfirmPassword"
+      class="authInput"
+      placeholder="Confirm password"
+      autocomplete="new-password"
+      style="display:none;">
+
+    <button
+      type="button"
+      id="authMainButton"
+      class="primaryButton"
+      onclick="handleAuth()">
+      🔐 LOGIN
+    </button>
+
+    <p
+      id="authMessage"
+      class="authMessage">
+    </p>
+
+    <button
+      type="button"
+      class="authSwitch"
+      id="authSwitchButton"
+      onclick="switchAuthMode()">
+      Don't have an account? Sign Up
+    </button>
+
+  </div>
+
+</div>  
 
   <!-- =========================
        SCRIPTS
