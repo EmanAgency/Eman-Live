@@ -741,3 +741,85 @@ body {
   }
 
   }
+
+/* =========================
+   PROFILE
+========================= */
+
+.profileBox {
+  text-align: center;
+}
+
+.profileHeader {
+  padding: 15px 0 25px;
+}
+
+.profileAvatar {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #7b2cff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+}
+
+.profileHeader h2 {
+  margin-bottom: 5px;
+}
+
+.profileHeader p {
+  color: #777;
+}
+
+.profileMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profileMenu button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #f1f1f1;
+  text-align: left;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.profileMenu button span {
+  display: block;
+  margin-top: 5px;
+  color: #777;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+
+/* =========================
+   INBOX
+========================= */
+
+.inboxBox {
+  min-height: 300px;
+}
+
+.inboxBox > p {
+  color: #777;
+}
+
+.privateMessages {
+  margin-top: 20px;
+}
+
+.emptyInbox {
+  text-align: center;
+  padding: 50px 10px;
+  color: #888;
+}
