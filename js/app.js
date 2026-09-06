@@ -2025,7 +2025,6 @@ let partyLocalVideoTrack = null;
 let partyLocalAudioTrack = null;
 let partySeatNumber = null;
 let partyJoined = false;
-let partyFacingMode = "user";
 
 
 /* =========================================================
@@ -2034,30 +2033,66 @@ let partyFacingMode = "user";
 
 function openParty() {
 
-  const modal =
-    document.getElementById("partyModal");
+  const modal = document.getElementById("partyModal");
 
   if (!modal) {
-
-    alert(
-      "Party Room could not be found."
-    );
-
+    alert("Party Room could not be found.");
     return;
-
   }
 
   modal.classList.add("open");
-
-  console.log(
-    "Party Live Room opened."
-  );
 
 }
 
 
 /* =========================================================
-   JOIN A PARTY SEAT
+   CREATE VIDEO ELEMENT
+========================================================= */
+
+function createPartyVideo(track) {
+
+  const video = document.createElement("video");
+
+  video.autoplay = true;
+  video.playsInline = true;
+  video.muted = true;
+
+  track.attach(video);
+
+  return video;
+
+}
+
+
+/* =========================================================
+   FIND EMPTY SEAT
+========================================================= */
+
+function findEmptyPartySeat() {
+
+  for (let i = 1; i <= 4; i++) {
+
+    const seat =
+      document.getElementById("partySeat" + i);
+
+    if (
+      seat &&
+      !seat.classList.contains("occupied")
+    ) {
+
+      return i;
+
+    }
+
+  }
+
+  return null;
+
+}
+
+
+/* =========================================================
+   JOIN PARTY SEAT
 ========================================================= */
 
 async function joinPartySeat() {
@@ -2066,9 +2101,7 @@ async function joinPartySeat() {
 
     if (!window.LivekitClient) {
 
-      alert(
-        "LiveKit is not loaded."
-      );
+      alert("LiveKit is not loaded.");
 
       return;
 
@@ -2077,62 +2110,29 @@ async function joinPartySeat() {
 
     if (partyJoined) {
 
-      alert(
-        "You are already in a Party seat."
-      );
+      alert("You are already in a Party seat.");
 
       return;
 
     }
 
 
-    /* Find first empty seat */
-
-    let seat = null;
-
-    for (
-      let i = 1;
-      i <= 4;
-      i++
-    ) {
-
-      const seatElement =
-        document.getElementById(
-          "partySeat" + i
-        );
-
-      if (
-        seatElement &&
-        !seatElement.classList.contains(
-          "occupied"
-        )
-      ) {
-
-        seat = i;
-
-        break;
-
-      }
-
-    }
+    const seat = findEmptyPartySeat();
 
 
     if (!seat) {
 
-      alert(
-        "All 4 Party seats are occupied."
-      );
+      alert("All 4 Party seats are occupied.");
 
       return;
 
     }
 
 
-    partySeatNumber =
-      seat;
+    partySeatNumber = seat;
 
 
-    /* Get Party LiveKit credentials */
+    /* Get LiveKit credentials */
 
     const credentials =
       await getLiveKitToken(
@@ -2153,22 +2153,20 @@ async function joinPartySeat() {
     }
 
 
-    /* Create Party Room */
+    /* Create Room */
 
     partyRoom =
       new LivekitClient.Room({
 
-        adaptiveStream:
-          true,
+        adaptiveStream: true,
 
-        dynacast:
-          true
+        dynacast: true
 
       });
 
 
     /* =====================================================
-       REMOTE PARTICIPANT
+       REMOTE VIDEO
     ===================================================== */
 
     partyRoom.on(
@@ -2182,103 +2180,97 @@ async function joinPartySeat() {
       ) => {
 
         console.log(
-          "Party participant joined:",
+          "Party video received:",
           participant.identity
         );
 
 
-        const videoTrack =
-          track.kind ===
-          LivekitClient.Track.Kind.Video;
-
-
-        if (!videoTrack) {
+        if (
+          track.kind !==
+          LivekitClient.Track.Kind.Video
+        ) {
 
           return;
 
         }
 
 
-        const element =
-          track.attach();
+        const remoteSeat =
+          findEmptyPartySeat();
 
 
-        element.autoplay =
-          true;
+        if (!remoteSeat) {
 
-        element.playsInline =
-          true;
+          console.log(
+            "No empty Party seat."
+          );
 
-        element.muted =
-          true;
-
-
-        /*
-          Put remote video into
-          an available Party seat.
-        */
-
-        for (
-          let i = 1;
-          i <= 4;
-          i++
-        ) {
-
-          const seatElement =
-            document.getElementById(
-              "partySeat" + i
-            );
-
-
-          if (
-            seatElement &&
-            !seatElement.classList.contains(
-              "occupied"
-            )
-          ) {
-
-            seatElement.classList.add(
-              "occupied"
-            );
-
-
-            const videoContainer =
-              seatElement.querySelector(
-                ".seatVideo"
-              );
-
-
-            if (videoContainer) {
-
-              videoContainer.innerHTML =
-                "";
-
-              videoContainer.appendChild(
-                element
-              );
-
-            }
-
-
-            const name =
-              seatElement.querySelector(
-                ".seatName"
-              );
-
-
-            if (name) {
-
-              name.textContent =
-                participant.identity;
-
-            }
-
-
-            break;
-
-          }
+          return;
 
         }
+
+
+        const seatElement =
+          document.getElementById(
+            "partySeat" + remoteSeat
+          );
+
+
+        if (!seatElement) {
+
+          return;
+
+        }
+
+
+        const videoContainer =
+          seatElement.querySelector(
+            ".seatVideo"
+          );
+
+
+        if (!videoContainer) {
+
+          return;
+
+        }
+
+
+        videoContainer.innerHTML = "";
+
+
+        const video =
+          createPartyVideo(track);
+
+
+        videoContainer.appendChild(
+          video
+        );
+
+
+        seatElement.classList.add(
+          "occupied"
+        );
+
+
+        const name =
+          seatElement.querySelector(
+            ".seatName"
+          );
+
+
+        if (name) {
+
+          name.textContent =
+            participant.identity;
+
+        }
+
+
+        console.log(
+          "Remote participant placed in Seat " +
+          remoteSeat
+        );
 
       }
 
@@ -2286,7 +2278,7 @@ async function joinPartySeat() {
 
 
     /* =====================================================
-       PARTICIPANT LEFT
+       REMOTE PARTICIPANT LEFT
     ===================================================== */
 
     partyRoom.on(
@@ -2299,6 +2291,7 @@ async function joinPartySeat() {
           "Party participant left:",
           participant.identity
         );
+
 
         removePartyParticipant(
           participant.identity
@@ -2328,56 +2321,52 @@ async function joinPartySeat() {
 
 
     /* =====================================================
-       PUBLISH CAMERA
+       CAMERA
     ===================================================== */
 
     await partyRoom.localParticipant
-      .setCameraEnabled(
-        true
-      );
+      .setCameraEnabled(true);
 
 
     /* =====================================================
-       PUBLISH MICROPHONE
+       MICROPHONE
     ===================================================== */
 
     await partyRoom.localParticipant
-      .setMicrophoneEnabled(
-        true
-      );
+      .setMicrophoneEnabled(true);
 
 
-    /* Get local publications */
+    /* =====================================================
+       GET LOCAL TRACK
+    ===================================================== */
 
     partyRoom
       .localParticipant
       .trackPublications
-      .forEach(
-        publication => {
+      .forEach(publication => {
 
-          if (
-            publication.kind ===
-            LivekitClient.Track.Kind.Video
-          ) {
+        if (
+          publication.kind ===
+          LivekitClient.Track.Kind.Video
+        ) {
 
-            partyLocalVideoTrack =
-              publication.track;
-
-          }
-
-
-          if (
-            publication.kind ===
-            LivekitClient.Track.Kind.Audio
-          ) {
-
-            partyLocalAudioTrack =
-              publication.track;
-
-          }
+          partyLocalVideoTrack =
+            publication.track;
 
         }
-      );
+
+
+        if (
+          publication.kind ===
+          LivekitClient.Track.Kind.Audio
+        ) {
+
+          partyLocalAudioTrack =
+            publication.track;
+
+        }
+
+      });
 
 
     /* =====================================================
@@ -2386,17 +2375,14 @@ async function joinPartySeat() {
 
     const localSeat =
       document.getElementById(
-        "partySeat" +
-        partySeatNumber
+        "partySeat" + partySeatNumber
       );
 
 
-    if (localSeat) {
-
-      localSeat.classList.add(
-        "occupied"
-      );
-
+    if (
+      localSeat &&
+      partyLocalVideoTrack
+    ) {
 
       const videoContainer =
         localSeat.querySelector(
@@ -2404,19 +2390,27 @@ async function joinPartySeat() {
         );
 
 
-      if (
-        videoContainer &&
-        partyLocalVideoTrack
-      ) {
+      if (videoContainer) {
 
-        videoContainer.innerHTML =
-          "";
+        videoContainer.innerHTML = "";
 
-        partyLocalVideoTrack.attach(
-          videoContainer
+
+        const video =
+          createPartyVideo(
+            partyLocalVideoTrack
+          );
+
+
+        videoContainer.appendChild(
+          video
         );
 
       }
+
+
+      localSeat.classList.add(
+        "occupied"
+      );
 
 
       const name =
@@ -2427,19 +2421,17 @@ async function joinPartySeat() {
 
       if (name) {
 
-        name.textContent =
-          "You";
+        name.textContent = "You";
 
       }
 
     }
 
 
-    partyJoined =
-      true;
+    partyJoined = true;
 
 
-    /* Update button */
+    /* Update Join button */
 
     const buttons =
       document.querySelectorAll(
@@ -2447,10 +2439,7 @@ async function joinPartySeat() {
       );
 
 
-    if (
-      buttons &&
-      buttons[0]
-    ) {
+    if (buttons[0]) {
 
       buttons[0].textContent =
         "✅ Seat " +
@@ -2489,6 +2478,7 @@ async function joinPartySeat() {
       error
     );
 
+
     alert(
       "Party Live error: " +
       (
@@ -2503,18 +2493,12 @@ async function joinPartySeat() {
 
 
 /* =========================================================
-   REMOVE PARTY PARTICIPANT
+   REMOVE PARTICIPANT
 ========================================================= */
 
-function removePartyParticipant(
-  identity
-) {
+function removePartyParticipant(identity) {
 
-  for (
-    let i = 1;
-    i <= 4;
-    i++
-  ) {
+  for (let i = 1; i <= 4; i++) {
 
     const seat =
       document.getElementById(
@@ -2523,9 +2507,7 @@ function removePartyParticipant(
 
 
     if (!seat) {
-
       continue;
-
     }
 
 
@@ -2590,8 +2572,7 @@ async function togglePartyMute() {
 
 
   const enabled =
-    partyRoom
-      .localParticipant
+    partyRoom.localParticipant
       .isMicrophoneEnabled;
 
 
@@ -2607,10 +2588,7 @@ async function togglePartyMute() {
     );
 
 
-  if (
-    buttons &&
-    buttons[1]
-  ) {
+  if (buttons[1]) {
 
     buttons[1].textContent =
       !enabled
@@ -2640,8 +2618,7 @@ async function togglePartyCamera() {
 
 
   const enabled =
-    partyRoom
-      .localParticipant
+    partyRoom.localParticipant
       .isCameraEnabled;
 
 
@@ -2657,10 +2634,7 @@ async function togglePartyCamera() {
     );
 
 
-  if (
-    buttons &&
-    buttons[2]
-  ) {
+  if (buttons[2]) {
 
     buttons[2].textContent =
       !enabled
@@ -2684,15 +2658,12 @@ async function leavePartySeat() {
 
       partyRoom.disconnect();
 
-      partyRoom =
-        null;
+      partyRoom = null;
 
     }
 
 
-    if (
-      partySeatNumber
-    ) {
+    if (partySeatNumber) {
 
       const seat =
         document.getElementById(
@@ -2741,17 +2712,13 @@ async function leavePartySeat() {
     }
 
 
-    partySeatNumber =
-      null;
+    partySeatNumber = null;
 
-    partyJoined =
-      false;
+    partyJoined = false;
 
-    partyLocalVideoTrack =
-      null;
+    partyLocalVideoTrack = null;
 
-    partyLocalAudioTrack =
-      null;
+    partyLocalAudioTrack = null;
 
 
     const status =
@@ -2774,13 +2741,26 @@ async function leavePartySeat() {
       );
 
 
-    if (
-      buttons &&
-      buttons[0]
-    ) {
+    if (buttons[0]) {
 
       buttons[0].textContent =
         "🎥 Join Seat";
+
+    }
+
+
+    if (buttons[1]) {
+
+      buttons[1].textContent =
+        "🎤 Mute";
+
+    }
+
+
+    if (buttons[2]) {
+
+      buttons[2].textContent =
+        "📹 Camera";
 
     }
 
@@ -2796,6 +2776,11 @@ async function leavePartySeat() {
 
 }
 
+    
+
+
+    
+    
 
 /* =========================================================
    STOP LIVE
