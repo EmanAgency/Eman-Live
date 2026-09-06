@@ -44,119 +44,7 @@ let localVideoTrack = null;
 let localAudioTrack = null;
 
 let cameraStream = null;
-/* =========================================================
-   LIVE COVER PHOTO
-========================================================= */
 
-let liveCoverFile = null;
-let liveCoverUrl = null;
-
-
-/* =========================================================
-   LIVE COVER SELECT
-========================================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  const input =
-    document.getElementById("liveCoverInput");
-
-  const preview =
-    document.getElementById("liveCoverPreview");
-
-  const startButton =
-    document.getElementById("startLiveButton");
-
-  const message =
-    document.getElementById("liveSetupMessage");
-
-
-  if (!input) {
-    return;
-  }
-
-
-  input.addEventListener("change", event => {
-
-    const file =
-      event.target.files[0];
-
-
-    if (!file) {
-      return;
-    }
-
-
-    /* Check image */
-
-    if (!file.type.startsWith("image/")) {
-
-      alert(
-        "Please select an image file."
-      );
-
-      input.value = "";
-
-      return;
-
-    }
-
-
-    /* Check 10 MB */
-
-    if (file.size > 10 * 1024 * 1024) {
-
-      alert(
-        "Live cover must be 10 MB or smaller."
-      );
-
-      input.value = "";
-
-      return;
-
-    }
-
-
-    liveCoverFile = file;
-
-
-    /* Create preview */
-
-    liveCoverUrl =
-      URL.createObjectURL(file);
-
-
-    if (preview) {
-
-      preview.src =
-        liveCoverUrl;
-
-      preview.style.display =
-        "block";
-
-    }
-
-
-    /* Enable Start Live */
-
-    if (startButton) {
-
-      startButton.disabled =
-        false;
-
-    }
-
-
-    if (message) {
-
-      message.textContent =
-        "✅ Live cover selected. You can now start your live.";
-
-    }
-
-  });
-
-});
 let realtimeChannel = null;
 
 let facingMode = "user";
@@ -167,6 +55,37 @@ let coins = 0;
 
 
 /* =========================================================
+   LIVE COVER
+========================================================= */
+
+let liveCoverFile = null;
+
+let liveCoverUrl = null;
+
+
+/* =========================================================
+   PARTY VARIABLES
+========================================================= */
+
+let partyRoom = null;
+
+let partyLocalVideoTrack = null;
+
+let partyLocalAudioTrack = null;
+
+let partySeatNumber = null;
+
+let partyJoined = false;
+
+
+/* =========================================================
+   AUTH VARIABLES
+========================================================= */
+
+let authMode = "login";
+
+
+/* =========================================================
    STARTUP
 ========================================================= */
 
@@ -174,14 +93,60 @@ document.addEventListener(
   "DOMContentLoaded",
   function () {
 
-    console.log("Eman Live loaded.");
+    console.log(
+      "Eman Live loaded."
+    );
 
     updateCoinDisplay();
 
     loadLiveRooms();
 
+    setupLiveCoverSelector();
+
+    checkExistingLogin();
+
   }
 );
+
+
+/* =========================================================
+   CHECK EXISTING LOGIN
+========================================================= */
+
+async function checkExistingLogin() {
+
+  try {
+
+    const {
+      data: { user }
+    } =
+      await supabaseClient.auth.getUser();
+
+    if (user) {
+
+      console.log(
+        "Logged in user:",
+        user.email
+      );
+
+    } else {
+
+      console.log(
+        "No user logged in."
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Login check error:",
+      error
+    );
+
+  }
+
+}
 
 
 /* =========================================================
@@ -200,11 +165,575 @@ function goHome() {
 
   closeModal("inboxModal");
 
+  closeModal("authModal");
+
+  closeModal("liveFullscreen");
+
 }
 
 
 /* =========================================================
    MODALS
+========================================================= */
+
+function closeModal(id) {
+
+  const modal =
+    document.getElementById(id);
+
+  if (modal) {
+
+    modal.classList.remove("open");
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTHENTICATION
+========================================================= */
+
+function openAuth(mode = "login") {
+
+  authMode = mode;
+
+  const modal =
+    document.getElementById(
+      "authModal"
+    );
+
+  if (!modal) {
+
+    alert(
+      "Login window could not be found."
+    );
+
+    return;
+
+  }
+
+  updateAuthUI();
+
+  modal.classList.add("open");
+
+}
+
+
+function switchAuthMode() {
+
+  authMode =
+    authMode === "login"
+      ? "signup"
+      : "login";
+
+  updateAuthUI();
+
+}
+
+
+function updateAuthUI() {
+
+  const title =
+    document.getElementById(
+      "authTitle"
+    );
+
+  const subtitle =
+    document.getElementById(
+      "authSubtitle"
+    );
+
+  const button =
+    document.getElementById(
+      "authMainButton"
+    );
+
+  const switchButton =
+    document.getElementById(
+      "authSwitchButton"
+    );
+
+  const confirmPassword =
+    document.getElementById(
+      "authConfirmPassword"
+    );
+
+  const message =
+    document.getElementById(
+      "authMessage"
+    );
+
+  if (!title) return;
+
+
+  if (message) {
+
+    message.textContent = "";
+
+  }
+
+
+  if (authMode === "login") {
+
+    title.textContent =
+      "Welcome Back";
+
+    subtitle.textContent =
+      "Login to your Eman Live account";
+
+    button.textContent =
+      "🔐 LOGIN";
+
+    switchButton.textContent =
+      "Don't have an account? Sign Up";
+
+    if (confirmPassword) {
+
+      confirmPassword.style.display =
+        "none";
+
+    }
+
+  } else {
+
+    title.textContent =
+      "Create Your Eman Live Account";
+
+    subtitle.textContent =
+      "Join Eman Live today";
+
+    button.textContent =
+      "✨ CREATE ACCOUNT";
+
+    switchButton.textContent =
+      "Already have an account? Login";
+
+    if (confirmPassword) {
+
+      confirmPassword.style.display =
+        "block";
+
+    }
+
+  }
+
+}
+
+
+async function handleAuth() {
+
+  const emailInput =
+    document.getElementById(
+      "authEmail"
+    );
+
+  const passwordInput =
+    document.getElementById(
+      "authPassword"
+    );
+
+  const confirmInput =
+    document.getElementById(
+      "authConfirmPassword"
+    );
+
+  const message =
+    document.getElementById(
+      "authMessage"
+    );
+
+  if (!emailInput ||
+      !passwordInput) {
+
+    return;
+
+  }
+
+
+  const email =
+    emailInput.value.trim();
+
+  const password =
+    passwordInput.value;
+
+
+  if (!email) {
+
+    message.textContent =
+      "Please enter your email.";
+
+    return;
+
+  }
+
+
+  if (!password) {
+
+    message.textContent =
+      "Please enter your password.";
+
+    return;
+
+  }
+
+
+  /* =========================
+     SIGN UP
+  ========================= */
+
+  if (authMode === "signup") {
+
+    const confirmPassword =
+      confirmInput
+        ? confirmInput.value
+        : "";
+
+
+    if (password.length < 6) {
+
+      message.textContent =
+        "Password must be at least 6 characters.";
+
+      return;
+
+    }
+
+
+    if (
+      password !==
+      confirmPassword
+    ) {
+
+      message.textContent =
+        "Passwords do not match.";
+
+      return;
+
+    }
+
+
+    message.textContent =
+      "Creating your account...";
+
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
+
+
+      if (error) {
+
+        throw error;
+
+      }
+
+
+      if (
+        data &&
+        data.user
+      ) {
+
+        try {
+
+          await supabaseClient
+            .from("profiles")
+            .upsert({
+              id: data.user.id,
+              username:
+                email
+                  .split("@")[0]
+            });
+
+        } catch (
+          profileError
+        ) {
+
+          console.warn(
+            "Profile creation warning:",
+            profileError
+          );
+
+        }
+
+      }
+
+
+      message.textContent =
+        "✅ Account created successfully!";
+
+
+      setTimeout(
+        function () {
+
+          closeModal(
+            "authModal"
+          );
+
+        },
+        1000
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Sign up error:",
+        error
+      );
+
+      message.textContent =
+        error.message ||
+        "Could not create account.";
+
+    }
+
+    return;
+
+  }
+
+
+  /* =========================
+     LOGIN
+  ========================= */
+
+  message.textContent =
+    "Logging in...";
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth
+        .signInWithPassword({
+          email: email,
+          password: password
+        });
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    console.log(
+      "Logged in:",
+      data.user
+    );
+
+
+    message.textContent =
+      "✅ Login successful!";
+
+
+    setTimeout(
+      function () {
+
+        closeModal(
+          "authModal"
+        );
+
+      },
+      700
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Login error:",
+      error
+    );
+
+    message.textContent =
+      error.message ||
+      "Login failed.";
+
+  }
+
+}
+
+
+/* =========================================================
+   CURRENT USER
+========================================================= */
+
+async function getCurrentUser() {
+
+  const {
+    data: { user }
+  } =
+    await supabaseClient.auth.getUser();
+
+  return user;
+
+}
+
+
+async function requireLogin() {
+
+  const user =
+    await getCurrentUser();
+
+  if (user) {
+
+    return true;
+
+  }
+
+  openAuth("login");
+
+  return false;
+
+}
+
+
+/* =========================================================
+   LIVE COVER SELECTOR
+========================================================= */
+
+function setupLiveCoverSelector() {
+
+  const input =
+    document.getElementById(
+      "liveCoverInput"
+    );
+
+  const preview =
+    document.getElementById(
+      "liveCoverPreview"
+    );
+
+  const startButton =
+    document.getElementById(
+      "startLiveButton"
+    );
+
+  const message =
+    document.getElementById(
+      "liveSetupMessage"
+    );
+
+
+  if (!input) {
+
+    return;
+
+  }
+
+
+  input.addEventListener(
+    "change",
+    function (event) {
+
+      const file =
+        event.target.files[0];
+
+      if (!file) {
+
+        return;
+
+      }
+
+
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
+
+        alert(
+          "Please select an image file."
+        );
+
+        input.value = "";
+
+        return;
+
+      }
+
+
+      if (
+        file.size >
+        10 * 1024 * 1024
+      ) {
+
+        alert(
+          "Live cover must be 10 MB or smaller."
+        );
+
+        input.value = "";
+
+        return;
+
+      }
+
+
+      liveCoverFile =
+        file;
+
+
+      if (liveCoverUrl) {
+
+        URL.revokeObjectURL(
+          liveCoverUrl
+        );
+
+      }
+
+
+      liveCoverUrl =
+        URL.createObjectURL(
+          file
+        );
+
+
+      if (preview) {
+
+        preview.src =
+          liveCoverUrl;
+
+        preview.style.display =
+          "block";
+
+      }
+
+
+      if (startButton) {
+
+        startButton.disabled =
+          false;
+
+      }
+
+
+      if (message) {
+
+        message.textContent =
+          "✅ Live cover selected. You can now start your live.";
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   OPEN LIVE
 ========================================================= */
 
 async function openLive() {
@@ -213,11 +742,16 @@ async function openLive() {
     await requireLogin();
 
   if (!loggedIn) {
+
     return;
+
   }
 
+
   const modal =
-    document.getElementById("liveModal");
+    document.getElementById(
+      "liveModal"
+    );
 
   if (!modal) {
 
@@ -226,11 +760,14 @@ async function openLive() {
     );
 
     return;
+
   }
+
 
   modal.classList.add("open");
 
   startCamera();
+
 }
 
 
@@ -261,22 +798,22 @@ async function startCamera() {
       cameraStream
         .getTracks()
         .forEach(
-          track => track.stop()
+          track =>
+            track.stop()
         );
 
     }
 
 
     cameraStream =
-      await navigator.mediaDevices.getUserMedia({
-
-        video: {
-          facingMode: facingMode
-        },
-
-        audio: true
-
-      });
+      await navigator.mediaDevices
+        .getUserMedia({
+          video: {
+            facingMode:
+              facingMode
+          },
+          audio: true
+        });
 
 
     const preview =
@@ -322,10 +859,7 @@ async function startCamera() {
 
     alert(
       "Camera could not start: " +
-      (
-        error.message ||
-        error
-      )
+      (error.message || error)
     );
 
   }
@@ -337,52 +871,76 @@ async function startCamera() {
    GO LIVE
 ========================================================= */
 
-/* =========================================================
-   GO LIVE
-========================================================= */
-
 async function startLiveFromFullscreen() {
+
   try {
 
-    /* CHECK COVER */
+    /* COVER */
+
     if (!liveCoverFile) {
-      alert("📸 Please upload a live cover photo first.");
+
+      alert(
+        "📸 Please upload a live cover photo first."
+      );
+
       return;
+
     }
 
-    /* CHECK TITLE */
+
+    /* TITLE */
+
     const titleInput =
-      document.getElementById("liveTitleInput");
+      document.getElementById(
+        "liveTitleInput"
+      );
 
     const liveTitle =
-      titleInput ? titleInput.value.trim() : "";
+      titleInput
+        ? titleInput.value.trim()
+        : "";
+
 
     if (!liveTitle) {
-      alert("Please enter a live title.");
+
+      alert(
+        "Please enter a live title."
+      );
 
       if (titleInput) {
+
         titleInput.focus();
+
       }
 
       return;
+
     }
 
-    /* CHECK LOGIN */
-    const {
-      data: { user }
-    } = await supabaseClient.auth.getUser();
+
+    /* LOGIN */
+
+    const user =
+      await getCurrentUser();
+
 
     if (!user) {
-      alert("Please log in before going live.");
+
+      openAuth("login");
+
       return;
+
     }
 
-    /* FILE EXTENSION */
+
+    /* FILE NAME */
+
     const fileExtension =
       liveCoverFile.name
         .split(".")
         .pop()
         .toLowerCase();
+
 
     const fileName =
       user.id +
@@ -391,11 +949,19 @@ async function startLiveFromFullscreen() {
       "." +
       fileExtension;
 
+
     const filePath =
-      user.id + "/" + fileName;
+      user.id +
+      "/" +
+      fileName;
+
 
     /* UPLOAD COVER */
-    console.log("Uploading live cover...");
+
+    console.log(
+      "Uploading live cover..."
+    );
+
 
     const uploadResult =
       await supabaseClient.storage
@@ -404,34 +970,45 @@ async function startLiveFromFullscreen() {
           filePath,
           liveCoverFile,
           {
-            cacheControl: "3600",
-            upsert: false
+            cacheControl:
+              "3600",
+            upsert:
+              false
           }
         );
 
+
     if (uploadResult.error) {
+
       throw uploadResult.error;
+
     }
 
-    /* GET COVER URL */
+
+    /* COVER URL */
+
     const {
       data: publicUrlData
     } =
       supabaseClient.storage
         .from("live-covers")
-        .getPublicUrl(filePath);
+        .getPublicUrl(
+          filePath
+        );
+
 
     const coverUrl =
       publicUrlData.publicUrl;
 
-    console.log("Cover uploaded:", coverUrl);
 
-    /* CREATE ROOM NAME */
+    /* ROOM NAME */
+
     const roomName =
-      "eman-live-" + Date.now();
+      "eman-live-" +
+      Date.now();
 
-    /* CREATE LIVE ROOM IN SUPABASE */
-    console.log("Creating live room...");
+
+    /* CREATE LIVE ROOM */
 
     const {
       error: roomError
@@ -439,29 +1016,40 @@ async function startLiveFromFullscreen() {
       await supabaseClient
         .from("live_rooms")
         .insert({
-          host_id: user.id,
-          room_name: roomName,
-          title: liveTitle,
-          cover_photo: coverUrl,
-          live_type: "live",
-          status: "live",
-          viewer_count: 0
+          host_id:
+            user.id,
+          room_name:
+            roomName,
+          title:
+            liveTitle,
+          cover_photo:
+            coverUrl,
+          live_type:
+            "live",
+          status:
+            "live",
+          viewer_count:
+            0
         });
 
+
     if (roomError) {
+
       throw roomError;
+
     }
 
-    /* SAVE CURRENT ROOM */
-    currentRoomName = roomName;
 
-    console.log(
-      "Live room created:",
+    currentRoomName =
+      roomName;
+
+
+    /* CONNECT */
+
+    await goLive(
       roomName
     );
 
-    /* CONNECT TO LIVEKIT */
-    await goLive(roomName);
 
   } catch (error) {
 
@@ -470,171 +1058,177 @@ async function startLiveFromFullscreen() {
       error
     );
 
+
     alert(
       "Start Live error: " +
       (error.message || error)
     );
+
   }
+
 }
 
 
 /* =========================================================
-   CONNECT TO LIVEKIT
+   CONNECT LIVEKIT
 ========================================================= */
 
 async function goLive(roomName) {
 
   try {
 
-    console.log(
-      "Connecting to LiveKit:",
-      roomName
-    );
-
-    /* GET LIVEKIT CREDENTIALS */
     const credentials =
-      await getLiveKitToken(roomName);
+      await getLiveKitToken(
+        roomName
+      );
+
 
     if (
       !credentials ||
       !credentials.serverUrl ||
       !credentials.participantToken
     ) {
+
       throw new Error(
         "LiveKit credentials are missing."
       );
+
     }
 
-    /* CREATE LIVEKIT ROOM */
+
     room =
       new LivekitClient.Room({
-        adaptiveStream: true,
-        dynacast: true
+        adaptiveStream:
+          true,
+        dynacast:
+          true
       });
 
-    /* CONNECT */
+
     await room.connect(
       credentials.serverUrl,
       credentials.participantToken
     );
 
+
     console.log(
       "Connected to LiveKit."
     );
 
-    /* ENABLE CAMERA */
+
     await room.localParticipant
-      .setCameraEnabled(true);
+      .setCameraEnabled(
+        true
+      );
 
-    /* ENABLE MICROPHONE */
+
     await room.localParticipant
-      .setMicrophoneEnabled(true);
+      .setMicrophoneEnabled(
+        true
+      );
 
-    console.log(
-      "Camera and microphone enabled."
-    );
 
-    /* FIND LOCAL VIDEO */
+    /* LOCAL VIDEO */
+
     room.localParticipant
       .videoTrackPublications
-      .forEach(publication => {
+      .forEach(
+        publication => {
 
-        if (!publication.track) {
-          return;
-        }
+          if (
+            !publication.track
+          ) {
 
-        localVideoTrack =
-          publication.track;
+            return;
 
-        const video =
-          document.createElement("video");
-
-        video.autoplay = true;
-        video.playsInline = true;
-        video.muted = true;
-
-        localVideoTrack.attach(video);
-
-        const container =
-          document.getElementById(
-            "liveFullscreenVideo"
-          ) ||
-          document.getElementById(
-            "liveVideo"
-          ) ||
-          document.getElementById(
-            "fullscreenVideo"
-          );
-
-        if (container) {
-
-          container.innerHTML = "";
-
-          container.appendChild(video);
-
-        } else {
-
-          console.warn(
-            "Live video container not found."
-          );
-
-        }
-
-      });
+          }
 
 
-    /* FIND LOCAL AUDIO */
-    room.localParticipant
-      .audioTrackPublications
-      .forEach(publication => {
-
-        if (publication.track) {
-
-          localAudioTrack =
+          localVideoTrack =
             publication.track;
 
+
+          attachLocalLiveVideo(
+            localVideoTrack
+          );
+
         }
+      );
 
-      });
+
+    /* LOCAL AUDIO */
+
+    room.localParticipant
+      .audioTrackPublications
+      .forEach(
+        publication => {
+
+          if (
+            publication.track
+          ) {
+
+            localAudioTrack =
+              publication.track;
+
+          }
+
+        }
+      );
 
 
-    /* OPEN FULLSCREEN LIVE */
+    /* FULLSCREEN */
+
     const fullscreen =
       document.getElementById(
         "liveFullscreen"
       );
 
+
     if (fullscreen) {
 
-      fullscreen.classList.add("open");
+      fullscreen.classList.add(
+        "open"
+      );
 
     }
 
 
-    /* CLOSE SETUP MODAL */
-    closeModal("liveModal");
+    closeModal(
+      "liveModal"
+    );
 
 
-    /* RESET COVER FORM */
-    liveCoverFile = null;
+    /* RESET COVER */
+
+    liveCoverFile =
+      null;
+
 
     const coverInput =
       document.getElementById(
         "liveCoverInput"
       );
 
+
     if (coverInput) {
-      coverInput.value = "";
+
+      coverInput.value =
+        "";
+
     }
+
 
     const coverPreview =
       document.getElementById(
         "liveCoverPreview"
       );
 
+
     if (coverPreview) {
 
-      coverPreview.src = "";
+      coverPreview.src =
+        "";
+
       coverPreview.style.display =
         "none";
 
@@ -642,28 +1236,28 @@ async function goLive(roomName) {
 
 
     /* RESET TITLE */
+
     const titleInput =
       document.getElementById(
         "liveTitleInput"
       );
 
+
     if (titleInput) {
-      titleInput.value = "";
+
+      titleInput.value =
+        "";
+
     }
 
 
-    /* START VIEWER COUNT */
-    viewerCount = 0;
+    viewerCount =
+      0;
 
-    const viewerElement =
-      document.getElementById(
-        "viewerCount"
-      );
 
-    if (viewerElement) {
-      viewerElement.textContent =
-        "0";
-    }
+    updateViewerCount(
+      0
+    );
 
 
     console.log(
@@ -678,26 +1272,32 @@ async function goLive(roomName) {
       error
     );
 
-    /* CLEAN UP FAILED CONNECTION */
 
     try {
 
       if (room) {
+
         room.disconnect();
+
       }
 
-    } catch (disconnectError) {
+    } catch (
+      disconnectError
+    ) {
 
       console.error(
-        "Disconnect error:",
         disconnectError
       );
 
     }
 
-    room = null;
 
-    currentRoomName = null;
+    room =
+      null;
+
+    currentRoomName =
+      null;
+
 
     alert(
       "LiveKit error: " +
@@ -708,6 +1308,75 @@ async function goLive(roomName) {
 
 }
 
+
+/* =========================================================
+   ATTACH LIVE VIDEO
+========================================================= */
+
+function attachLocalLiveVideo(
+  track
+) {
+
+  if (!track) {
+
+    return;
+
+  }
+
+
+  const container =
+    document.getElementById(
+      "liveFullscreenVideo"
+    ) ||
+    document.getElementById(
+      "liveVideo"
+    ) ||
+    document.getElementById(
+      "fullscreenVideo"
+    );
+
+
+  if (!container) {
+
+    console.warn(
+      "Live video container not found."
+    );
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  const video =
+    document.createElement(
+      "video"
+    );
+
+
+  video.autoplay =
+    true;
+
+  video.playsInline =
+    true;
+
+  video.muted =
+    true;
+
+
+  track.attach(
+    video
+  );
+
+
+  container.appendChild(
+    video
+  );
+
+}
 
 
 /* =========================================================
@@ -730,11 +1399,6 @@ async function getLiveKitToken(
     );
 
 
-    /*
-      Use LiveKit's official
-      development token server.
-    */
-
     if (
       LivekitClient.TokenSource &&
       LivekitClient.TokenSource
@@ -750,20 +1414,13 @@ async function getLiveKitToken(
 
       const result =
         await tokenSource.fetch({
-
           roomName:
             roomName,
 
           participantName:
             "EmanUser-" +
             Date.now()
-
         });
-
-
-      console.log(
-        "LiveKit credentials received."
-      );
 
 
       if (
@@ -792,41 +1449,30 @@ async function getLiveKitToken(
     }
 
 
-    /*
-      Fallback for older LiveKit
-      browser SDK versions.
-    */
-
     const response =
       await fetch(
         "https://cloud-api.livekit.io/api/sandbox/connection-details",
         {
-
           method:
             "POST",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             "X-Sandbox-ID":
               TOKEN_SERVER_ID
-
           },
 
           body:
             JSON.stringify({
-
               room_name:
                 roomName,
 
               participant_name:
                 "EmanUser-" +
                 Date.now()
-
             })
-
         }
       );
 
@@ -840,6 +1486,7 @@ async function getLiveKitToken(
         "Token server response:",
         text
       );
+
 
       throw new Error(
         "Token server returned " +
@@ -856,6 +1503,7 @@ async function getLiveKitToken(
     const serverUrl =
       data.serverUrl ||
       data.server_url;
+
 
     const participantToken =
       data.participantToken ||
@@ -892,12 +1540,10 @@ async function getLiveKitToken(
       error
     );
 
+
     throw new Error(
       "Could not obtain LiveKit token: " +
-      (
-        error.message ||
-        error
-      )
+      (error.message || error)
     );
 
   }
@@ -906,10 +1552,10 @@ async function getLiveKitToken(
 
 
 /* =========================================================
-   CREATE LIVE ROOM
+   LOAD LIVE ROOMS
 ========================================================= */
 
-async function createLiveRoom() {
+async function loadLiveRooms() {
 
   try {
 
@@ -921,16 +1567,22 @@ async function createLiveRoom() {
         .from("live_rooms")
         .select("*")
         .eq(
-          "room_name",
-          currentRoomName
+          "status",
+          "live"
         )
-        .maybeSingle();
+        .order(
+          "created_at",
+          {
+            ascending:
+              false
+          }
+        );
 
 
     if (error) {
 
       console.error(
-        "Live room lookup error:",
+        "Load live rooms error:",
         error
       );
 
@@ -939,199 +1591,108 @@ async function createLiveRoom() {
     }
 
 
-    if (data) {
-
-      const {
-        error:
-        updateError
-      } =
-        await supabaseClient
-          .from("live_rooms")
-          .update({
-
-            is_live:
-              true,
-
-            viewer_count:
-              0
-
-          })
-          .eq(
-            "room_name",
-            currentRoomName
-          );
+    const rooms =
+      data || [];
 
 
-      if (updateError) {
-
-        console.error(
-          "Room update error:",
-          updateError
-        );
-
-      }
-
-    } else {
-
-      const {
-        error:
-        insertError
-      } =
-        await supabaseClient
-          .from("live_rooms")
-          .insert({
-
-            room_name:
-              currentRoomName,
-
-            host_name:
-              "Eman Live Host",
-
-            is_live:
-              true,
-
-            viewer_count:
-              0
-
-          });
+    const container =
+      document.getElementById(
+        "rooms"
+      );
 
 
-      if (insertError) {
+    if (!container) {
 
-        console.error(
-          "Room insert error:",
-          insertError
-        );
-
-      }
-
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Create live room error:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   REALTIME
-========================================================= */
-
-function subscribeToLive() {
-
-  try {
-
-    if (realtimeChannel) {
-
-      supabaseClient
-        .removeChannel(
-          realtimeChannel
-        );
+      return;
 
     }
 
 
-    realtimeChannel =
-      supabaseClient
-        .channel(
-          "eman-live-" +
-          currentRoomName
-        )
+    if (!rooms.length) {
+
+      container.innerHTML =
+        "<p>No live streams yet.</p>";
+
+      return;
+
+    }
 
 
-        .on(
+    container.innerHTML =
+      rooms.map(
+        roomItem => {
 
-          "postgres_changes",
-
-          {
-
-            event:
-              "INSERT",
-
-            schema:
-              "public",
-
-            table:
-              "live_messages",
-
-            filter:
-              "room_name=eq." +
-              currentRoomName
-
-          },
-
-          payload => {
-
-            console.log(
-              "New live message:",
-              payload.new
-            );
+          const title =
+            roomItem.title ||
+            "Live Stream";
 
 
-            const message =
-              payload.new;
+          const cover =
+            roomItem.cover_photo ||
+            "";
 
 
-            if (
-              message.event_type ===
-              "message"
-            ) {
-
-              addChatMessage(
-
-                message.user_name ||
-                "User",
-
-                message.message ||
-                ""
-
-              );
-
-            }
+          const viewers =
+            roomItem.viewer_count ||
+            0;
 
 
-            if (
-              message.event_type ===
-              "join"
-            ) {
+          return `
+            <article
+              class="room"
+              onclick="watchLive('${roomItem.room_name}')">
 
-              addJoinNotification(
+              <div class="thumb">
 
-                message.user_name ||
-                "Someone"
+                ${
+                  cover
+                    ? `
+                      <img
+                        src="${cover}"
+                        alt="Live Cover"
+                        style="
+                          width:100%;
+                          height:100%;
+                          object-fit:cover;
+                        ">
+                    `
+                    : `
+                      <div
+                        class="avatar">
+                        LIVE
+                      </div>
+                    `
+                }
 
-              );
+                <div class="live">
+                  ● LIVE
+                </div>
 
-            }
+              </div>
 
-          }
+              <div class="info">
 
-        )
+                <div class="name">
+                  ${escapeHtml(title)}
+                </div>
 
+                <div class="small">
+                  👁 ${viewers} viewers
+                </div>
 
-        .subscribe(
+              </div>
 
-          status => {
+            </article>
+          `;
 
-            console.log(
-              "Realtime status:",
-              status
-            );
+        }
+      ).join("");
 
-          }
-
-        );
 
   } catch (error) {
 
     console.error(
-      "Realtime error:",
+      "Live rooms error:",
       error
     );
 
@@ -1144,156 +1705,65 @@ function subscribeToLive() {
    WATCH LIVE
 ========================================================= */
 
-async function watchLive() {
+async function watchLive(
+  roomName
+) {
 
   try {
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("live_rooms")
-        .select("*")
-        .eq(
-          "is_live",
-          true
-        )
-        .limit(1)
-        .maybeSingle();
+    const loggedIn =
+      await requireLogin();
 
 
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    if (!data) {
-
-      alert(
-        "There are no live streams right now."
-      );
+    if (!loggedIn) {
 
       return;
 
     }
 
 
-    currentRoomName =
-      data.room_name;
-
-
     const credentials =
       await getLiveKitToken(
-        currentRoomName
+        roomName
       );
 
 
     viewerRoom =
       new LivekitClient.Room({
-
         adaptiveStream:
           true,
 
         dynacast:
           true
-
       });
 
 
     viewerRoom.on(
-
       LivekitClient.RoomEvent.TrackSubscribed,
-
       (
         track,
         publication,
         participant
       ) => {
 
-        console.log(
-          "Viewer received track from:",
-          participant.identity
+        attachRemoteTrack(
+          track,
+          participant
         );
 
-
-        const element =
-          track.attach();
-
-
-        if (
-          track.kind ===
-          LivekitClient.Track.Kind.Video
-        ) {
-
-          const video =
-            document.getElementById(
-              "fullLiveVideo"
-            );
-
-
-          if (video) {
-
-            video.srcObject =
-              null;
-
-            video.replaceWith(
-              element
-            );
-
-            element.id =
-              "fullLiveVideo";
-
-            element.autoplay =
-              true;
-
-            element.playsInline =
-              true;
-
-            element.muted =
-              true;
-
-            element.style.position =
-              "absolute";
-
-            element.style.inset =
-              "0";
-
-            element.style.width =
-              "100%";
-
-            element.style.height =
-              "100%";
-
-            element.style.objectFit =
-              "cover";
-
-          }
-
-        }
-
       }
-
     );
 
 
     await viewerRoom.connect(
-
       credentials.serverUrl,
-
       credentials.participantToken
-
     );
 
 
     console.log(
-      "Viewer connected to LiveKit."
+      "Viewer connected."
     );
-
-
-    await registerViewer();
 
 
     const fullscreen =
@@ -1311,28 +1781,17 @@ async function watchLive() {
     }
 
 
-    document.body.style.overflow =
-      "hidden";
-
-
-    alert(
-      "👀 You joined the live!"
-    );
-
-
   } catch (error) {
 
     console.error(
-      "Watch live error:",
+      "Watch Live error:",
       error
     );
 
+
     alert(
-      "Could not join live: " +
-      (
-        error.message ||
-        error
-      )
+      "Unable to join live: " +
+      (error.message || error)
     );
 
   }
@@ -1341,165 +1800,1095 @@ async function watchLive() {
 
 
 /* =========================================================
-   REGISTER VIEWER
+   REMOTE TRACK
 ========================================================= */
 
-async function registerViewer() {
+function attachRemoteTrack(
+  track,
+  participant
+) {
 
-  try {
-
-    if (!currentRoomName) {
-
-      return;
-
-    }
-
-
-    await supabaseClient
-      .from(
-        "live_participants"
-      )
-      .insert({
-
-        room_name:
-          currentRoomName,
-
-        user_name:
-          "Viewer",
-
-        role:
-          "viewer"
-
-      });
-
-
-    await supabaseClient
-      .from(
-        "live_messages"
-      )
-      .insert({
-
-        room_name:
-          currentRoomName,
-
-        user_name:
-          "Viewer",
-
-        message:
-          "joined the live",
-
-        event_type:
-          "join"
-
-      });
-
-
-  } catch (error) {
-
-    console.error(
-      "Register viewer error:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   LIVE CHAT
-========================================================= */
-
-async function sendLiveChat() {
-
-  const input =
+  const container =
     document.getElementById(
-      "liveChatInput"
+      "liveFullscreenVideo"
+    ) ||
+    document.getElementById(
+      "liveVideo"
     );
 
 
-  if (!input) {
+  if (!container) {
 
     return;
 
   }
 
 
-  const message =
-    input.value.trim();
+  if (
+    track.kind ===
+    "video"
+  ) {
+
+    const video =
+      document.createElement(
+        "video"
+      );
 
 
-  if (!message) {
+    video.autoplay =
+      true;
 
-    return;
+    video.playsInline =
+      true;
+
+    video.dataset.participant =
+      participant.identity;
+
+
+    track.attach(
+      video
+    );
+
+
+    container.appendChild(
+      video
+    );
 
   }
 
+}
+
+
+/* =========================================================
+   VIEWER COUNT
+========================================================= */
+
+function updateViewerCount(
+  count
+) {
+
+  viewerCount =
+    count;
+
+
+  const elements =
+    document.querySelectorAll(
+      "#viewerCount, #liveViewerCount"
+    );
+
+
+  elements.forEach(
+    element => {
+
+      element.textContent =
+        count;
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   STOP LIVE
+========================================================= */
+
+async function stopLive() {
 
   try {
 
-    if (!currentRoomName) {
+    if (room) {
 
-      addChatMessage(
-        "You",
-        message
+      room.disconnect();
+
+    }
+
+
+    room =
+      null;
+
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+      cameraStream =
+        null;
+
+    }
+
+
+    if (currentRoomName) {
+
+      await supabaseClient
+        .from("live_rooms")
+        .update({
+          status:
+            "ended",
+          ended_at:
+            new Date().toISOString()
+        })
+        .eq(
+          "room_name",
+          currentRoomName
+        );
+
+    }
+
+
+    currentRoomName =
+      null;
+
+
+    closeModal(
+      "liveFullscreen"
+    );
+
+
+    await loadLiveRooms();
+
+
+    console.log(
+      "Live ended."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Stop live error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   FLIP CAMERA
+========================================================= */
+
+async function flipCamera() {
+
+  facingMode =
+    facingMode === "user"
+      ? "environment"
+      : "user";
+
+
+  await startCamera();
+
+}
+
+
+/* =========================================================
+   LIVE MUTE
+========================================================= */
+
+function toggleLiveMute() {
+
+  if (!localAudioTrack) {
+
+    return;
+
+  }
+
+
+  const enabled =
+    localAudioTrack.enabled;
+
+
+  localAudioTrack.enabled =
+    !enabled;
+
+
+  console.log(
+    enabled
+      ? "Microphone muted."
+      : "Microphone unmuted."
+  );
+
+}
+
+
+/* =========================================================
+   LIVE CAMERA TOGGLE
+========================================================= */
+
+function toggleLiveCamera() {
+
+  if (!localVideoTrack) {
+
+    return;
+
+  }
+
+
+  const enabled =
+    localVideoTrack.enabled;
+
+
+  localVideoTrack.enabled =
+    !enabled;
+
+
+  console.log(
+    enabled
+      ? "Camera off."
+      : "Camera on."
+  );
+
+}
+
+
+/* =========================================================
+   WALLET
+========================================================= */
+
+function openGifts() {
+
+  const modal =
+    document.getElementById(
+      "giftModal"
+    );
+
+
+  if (!modal) {
+
+    alert(
+      "Wallet could not be found."
+    );
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    "open"
+  );
+
+
+  updateCoinDisplay();
+
+}
+
+
+/* =========================================================
+   COIN DISPLAY
+========================================================= */
+
+function updateCoinDisplay() {
+
+  const elements =
+    document.querySelectorAll(
+      "#coinBalance, #walletCoins"
+    );
+
+
+  elements.forEach(
+    element => {
+
+      element.textContent =
+        coins.toLocaleString();
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   GIFT
+========================================================= */
+
+async function gift(
+  name,
+  cost
+) {
+
+  const loggedIn =
+    await requireLogin();
+
+
+  if (!loggedIn) {
+
+    return;
+
+  }
+
+
+  if (coins < cost) {
+
+    alert(
+      "Not enough Eman Coins."
+    );
+
+    return;
+
+  }
+
+
+  coins -=
+    cost;
+
+
+  updateCoinDisplay();
+
+
+  console.log(
+    "Gift sent:",
+    name,
+    cost
+  );
+
+
+  alert(
+    name +
+    " sent! " +
+    cost.toLocaleString() +
+    " coins deducted."
+  );
+
+
+  closeModal(
+    "giftModal"
+  );
+
+}
+
+
+/* =========================================================
+   INBOX
+========================================================= */
+
+function openInbox() {
+
+  const modal =
+    document.getElementById(
+      "inboxModal"
+    );
+
+
+  if (!modal) {
+
+    alert(
+      "Inbox could not be found."
+    );
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    "open"
+  );
+
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function openProfile() {
+
+  const modal =
+    document.getElementById(
+      "profileModal"
+    );
+
+
+  if (!modal) {
+
+    alert(
+      "Profile could not be found."
+    );
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    "open"
+  );
+
+}
+
+
+/* =========================================================
+   PARTY
+========================================================= */
+
+async function openParty() {
+
+  const loggedIn =
+    await requireLogin();
+
+
+  if (!loggedIn) {
+
+    return;
+
+  }
+
+
+  const modal =
+    document.getElementById(
+      "partyModal"
+    );
+
+
+  if (!modal) {
+
+    alert(
+      "Party Room could not be found."
+    );
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    "open"
+  );
+
+
+  console.log(
+    "Party Room opened."
+  );
+
+}
+
+
+/* =========================================================
+   FIND EMPTY PARTY SEAT
+========================================================= */
+
+function findEmptyPartySeat() {
+
+  for (
+    let i = 1;
+    i <= 4;
+    i++
+  ) {
+
+    const seat =
+      document.getElementById(
+        "partySeat" + i
       );
 
-      input.value =
-        "";
+
+    if (!seat) {
+
+      continue;
+
+    }
+
+
+    if (
+      !seat.classList.contains(
+        "occupied"
+      )
+    ) {
+
+      return i;
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =========================================================
+   CREATE PARTY VIDEO
+========================================================= */
+
+function createPartyVideo(
+  track
+) {
+
+  const video =
+    document.createElement(
+      "video"
+    );
+
+
+  video.autoplay =
+    true;
+
+  video.playsInline =
+    true;
+
+  video.muted =
+    true;
+
+
+  track.attach(
+    video
+  );
+
+
+  return video;
+
+}
+
+
+/* =========================================================
+   JOIN PARTY SEAT
+========================================================= */
+
+async function joinPartySeat() {
+
+  try {
+
+    const loggedIn =
+      await requireLogin();
+
+
+    if (!loggedIn) {
 
       return;
 
     }
 
 
-    const {
-      error
-    } =
-      await supabaseClient
-        .from(
-          "live_messages"
-        )
-        .insert({
+    if (partyJoined) {
 
-          room_name:
-            currentRoomName,
-
-          user_name:
-            "You",
-
-          message:
-            message,
-
-          event_type:
-            "message"
-
-        });
-
-
-    if (error) {
-
-      console.error(
-        "Chat error:",
-        error
-      );
-
-      addChatMessage(
-        "You",
-        message
-      );
+      return;
 
     }
 
 
-    input.value =
+    const seat =
+      findEmptyPartySeat();
+
+
+    if (!seat) {
+
+      alert(
+        "All 4 Party seats are occupied."
+      );
+
+      return;
+
+    }
+
+
+    const credentials =
+      await getLiveKitToken(
+        "eman-party-main"
+      );
+
+
+    partyRoom =
+      new LivekitClient.Room({
+        adaptiveStream:
+          true,
+
+        dynacast:
+          true
+      });
+
+
+    partyRoom.on(
+      LivekitClient.RoomEvent.TrackSubscribed,
+      (
+        track,
+        publication,
+        participant
+      ) => {
+
+        addRemotePartyParticipant(
+          track,
+          participant
+        );
+
+      }
+    );
+
+
+    partyRoom.on(
+      LivekitClient.RoomEvent.ParticipantDisconnected,
+      participant => {
+
+        removePartyParticipant(
+          participant
+        );
+
+      }
+    );
+
+
+    await partyRoom.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
+
+
+    await partyRoom.localParticipant
+      .setCameraEnabled(
+        true
+      );
+
+
+    await partyRoom.localParticipant
+      .setMicrophoneEnabled(
+        true
+      );
+
+
+    partySeatNumber =
+      seat;
+
+
+    partyJoined =
+      true;
+
+
+    markPartySeatOccupied(
+      seat,
+      "You"
+    );
+
+
+    partyRoom.localParticipant
+      .videoTrackPublications
+      .forEach(
+        publication => {
+
+          if (
+            publication.track
+          ) {
+
+            partyLocalVideoTrack =
+              publication.track;
+
+
+            const seatElement =
+              document.getElementById(
+                "partySeat" +
+                seat
+              );
+
+
+            if (seatElement) {
+
+              const videoArea =
+                seatElement.querySelector(
+                  ".seatVideo"
+                );
+
+
+              if (videoArea) {
+
+                videoArea.innerHTML =
+                  "";
+
+
+                videoArea.appendChild(
+                  createPartyVideo(
+                    publication.track
+                  )
+                );
+
+              }
+
+            }
+
+          }
+
+        }
+      );
+
+
+    partyRoom.localParticipant
+      .audioTrackPublications
+      .forEach(
+        publication => {
+
+          if (
+            publication.track
+          ) {
+
+            partyLocalAudioTrack =
+              publication.track;
+
+          }
+
+        }
+      );
+
+
+    console.log(
+      "Joined Party seat:",
+      seat
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Party join error:",
+      error
+    );
+
+
+    alert(
+      "Party Live error: " +
+      (error.message || error)
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PARTY SEAT OCCUPIED
+========================================================= */
+
+function markPartySeatOccupied(
+  seatNumber,
+  name
+) {
+
+  const seat =
+    document.getElementById(
+      "partySeat" +
+      seatNumber
+    );
+
+
+  if (!seat) {
+
+    return;
+
+  }
+
+
+  seat.classList.add(
+    "occupied"
+  );
+
+
+  const nameElement =
+    seat.querySelector(
+      ".seatName"
+    );
+
+
+  if (nameElement) {
+
+    nameElement.textContent =
+      name;
+
+  }
+
+}
+
+
+/* =========================================================
+   REMOTE PARTY PARTICIPANT
+========================================================= */
+
+function addRemotePartyParticipant(
+  track,
+  participant
+) {
+
+  if (
+    track.kind !==
+    "video"
+  ) {
+
+    return;
+
+  }
+
+
+  const seats =
+    document.querySelectorAll(
+      ".partySeat"
+    );
+
+
+  let targetSeat =
+    null;
+
+
+  for (
+    const seat of seats
+  ) {
+
+    if (
+      !seat.classList.contains(
+        "occupied"
+      )
+    ) {
+
+      targetSeat =
+        seat;
+
+      break;
+
+    }
+
+  }
+
+
+  if (!targetSeat) {
+
+    return;
+
+  }
+
+
+  const number =
+    targetSeat.id
+      .replace(
+        "partySeat",
+        ""
+      );
+
+
+  markPartySeatOccupied(
+    number,
+    participant.identity ||
+      "Guest"
+  );
+
+
+  const videoArea =
+    targetSeat.querySelector(
+      ".seatVideo"
+    );
+
+
+  if (videoArea) {
+
+    videoArea.innerHTML =
       "";
 
 
+    videoArea.appendChild(
+      createPartyVideo(
+        track
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REMOVE PARTY PARTICIPANT
+========================================================= */
+
+function removePartyParticipant(
+  participant
+) {
+
+  const seats =
+    document.querySelectorAll(
+      ".partySeat"
+    );
+
+
+  seats.forEach(
+    seat => {
+
+      const nameElement =
+        seat.querySelector(
+          ".seatName"
+        );
+
+
+      if (
+        nameElement &&
+        nameElement.textContent ===
+          participant.identity
+      ) {
+
+        seat.classList.remove(
+          "occupied"
+        );
+
+
+        nameElement.textContent =
+          "Seat " +
+          seat.id.replace(
+            "partySeat",
+            ""
+          );
+
+
+        const videoArea =
+          seat.querySelector(
+            ".seatVideo"
+          );
+
+
+        if (videoArea) {
+
+          videoArea.innerHTML =
+            '<div class="seatIcon">👤</div>';
+
+        }
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   PARTY MUTE
+========================================================= */
+
+function togglePartyMute() {
+
+  if (!partyLocalAudioTrack) {
+
+    return;
+
+  }
+
+
+  partyLocalAudioTrack.enabled =
+    !partyLocalAudioTrack.enabled;
+
+}
+
+
+/* =========================================================
+   PARTY CAMERA
+========================================================= */
+
+function togglePartyCamera() {
+
+  if (!partyLocalVideoTrack) {
+
+    return;
+
+  }
+
+
+  partyLocalVideoTrack.enabled =
+    !partyLocalVideoTrack.enabled;
+
+}
+
+
+/* =========================================================
+   LEAVE PARTY SEAT
+========================================================= */
+
+async function leavePartySeat() {
+
+  try {
+
+    if (
+      partyRoom
+    ) {
+
+      partyRoom.disconnect();
+
+    }
+
+
+    if (
+      partySeatNumber
+    ) {
+
+      const seat =
+        document.getElementById(
+          "partySeat" +
+          partySeatNumber
+        );
+
+
+      if (seat) {
+
+        seat.classList.remove(
+          "occupied"
+        );
+
+
+        const nameElement =
+          seat.querySelector(
+            ".seatName"
+          );
+
+
+        if (nameElement) {
+
+          nameElement.textContent =
+            "Seat " +
+            partySeatNumber;
+
+        }
+
+
+        const videoArea =
+          seat.querySelector(
+            ".seatVideo"
+          );
+
+
+        if (videoArea) {
+
+          videoArea.innerHTML =
+            '<div class="seatIcon">👤</div>';
+
+        }
+
+      }
+
+    }
+
+
+    partyRoom =
+      null;
+
+    partyLocalVideoTrack =
+      null;
+
+    partyLocalAudioTrack =
+      null;
+
+    partySeatNumber =
+      null;
+
+    partyJoined =
+      false;
+
+
+    console.log(
+      "Left Party seat."
+    );
+
+
   } catch (error) {
 
     console.error(
-      "Send chat error:",
+      "Leave Party error:",
       error
     );
 
@@ -1536,30 +2925,30 @@ function sendPartyChat() {
   }
 
 
-  const message =
+  const text =
     input.value.trim();
 
 
-  if (!message) {
+  if (!text) {
 
     return;
 
   }
 
 
-  const p =
+  const message =
     document.createElement(
       "p"
     );
 
 
-  p.textContent =
-    "You: " +
-    message;
+  message.innerHTML =
+    "<b>You:</b> " +
+    escapeHtml(text);
 
 
   messages.appendChild(
-    p
+    message
   );
 
 
@@ -1574,1773 +2963,150 @@ function sendPartyChat() {
 
 
 /* =========================================================
-   CHAT DISPLAY
+   PROFILE / INBOX HELPERS
 ========================================================= */
 
-function addChatMessage(
-  user,
-  message
-) {
-
-  const chat =
-    document.getElementById(
-      "fullChatMessages"
-    );
-
-
-  if (!chat) {
-
-    return;
-
-  }
-
-
-  const div =
-    document.createElement(
-      "div"
-    );
-
-
-  div.className =
-    "fullChatMessage";
-
-
-  div.textContent =
-    user +
-    ": " +
-    message;
-
-
-  chat.appendChild(
-    div
-  );
-
-
-  chat.scrollTop =
-    chat.scrollHeight;
-
-}
-
-
-/* =========================================================
-   SYSTEM MESSAGE
-========================================================= */
-
-function addSystemMessage(
-  message
-) {
-
-  addChatMessage(
-    "SYSTEM",
-    message
-  );
-
-}
-
-
-/* =========================================================
-   JOIN NOTIFICATION
-========================================================= */
-
-function addJoinNotification(
-  userName
-) {
-
-  const container =
-    document.getElementById(
-      "joinNotifications"
-    );
-
-
-  if (!container) {
-
-    return;
-
-  }
-
-
-  const notification =
-    document.createElement(
-      "div"
-    );
-
-
-  notification.className =
-    "joinNotification";
-
-
-  notification.textContent =
-    "👋 " +
-    userName +
-    " joined the live";
-
-
-  container.appendChild(
-    notification
-  );
-
-
-  setTimeout(
-    function () {
-
-      notification.remove();
-
-    },
-    4000
-  );
-
-}
-
-
-/* =========================================================
-   VIEWER COUNT
-========================================================= */
-
-function updateViewerCount() {
-
-  const display =
-    document.getElementById(
-      "viewerCount"
-    );
-
-
-  if (display) {
-
-    display.textContent =
-      viewerCount;
-
-  }
-
-}
-
-
-/* =========================================================
-   COINS / WALLET
-========================================================= */
-
-function updateCoinDisplay() {
-
-  const header =
-    document.getElementById(
-      "coinBalance"
-    );
-
-
-  const wallet =
-    document.getElementById(
-      "walletCoins"
-    );
-
-
-  if (header) {
-
-    header.textContent =
-      coins;
-
-  }
-
-
-  if (wallet) {
-
-    wallet.textContent =
-      coins;
-
-  }
-
-}
-
-
-function buyCoins() {
-
-  alert(
-    "🪙 Coin purchase will be added next."
-  );
-
-}
-
-
-function sendGift(
-  gift,
-  price
-) {
-
-  if (coins < price) {
-
-    alert(
-      "You don't have enough coins for " +
-      gift +
-      "."
-    );
-
-    return;
-
-  }
-
-
-  coins -= price;
-
-
-  updateCoinDisplay();
-
-
-  addChatMessage(
-
-    "You",
-
-    "sent " +
-    gift +
-    " (" +
-    price +
-    " coins)"
-
-  );
-
-
-  alert(
-    gift +
-    " gift sent!"
-  );
-
-}
-
-
-/* =========================================================
-   LIVE CAMERA CONTROLS
-========================================================= */
-
-async function toggleLiveMute() {
-
-  if (!room) {
-
-    return;
-
-  }
-
-
-  const enabled =
-    room.localParticipant
-      .isMicrophoneEnabled;
-
-
-  await room.localParticipant
-    .setMicrophoneEnabled(
-      !enabled
-    );
-
-
-  const button =
-    document.getElementById(
-      "liveMuteButton"
-    );
-
-
-  if (button) {
-
-    button.textContent =
-      !enabled
-        ? "🎤"
-        : "🔇";
-
-  }
-
-}
-
-
-async function toggleLiveCamera() {
-
-  if (!room) {
-
-    return;
-
-  }
-
-
-  const enabled =
-    room.localParticipant
-      .isCameraEnabled;
-
-
-  await room.localParticipant
-    .setCameraEnabled(
-      !enabled
-    );
-
-
-  const button =
-    document.getElementById(
-      "liveCameraButton"
-    );
-
-
-  if (button) {
-
-    button.textContent =
-      !enabled
-        ? "📹"
-        : "🚫";
-
-  }
-
-}
-
-
-/* =========================================================
-   FLIP CAMERA
-========================================================= */
-
-async function flipLiveCamera() {
+async function loadMyProfile() {
 
   try {
 
-    facingMode =
-      facingMode === "user"
-        ? "environment"
-        : "user";
+    const user =
+      await getCurrentUser();
 
 
-    if (cameraStream) {
+    if (!user) {
 
-      cameraStream
-        .getTracks()
-        .forEach(
-          track => track.stop()
-        );
-
-      cameraStream =
-        null;
+      return null;
 
     }
 
-
-    if (room) {
-
-      await room.localParticipant
-        .setCameraEnabled(
-          false
-        );
-
-    }
-
-
-    const newStream =
-      await navigator.mediaDevices
-        .getUserMedia({
-
-          video: {
-            facingMode:
-              facingMode
-          },
-
-          audio: false
-
-        });
-
-
-    cameraStream =
-      newStream;
-
-
-    const videoTrack =
-      newStream.getVideoTracks()[0];
-
-
-    if (room && videoTrack) {
-
-      const localTrack =
-        new LivekitClient
-          .LocalVideoTrack(
-            videoTrack
-          );
-
-
-      await room.localParticipant
-        .publishTrack(
-          localTrack
-        );
-
-
-      localVideoTrack =
-        localTrack;
-
-
-      const video =
-        document.getElementById(
-          "fullLiveVideo"
-        );
-
-
-      if (video) {
-
-        localTrack.attach(
-          video
-        );
-
-      }
-
-    }
-
-
-    const preview =
-      document.getElementById(
-        "previewVideo"
-      );
-
-
-    if (preview) {
-
-      preview.srcObject =
-        newStream;
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "Flip camera error:",
-      error
-    );
-
-    alert(
-      "Could not flip camera."
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   PARTY CONTROLS
-========================================================= */
-
-/* =========================================================
-   PARTY LIVE ROOM - 4 SEATS
-========================================================= */
-
-let partyRoom = null;
-let partyLocalVideoTrack = null;
-let partyLocalAudioTrack = null;
-let partySeatNumber = null;
-let partyJoined = false;
-
-
-/* =========================================================
-   OPEN PARTY
-========================================================= */
-
-function openParty() {
-
-  const modal = document.getElementById("partyModal");
-
-  if (!modal) {
-    alert("Party Room could not be found.");
-    return;
-  }
-
-  modal.classList.add("open");
-
-}
-
-
-/* =========================================================
-   CREATE VIDEO ELEMENT
-========================================================= */
-
-function createPartyVideo(track) {
-
-  const video = document.createElement("video");
-
-  video.autoplay = true;
-  video.playsInline = true;
-  video.muted = true;
-
-  track.attach(video);
-
-  return video;
-
-}
-
-
-/* =========================================================
-   FIND EMPTY SEAT
-========================================================= */
-
-function findEmptyPartySeat() {
-
-  for (let i = 1; i <= 4; i++) {
-
-    const seat =
-      document.getElementById("partySeat" + i);
-
-    if (
-      seat &&
-      !seat.classList.contains("occupied")
-    ) {
-
-      return i;
-
-    }
-
-  }
-
-  return null;
-
-}
-
-
-/* =========================================================
-   JOIN PARTY SEAT
-========================================================= */
-
-async function joinPartySeat() {
-
-  try {
-
-    if (!window.LivekitClient) {
-
-      alert("LiveKit is not loaded.");
-
-      return;
-
-    }
-
-
-    if (partyJoined) {
-
-      alert("You are already in a Party seat.");
-
-      return;
-
-    }
-
-
-    const seat = findEmptyPartySeat();
-
-
-    if (!seat) {
-
-      alert("All 4 Party seats are occupied.");
-
-      return;
-
-    }
-
-
-    partySeatNumber = seat;
-
-
-    /* Get LiveKit credentials */
-
-    const credentials =
-      await getLiveKitToken(
-        "eman-party-main"
-      );
-
-
-    if (
-      !credentials ||
-      !credentials.serverUrl ||
-      !credentials.participantToken
-    ) {
-
-      throw new Error(
-        "Could not obtain Party LiveKit credentials."
-      );
-
-    }
-
-
-    /* Create Room */
-
-    partyRoom =
-      new LivekitClient.Room({
-
-        adaptiveStream: true,
-
-        dynacast: true
-
-      });
-
-
-    /* =====================================================
-       REMOTE VIDEO
-    ===================================================== */
-
-    partyRoom.on(
-
-      LivekitClient.RoomEvent.TrackSubscribed,
-
-      (
-        track,
-        publication,
-        participant
-      ) => {
-
-        console.log(
-          "Party video received:",
-          participant.identity
-        );
-
-
-        if (
-          track.kind !==
-          LivekitClient.Track.Kind.Video
-        ) {
-
-          return;
-
-        }
-
-
-        const remoteSeat =
-          findEmptyPartySeat();
-
-
-        if (!remoteSeat) {
-
-          console.log(
-            "No empty Party seat."
-          );
-
-          return;
-
-        }
-
-
-        const seatElement =
-          document.getElementById(
-            "partySeat" + remoteSeat
-          );
-
-
-        if (!seatElement) {
-
-          return;
-
-        }
-
-
-        const videoContainer =
-          seatElement.querySelector(
-            ".seatVideo"
-          );
-
-
-        if (!videoContainer) {
-
-          return;
-
-        }
-
-
-        videoContainer.innerHTML = "";
-
-
-        const video =
-          createPartyVideo(track);
-
-
-        videoContainer.appendChild(
-          video
-        );
-
-
-        seatElement.classList.add(
-          "occupied"
-        );
-
-
-        const name =
-          seatElement.querySelector(
-            ".seatName"
-          );
-
-
-        if (name) {
-
-          name.textContent =
-            participant.identity;
-
-        }
-
-
-        console.log(
-          "Remote participant placed in Seat " +
-          remoteSeat
-        );
-
-      }
-
-    );
-
-
-    /* =====================================================
-       REMOTE PARTICIPANT LEFT
-    ===================================================== */
-
-    partyRoom.on(
-
-      LivekitClient.RoomEvent.ParticipantDisconnected,
-
-      participant => {
-
-        console.log(
-          "Party participant left:",
-          participant.identity
-        );
-
-
-        removePartyParticipant(
-          participant.identity
-        );
-
-      }
-
-    );
-
-
-    /* =====================================================
-       CONNECT
-    ===================================================== */
-
-    await partyRoom.connect(
-
-      credentials.serverUrl,
-
-      credentials.participantToken
-
-    );
-
-
-    console.log(
-      "Connected to Party Live."
-    );
-
-
-    /* =====================================================
-       CAMERA
-    ===================================================== */
-
-    await partyRoom.localParticipant
-      .setCameraEnabled(true);
-
-
-    /* =====================================================
-       MICROPHONE
-    ===================================================== */
-
-    await partyRoom.localParticipant
-      .setMicrophoneEnabled(true);
-
-
-    /* =====================================================
-       GET LOCAL TRACK
-    ===================================================== */
-
-    partyRoom
-      .localParticipant
-      .trackPublications
-      .forEach(publication => {
-
-        if (
-          publication.kind ===
-          LivekitClient.Track.Kind.Video
-        ) {
-
-          partyLocalVideoTrack =
-            publication.track;
-
-        }
-
-
-        if (
-          publication.kind ===
-          LivekitClient.Track.Kind.Audio
-        ) {
-
-          partyLocalAudioTrack =
-            publication.track;
-
-        }
-
-      });
-
-
-    /* =====================================================
-       SHOW LOCAL VIDEO
-    ===================================================== */
-
-    const localSeat =
-      document.getElementById(
-        "partySeat" + partySeatNumber
-      );
-
-
-    if (
-      localSeat &&
-      partyLocalVideoTrack
-    ) {
-
-      const videoContainer =
-        localSeat.querySelector(
-          ".seatVideo"
-        );
-
-
-      if (videoContainer) {
-
-        videoContainer.innerHTML = "";
-
-
-        const video =
-          createPartyVideo(
-            partyLocalVideoTrack
-          );
-
-
-        videoContainer.appendChild(
-          video
-        );
-
-      }
-
-
-      localSeat.classList.add(
-        "occupied"
-      );
-
-
-      const name =
-        localSeat.querySelector(
-          ".seatName"
-        );
-
-
-      if (name) {
-
-        name.textContent = "You";
-
-      }
-
-    }
-
-
-    partyJoined = true;
-
-
-    /* Update Join button */
-
-    const buttons =
-      document.querySelectorAll(
-        ".partyControls button"
-      );
-
-
-    if (buttons[0]) {
-
-      buttons[0].textContent =
-        "✅ Seat " +
-        partySeatNumber;
-
-    }
-
-
-    /* Update status */
-
-    const status =
-      document.getElementById(
-        "partyStatusText"
-      );
-
-
-    if (status) {
-
-      status.textContent =
-        "YOU ARE LIVE";
-
-    }
-
-
-    alert(
-      "🎉 You joined Party Seat " +
-      partySeatNumber +
-      "!"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Party Live error:",
-      error
-    );
-
-
-    alert(
-      "Party Live error: " +
-      (
-        error.message ||
-        error
-      )
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   REMOVE PARTICIPANT
-========================================================= */
-
-function removePartyParticipant(identity) {
-
-  for (let i = 1; i <= 4; i++) {
-
-    const seat =
-      document.getElementById(
-        "partySeat" + i
-      );
-
-
-    if (!seat) {
-      continue;
-    }
-
-
-    const name =
-      seat.querySelector(
-        ".seatName"
-      );
-
-
-    if (
-      name &&
-      name.textContent === identity
-    ) {
-
-      seat.classList.remove(
-        "occupied"
-      );
-
-
-      const video =
-        seat.querySelector(
-          ".seatVideo"
-        );
-
-
-      if (video) {
-
-        video.innerHTML =
-          '<div class="seatIcon">👤</div>';
-
-      }
-
-
-      name.textContent =
-        "Seat " + i;
-
-
-      break;
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   PARTY MUTE
-========================================================= */
-
-async function togglePartyMute() {
-
-  if (!partyRoom) {
-
-    alert(
-      "Join a Party seat first."
-    );
-
-    return;
-
-  }
-
-
-  const enabled =
-    partyRoom.localParticipant
-      .isMicrophoneEnabled;
-
-
-  await partyRoom.localParticipant
-    .setMicrophoneEnabled(
-      !enabled
-    );
-
-
-  const buttons =
-    document.querySelectorAll(
-      ".partyControls button"
-    );
-
-
-  if (buttons[1]) {
-
-    buttons[1].textContent =
-      !enabled
-        ? "🎤 Mute"
-        : "🔇 Unmute";
-
-  }
-
-}
-
-
-/* =========================================================
-   PARTY CAMERA
-========================================================= */
-
-async function togglePartyCamera() {
-
-  if (!partyRoom) {
-
-    alert(
-      "Join a Party seat first."
-    );
-
-    return;
-
-  }
-
-
-  const enabled =
-    partyRoom.localParticipant
-      .isCameraEnabled;
-
-
-  await partyRoom.localParticipant
-    .setCameraEnabled(
-      !enabled
-    );
-
-
-  const buttons =
-    document.querySelectorAll(
-      ".partyControls button"
-    );
-
-
-  if (buttons[2]) {
-
-    buttons[2].textContent =
-      !enabled
-        ? "📹 Camera"
-        : "🚫 Camera";
-
-  }
-
-}
-
-
-/* =========================================================
-   LEAVE PARTY SEAT
-========================================================= */
-
-async function leavePartySeat() {
-
-  try {
-
-    if (partyRoom) {
-
-      partyRoom.disconnect();
-
-      partyRoom = null;
-
-    }
-
-
-    if (partySeatNumber) {
-
-      const seat =
-        document.getElementById(
-          "partySeat" +
-          partySeatNumber
-        );
-
-
-      if (seat) {
-
-        seat.classList.remove(
-          "occupied"
-        );
-
-
-        const video =
-          seat.querySelector(
-            ".seatVideo"
-          );
-
-
-        if (video) {
-
-          video.innerHTML =
-            '<div class="seatIcon">👤</div>';
-
-        }
-
-
-        const name =
-          seat.querySelector(
-            ".seatName"
-          );
-
-
-        if (name) {
-
-          name.textContent =
-            "Seat " +
-            partySeatNumber;
-
-        }
-
-      }
-
-    }
-
-
-    partySeatNumber = null;
-
-    partyJoined = false;
-
-    partyLocalVideoTrack = null;
-
-    partyLocalAudioTrack = null;
-
-
-    const status =
-      document.getElementById(
-        "partyStatusText"
-      );
-
-
-    if (status) {
-
-      status.textContent =
-        "PARTY LIVE";
-
-    }
-
-
-    const buttons =
-      document.querySelectorAll(
-        ".partyControls button"
-      );
-
-
-    if (buttons[0]) {
-
-      buttons[0].textContent =
-        "🎥 Join Seat";
-
-    }
-
-
-    if (buttons[1]) {
-
-      buttons[1].textContent =
-        "🎤 Mute";
-
-    }
-
-
-    if (buttons[2]) {
-
-      buttons[2].textContent =
-        "📹 Camera";
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "Leave Party error:",
-      error
-    );
-
-  }
-
-}
-
-    
-
-
-    
-    
-
-/* =========================================================
-   STOP LIVE
-========================================================= */
-
-async function stopLive() {
-
-  try {
-
-    console.log(
-      "Stopping live..."
-    );
-
-
-    /* Stop LiveKit */
-
-    if (room) {
-
-      room.disconnect();
-
-      room =
-        null;
-
-    }
-
-
-    /* Stop camera */
-
-    if (cameraStream) {
-
-      cameraStream
-        .getTracks()
-        .forEach(
-          track => track.stop()
-        );
-
-      cameraStream =
-        null;
-
-    }
-
-
-    localVideoTrack =
-      null;
-
-    localAudioTrack =
-      null;
-
-
-    /* Update database */
-
-    if (currentRoomName) {
-
-      await supabaseClient
-        .from("live_rooms")
-        .update({
-
-          is_live:
-            false,
-
-          viewer_count:
-            0
-
-        })
-        .eq(
-          "room_name",
-          currentRoomName
-        );
-
-    }
-
-
-    /* Remove realtime channel */
-
-    if (realtimeChannel) {
-
-      await supabaseClient
-        .removeChannel(
-          realtimeChannel
-        );
-
-      realtimeChannel =
-        null;
-
-    }
-
-
-    viewerCount =
-      0;
-
-    updateViewerCount();
-
-
-    /* Close fullscreen */
-
-    const fullscreen =
-      document.getElementById(
-        "liveFullscreen"
-      );
-
-
-    if (fullscreen) {
-
-      fullscreen.classList.remove(
-        "open"
-      );
-
-    }
-
-
-    /* Show Go Live button again */
-
-    const goLiveButton =
-      document.querySelector(
-        ".fullscreenGoLive"
-      );
-
-
-    if (goLiveButton) {
-
-      goLiveButton.style.display =
-        "block";
-
-    }
-
-
-    document.body.style.overflow =
-      "";
-
-
-    loadLiveRooms();
-
-
-    console.log(
-      "Live ended."
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Stop live error:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   CLOSE FULLSCREEN
-========================================================= */
-
-function closeFullscreenLive() {
-
-  stopLive();
-
-}
-
-
-/* =========================================================
-   LIVE ROOM LIST
-========================================================= */
-
-async function loadLiveRooms() {
-
-  try {
 
     const {
       data,
       error
     } =
       await supabaseClient
-        .from("live_rooms")
+        .from("profiles")
         .select("*")
         .eq(
-          "is_live",
-          true
-        );
+          "id",
+          user.id
+        )
+        .maybeSingle();
 
 
     if (error) {
 
       console.error(
-        "Live list error:",
+        "Profile error:",
         error
       );
 
-      return;
+      return null;
 
     }
 
 
-    const list =
-      document.getElementById(
-        "liveList"
-      );
-
-
-    if (!list) {
-
-      return;
-
-    }
-
-
-    list.innerHTML =
-      "";
-
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-
-      list.innerHTML =
-        '<div class="emptyLive">No live streams yet.</div>';
-
-      return;
-
-    }
-
-
-    data.forEach(
-      liveRoom => {
-
-        const button =
-          document.createElement(
-            "button"
-          );
-
-
-        button.type =
-          "button";
-
-
-        button.className =
-          "liveRoomButton";
-
-
-        button.textContent =
-          "🔴 " +
-          (
-            liveRoom.host_name ||
-            "Eman Live"
-          );
-
-
-        button.onclick =
-          watchLive;
-
-
-        list.appendChild(
-          button
-        );
-
-      }
-    );
-
+    return data;
 
   } catch (error) {
 
     console.error(
-      "Load live rooms error:",
       error
     );
 
+    return null;
+
   }
 
 }
+
 
 /* =========================================================
-   EMAN LIVE AUTHENTICATION
+   ESCAPE HTML
 ========================================================= */
 
-let authMode = "login";
+function escapeHtml(
+  value
+) {
 
+  if (
+    value === null ||
+    value === undefined
+  ) {
 
-function openAuth(mode = "login") {
+    return "";
 
-  authMode = mode;
-
-  const modal =
-    document.getElementById("authModal");
-
-  if (!modal) {
-    alert("Login window could not be found.");
-    return;
   }
 
-  updateAuthUI();
 
-  modal.classList.add("open");
-}
-
-
-function switchAuthMode() {
-
-  authMode =
-    authMode === "login"
-      ? "signup"
-      : "login";
-
-  updateAuthUI();
-}
-
-
-function updateAuthUI() {
-
-  const title =
-    document.getElementById("authTitle");
-
-  const subtitle =
-    document.getElementById("authSubtitle");
-
-  const button =
-    document.getElementById("authMainButton");
-
-  const switchButton =
-    document.getElementById("authSwitchButton");
-
-  const confirmPassword =
-    document.getElementById(
-      "authConfirmPassword"
+  return String(value)
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
     );
 
-  const message =
-    document.getElementById("authMessage");
-
-  if (!title) return;
-
-  if (message) {
-    message.textContent = "";
-  }
-
-  if (authMode === "login") {
-
-    title.textContent =
-      "Welcome Back";
-
-    subtitle.textContent =
-      "Login to your Eman Live account";
-
-    button.textContent =
-      "🔐 LOGIN";
-
-    switchButton.textContent =
-      "Don't have an account? Sign Up";
-
-    if (confirmPassword) {
-      confirmPassword.style.display =
-        "none";
-    }
-
-  } else {
-
-    title.textContent =
-      "Create Your Eman Live Account";
-
-    subtitle.textContent =
-      "Join Eman Live today";
-
-    button.textContent =
-      "✨ CREATE ACCOUNT";
-
-    switchButton.textContent =
-      "Already have an account? Login";
-
-    if (confirmPassword) {
-      confirmPassword.style.display =
-        "block";
-    }
-
-  }
 }
 
 
-async function handleAuth() {
+/* =========================================================
+   LOGOUT
+========================================================= */
 
-  const emailInput =
-    document.getElementById("authEmail");
-
-  const passwordInput =
-    document.getElementById("authPassword");
-
-  const confirmInput =
-    document.getElementById(
-      "authConfirmPassword"
-    );
-
-  const message =
-    document.getElementById("authMessage");
-
-  if (!emailInput || !passwordInput) {
-    return;
-  }
-
-  const email =
-    emailInput.value.trim();
-
-  const password =
-    passwordInput.value;
-
-  if (!email) {
-
-    message.textContent =
-      "Please enter your email.";
-
-    return;
-  }
-
-  if (!password) {
-
-    message.textContent =
-      "Please enter your password.";
-
-    return;
-  }
-
-
-  /* =========================
-     SIGN UP
-  ========================= */
-
-  if (authMode === "signup") {
-
-    const confirmPassword =
-      confirmInput
-        ? confirmInput.value
-        : "";
-
-    if (password.length < 6) {
-
-      message.textContent =
-        "Password must be at least 6 characters.";
-
-      return;
-    }
-
-    if (password !== confirmPassword) {
-
-      message.textContent =
-        "Passwords do not match.";
-
-      return;
-    }
-
-    message.textContent =
-      "Creating your account...";
-
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient.auth.signUp({
-          email: email,
-          password: password
-        });
-
-      if (error) {
-        throw error;
-      }
-
-
-      /* CREATE PROFILE */
-
-      if (data && data.user) {
-
-        await supabaseClient
-          .from("profiles")
-          .upsert({
-            id: data.user.id,
-            username:
-              email.split("@")[0]
-          });
-
-      }
-
-
-      message.textContent =
-        "✅ Account created successfully!";
-
-
-      setTimeout(() => {
-
-        closeModal("authModal");
-
-      }, 1000);
-
-
-    } catch (error) {
-
-      console.error(
-        "Sign up error:",
-        error
-      );
-
-      message.textContent =
-        error.message ||
-        "Could not create account.";
-
-    }
-
-    return;
-  }
-
-
-  /* =========================
-     LOGIN
-  ========================= */
-
-  message.textContent =
-    "Logging in...";
-
+async function logout() {
 
   try {
 
     const {
-      data,
       error
     } =
       await supabaseClient.auth
-        .signInWithPassword({
-          email: email,
-          password: password
-        });
+        .signOut();
+
 
     if (error) {
+
       throw error;
+
     }
 
-    console.log(
-      "Logged in:",
-      data.user
+
+    alert(
+      "You have been logged out."
     );
 
 
-    message.textContent =
-      "✅ Login successful!";
-
-
-    setTimeout(() => {
-
-      closeModal("authModal");
-
-    }, 700);
+    goHome();
 
 
   } catch (error) {
 
     console.error(
-      "Login error:",
+      "Logout error:",
       error
     );
 
-    message.textContent =
-      error.message ||
-      "Login failed.";
+
+    alert(
+      "Logout error: " +
+      (error.message || error)
+    );
 
   }
 
@@ -3348,34 +3114,37 @@ async function handleAuth() {
 
 
 /* =========================================================
-   AUTH STATUS
+   AUTH STATE LISTENER
 ========================================================= */
 
-async function getCurrentUser() {
+supabaseClient.auth.onAuthStateChange(
+  function (
+    event,
+    session
+  ) {
 
-  const {
-    data: { user }
-  } =
-    await supabaseClient.auth.getUser();
+    console.log(
+      "Auth event:",
+      event
+    );
 
-  return user;
-}
+
+    if (
+      session &&
+      session.user
+    ) {
+
+      console.log(
+        "User authenticated:",
+        session.user.email
+      );
+
+    }
+
+  }
+);
 
 
 /* =========================================================
-   REQUIRE LOGIN BEFORE LIVE
+   END OF EMAN LIVE APP.JS
 ========================================================= */
-
-async function requireLogin() {
-
-  const user =
-    await getCurrentUser();
-
-  if (user) {
-    return true;
-  }
-
-  openAuth("login");
-
-  return false;
-       }
