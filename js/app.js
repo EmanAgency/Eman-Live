@@ -164,6 +164,34 @@ function openProfile() {
 
 }
 
+function openInbox() {
+
+  const modal =
+    document.getElementById("inboxModal");
+
+  if (!modal) {
+    alert("Inbox could not be found.");
+    return;
+  }
+
+  modal.classList.add("open");
+
+}
+
+
+function openProfile() {
+
+  const modal =
+    document.getElementById("profileModal");
+
+  if (!modal) {
+    alert("Profile could not be found.");
+    return;
+  }
+
+  modal.classList.add("open");
+
+}
 
 /* =========================================================
    CAMERA
