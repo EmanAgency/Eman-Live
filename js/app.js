@@ -44,7 +44,119 @@ let localVideoTrack = null;
 let localAudioTrack = null;
 
 let cameraStream = null;
+/* =========================================================
+   LIVE COVER PHOTO
+========================================================= */
 
+let liveCoverFile = null;
+let liveCoverUrl = null;
+
+
+/* =========================================================
+   LIVE COVER SELECT
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const input =
+    document.getElementById("liveCoverInput");
+
+  const preview =
+    document.getElementById("liveCoverPreview");
+
+  const startButton =
+    document.getElementById("startLiveButton");
+
+  const message =
+    document.getElementById("liveSetupMessage");
+
+
+  if (!input) {
+    return;
+  }
+
+
+  input.addEventListener("change", event => {
+
+    const file =
+      event.target.files[0];
+
+
+    if (!file) {
+      return;
+    }
+
+
+    /* Check image */
+
+    if (!file.type.startsWith("image/")) {
+
+      alert(
+        "Please select an image file."
+      );
+
+      input.value = "";
+
+      return;
+
+    }
+
+
+    /* Check 10 MB */
+
+    if (file.size > 10 * 1024 * 1024) {
+
+      alert(
+        "Live cover must be 10 MB or smaller."
+      );
+
+      input.value = "";
+
+      return;
+
+    }
+
+
+    liveCoverFile = file;
+
+
+    /* Create preview */
+
+    liveCoverUrl =
+      URL.createObjectURL(file);
+
+
+    if (preview) {
+
+      preview.src =
+        liveCoverUrl;
+
+      preview.style.display =
+        "block";
+
+    }
+
+
+    /* Enable Start Live */
+
+    if (startButton) {
+
+      startButton.disabled =
+        false;
+
+    }
+
+
+    if (message) {
+
+      message.textContent =
+        "✅ Live cover selected. You can now start your live.";
+
+    }
+
+  });
+
+});
 let realtimeChannel = null;
 
 let facingMode = "user";
