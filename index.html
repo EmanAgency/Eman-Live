@@ -323,7 +323,94 @@
 
   </div>
 
+<!-- =========================
+     PROFILE MODAL
+========================= -->
 
+<div class="modal" id="profileModal">
+
+  <div class="modalBox profileBox">
+
+    <button
+      type="button"
+      class="close"
+      onclick="closeModal('profileModal')">
+      ×
+    </button>
+
+    <div class="profileHeader">
+
+      <div class="profileAvatar">
+        👤
+      </div>
+
+      <h2>My Profile</h2>
+
+      <p>
+        Eman Live User
+      </p>
+
+    </div>
+
+
+    <div class="profileMenu">
+
+      <button
+        type="button"
+        onclick="openGifts(); closeModal('profileModal')">
+        🪙 Wallet
+        <span>Check your coins and gifts</span>
+      </button>
+
+      <button
+        type="button"
+        onclick="alert('Profile settings coming soon.')">
+        ⚙️ Settings
+        <span>Manage your account</span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     INBOX MODAL
+========================= -->
+
+<div class="modal" id="inboxModal">
+
+  <div class="modalBox inboxBox">
+
+    <button
+      type="button"
+      class="close"
+      onclick="closeModal('inboxModal')">
+      ×
+    </button>
+
+    <h2>💬 Inbox</h2>
+
+    <p>
+      Your private messages
+    </p>
+
+    <div
+      id="privateMessages"
+      class="privateMessages">
+
+      <div class="emptyInbox">
+        📭 No private messages yet.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+  
   <!-- =========================
        FULLSCREEN LIVE
   ========================== -->
