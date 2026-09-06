@@ -2016,20 +2016,783 @@ async function flipLiveCamera() {
    PARTY CONTROLS
 ========================================================= */
 
-function togglePartyMute() {
+/* =========================================================
+   PARTY LIVE ROOM - 4 SEATS
+========================================================= */
 
-  alert(
-    "🎤 Party microphone control ready."
+let partyRoom = null;
+let partyLocalVideoTrack = null;
+let partyLocalAudioTrack = null;
+let partySeatNumber = null;
+let partyJoined = false;
+let partyFacingMode = "user";
+
+
+/* =========================================================
+   OPEN PARTY
+========================================================= */
+
+function openParty() {
+
+  const modal =
+    document.getElementById("partyModal");
+
+  if (!modal) {
+
+    alert(
+      "Party Room could not be found."
+    );
+
+    return;
+
+  }
+
+  modal.classList.add("open");
+
+  console.log(
+    "Party Live Room opened."
   );
 
 }
 
 
-function togglePartyCamera() {
+/* =========================================================
+   JOIN A PARTY SEAT
+========================================================= */
 
-  alert(
-    "📹 Party camera control ready."
-  );
+async function joinPartySeat() {
+
+  try {
+
+    if (!window.LivekitClient) {
+
+      alert(
+        "LiveKit is not loaded."
+      );
+
+      return;
+
+    }
+
+
+    if (partyJoined) {
+
+      alert(
+        "You are already in a Party seat."
+      );
+
+      return;
+
+    }
+
+
+    /* Find first empty seat */
+
+    let seat = null;
+
+    for (
+      let i = 1;
+      i <= 4;
+      i++
+    ) {
+
+      const seatElement =
+        document.getElementById(
+          "partySeat" + i
+        );
+
+      if (
+        seatElement &&
+        !seatElement.classList.contains(
+          "occupied"
+        )
+      ) {
+
+        seat = i;
+
+        break;
+
+      }
+
+    }
+
+
+    if (!seat) {
+
+      alert(
+        "All 4 Party seats are occupied."
+      );
+
+      return;
+
+    }
+
+
+    partySeatNumber =
+      seat;
+
+
+    /* Get Party LiveKit credentials */
+
+    const credentials =
+      await getLiveKitToken(
+        "eman-party-main"
+      );
+
+
+    if (
+      !credentials ||
+      !credentials.serverUrl ||
+      !credentials.participantToken
+    ) {
+
+      throw new Error(
+        "Could not obtain Party LiveKit credentials."
+      );
+
+    }
+
+
+    /* Create Party Room */
+
+    partyRoom =
+      new LivekitClient.Room({
+
+        adaptiveStream:
+          true,
+
+        dynacast:
+          true
+
+      });
+
+
+    /* =====================================================
+       REMOTE PARTICIPANT
+    ===================================================== */
+
+    partyRoom.on(
+
+      LivekitClient.RoomEvent.TrackSubscribed,
+
+      (
+        track,
+        publication,
+        participant
+      ) => {
+
+        console.log(
+          "Party participant joined:",
+          participant.identity
+        );
+
+
+        const videoTrack =
+          track.kind ===
+          LivekitClient.Track.Kind.Video;
+
+
+        if (!videoTrack) {
+
+          return;
+
+        }
+
+
+        const element =
+          track.attach();
+
+
+        element.autoplay =
+          true;
+
+        element.playsInline =
+          true;
+
+        element.muted =
+          true;
+
+
+        /*
+          Put remote video into
+          an available Party seat.
+        */
+
+        for (
+          let i = 1;
+          i <= 4;
+          i++
+        ) {
+
+          const seatElement =
+            document.getElementById(
+              "partySeat" + i
+            );
+
+
+          if (
+            seatElement &&
+            !seatElement.classList.contains(
+              "occupied"
+            )
+          ) {
+
+            seatElement.classList.add(
+              "occupied"
+            );
+
+
+            const videoContainer =
+              seatElement.querySelector(
+                ".seatVideo"
+              );
+
+
+            if (videoContainer) {
+
+              videoContainer.innerHTML =
+                "";
+
+              videoContainer.appendChild(
+                element
+              );
+
+            }
+
+
+            const name =
+              seatElement.querySelector(
+                ".seatName"
+              );
+
+
+            if (name) {
+
+              name.textContent =
+                participant.identity;
+
+            }
+
+
+            break;
+
+          }
+
+        }
+
+      }
+
+    );
+
+
+    /* =====================================================
+       PARTICIPANT LEFT
+    ===================================================== */
+
+    partyRoom.on(
+
+      LivekitClient.RoomEvent.ParticipantDisconnected,
+
+      participant => {
+
+        console.log(
+          "Party participant left:",
+          participant.identity
+        );
+
+        removePartyParticipant(
+          participant.identity
+        );
+
+      }
+
+    );
+
+
+    /* =====================================================
+       CONNECT
+    ===================================================== */
+
+    await partyRoom.connect(
+
+      credentials.serverUrl,
+
+      credentials.participantToken
+
+    );
+
+
+    console.log(
+      "Connected to Party Live."
+    );
+
+
+    /* =====================================================
+       PUBLISH CAMERA
+    ===================================================== */
+
+    await partyRoom.localParticipant
+      .setCameraEnabled(
+        true
+      );
+
+
+    /* =====================================================
+       PUBLISH MICROPHONE
+    ===================================================== */
+
+    await partyRoom.localParticipant
+      .setMicrophoneEnabled(
+        true
+      );
+
+
+    /* Get local publications */
+
+    partyRoom
+      .localParticipant
+      .trackPublications
+      .forEach(
+        publication => {
+
+          if (
+            publication.kind ===
+            LivekitClient.Track.Kind.Video
+          ) {
+
+            partyLocalVideoTrack =
+              publication.track;
+
+          }
+
+
+          if (
+            publication.kind ===
+            LivekitClient.Track.Kind.Audio
+          ) {
+
+            partyLocalAudioTrack =
+              publication.track;
+
+          }
+
+        }
+      );
+
+
+    /* =====================================================
+       SHOW LOCAL VIDEO
+    ===================================================== */
+
+    const localSeat =
+      document.getElementById(
+        "partySeat" +
+        partySeatNumber
+      );
+
+
+    if (localSeat) {
+
+      localSeat.classList.add(
+        "occupied"
+      );
+
+
+      const videoContainer =
+        localSeat.querySelector(
+          ".seatVideo"
+        );
+
+
+      if (
+        videoContainer &&
+        partyLocalVideoTrack
+      ) {
+
+        videoContainer.innerHTML =
+          "";
+
+        partyLocalVideoTrack.attach(
+          videoContainer
+        );
+
+      }
+
+
+      const name =
+        localSeat.querySelector(
+          ".seatName"
+        );
+
+
+      if (name) {
+
+        name.textContent =
+          "You";
+
+      }
+
+    }
+
+
+    partyJoined =
+      true;
+
+
+    /* Update button */
+
+    const buttons =
+      document.querySelectorAll(
+        ".partyControls button"
+      );
+
+
+    if (
+      buttons &&
+      buttons[0]
+    ) {
+
+      buttons[0].textContent =
+        "✅ Seat " +
+        partySeatNumber;
+
+    }
+
+
+    /* Update status */
+
+    const status =
+      document.getElementById(
+        "partyStatusText"
+      );
+
+
+    if (status) {
+
+      status.textContent =
+        "YOU ARE LIVE";
+
+    }
+
+
+    alert(
+      "🎉 You joined Party Seat " +
+      partySeatNumber +
+      "!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Party Live error:",
+      error
+    );
+
+    alert(
+      "Party Live error: " +
+      (
+        error.message ||
+        error
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REMOVE PARTY PARTICIPANT
+========================================================= */
+
+function removePartyParticipant(
+  identity
+) {
+
+  for (
+    let i = 1;
+    i <= 4;
+    i++
+  ) {
+
+    const seat =
+      document.getElementById(
+        "partySeat" + i
+      );
+
+
+    if (!seat) {
+
+      continue;
+
+    }
+
+
+    const name =
+      seat.querySelector(
+        ".seatName"
+      );
+
+
+    if (
+      name &&
+      name.textContent === identity
+    ) {
+
+      seat.classList.remove(
+        "occupied"
+      );
+
+
+      const video =
+        seat.querySelector(
+          ".seatVideo"
+        );
+
+
+      if (video) {
+
+        video.innerHTML =
+          '<div class="seatIcon">👤</div>';
+
+      }
+
+
+      name.textContent =
+        "Seat " + i;
+
+
+      break;
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   PARTY MUTE
+========================================================= */
+
+async function togglePartyMute() {
+
+  if (!partyRoom) {
+
+    alert(
+      "Join a Party seat first."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    partyRoom
+      .localParticipant
+      .isMicrophoneEnabled;
+
+
+  await partyRoom.localParticipant
+    .setMicrophoneEnabled(
+      !enabled
+    );
+
+
+  const buttons =
+    document.querySelectorAll(
+      ".partyControls button"
+    );
+
+
+  if (
+    buttons &&
+    buttons[1]
+  ) {
+
+    buttons[1].textContent =
+      !enabled
+        ? "🎤 Mute"
+        : "🔇 Unmute";
+
+  }
+
+}
+
+
+/* =========================================================
+   PARTY CAMERA
+========================================================= */
+
+async function togglePartyCamera() {
+
+  if (!partyRoom) {
+
+    alert(
+      "Join a Party seat first."
+    );
+
+    return;
+
+  }
+
+
+  const enabled =
+    partyRoom
+      .localParticipant
+      .isCameraEnabled;
+
+
+  await partyRoom.localParticipant
+    .setCameraEnabled(
+      !enabled
+    );
+
+
+  const buttons =
+    document.querySelectorAll(
+      ".partyControls button"
+    );
+
+
+  if (
+    buttons &&
+    buttons[2]
+  ) {
+
+    buttons[2].textContent =
+      !enabled
+        ? "📹 Camera"
+        : "🚫 Camera";
+
+  }
+
+}
+
+
+/* =========================================================
+   LEAVE PARTY SEAT
+========================================================= */
+
+async function leavePartySeat() {
+
+  try {
+
+    if (partyRoom) {
+
+      partyRoom.disconnect();
+
+      partyRoom =
+        null;
+
+    }
+
+
+    if (
+      partySeatNumber
+    ) {
+
+      const seat =
+        document.getElementById(
+          "partySeat" +
+          partySeatNumber
+        );
+
+
+      if (seat) {
+
+        seat.classList.remove(
+          "occupied"
+        );
+
+
+        const video =
+          seat.querySelector(
+            ".seatVideo"
+          );
+
+
+        if (video) {
+
+          video.innerHTML =
+            '<div class="seatIcon">👤</div>';
+
+        }
+
+
+        const name =
+          seat.querySelector(
+            ".seatName"
+          );
+
+
+        if (name) {
+
+          name.textContent =
+            "Seat " +
+            partySeatNumber;
+
+        }
+
+      }
+
+    }
+
+
+    partySeatNumber =
+      null;
+
+    partyJoined =
+      false;
+
+    partyLocalVideoTrack =
+      null;
+
+    partyLocalAudioTrack =
+      null;
+
+
+    const status =
+      document.getElementById(
+        "partyStatusText"
+      );
+
+
+    if (status) {
+
+      status.textContent =
+        "PARTY LIVE";
+
+    }
+
+
+    const buttons =
+      document.querySelectorAll(
+        ".partyControls button"
+      );
+
+
+    if (
+      buttons &&
+      buttons[0]
+    ) {
+
+      buttons[0].textContent =
+        "🎥 Join Seat";
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Leave Party error:",
+      error
+    );
+
+  }
 
 }
 
