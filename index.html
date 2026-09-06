@@ -79,40 +79,93 @@
        LIVE SETUP MODAL
   ========================== -->
 
-  <div class="modal" id="liveModal">
+  <!-- =========================
+     LIVE SETUP
+========================= -->
 
-    <div class="modalBox">
+<div class="modal" id="liveModal">
 
-      <button
-        type="button"
-        class="close"
-        onclick="closeModal('liveModal')">
-        ×
-      </button>
+  <div class="modalBox">
 
-      <h2>🎥 Go Live</h2>
+    <button
+      type="button"
+      class="close"
+      onclick="closeModal('liveModal')">
+      ×
+    </button>
 
-      <p>
-        Get ready to start your live stream.
-      </p>
+    <h2>🎥 Go Live</h2>
 
-      <video
-        id="previewVideo"
-        autoplay
-        muted
-        playsinline>
-      </video>
+    <p>
+      Add your live cover before starting.
+    </p>
 
-      <button
-        type="button"
-        class="primaryButton"
-        onclick="startLiveFromFullscreen()">
-        🔴 START LIVE
-      </button>
+
+    <!-- LIVE COVER -->
+
+    <div class="liveCoverUpload">
+
+      <img
+        id="liveCoverPreview"
+        src=""
+        alt="Live Cover"
+        style="display:none;">
+
+      <label
+        for="liveCoverInput"
+        class="coverUploadButton">
+        📸 Upload Live Cover
+      </label>
+
+      <input
+        type="file"
+        id="liveCoverInput"
+        accept="image/*"
+        style="display:none;">
 
     </div>
 
+
+    <!-- LIVE TITLE -->
+
+    <input
+      type="text"
+      id="liveTitleInput"
+      class="liveTitleInput"
+      placeholder="Enter your live title..."
+      maxlength="100">
+
+
+    <!-- CAMERA PREVIEW -->
+
+    <video
+      id="previewVideo"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+
+    <!-- START LIVE -->
+
+    <button
+      type="button"
+      id="startLiveButton"
+      class="primaryButton"
+      onclick="startLiveFromFullscreen()"
+      disabled>
+      🔴 START LIVE
+    </button>
+
+    <p
+      id="liveSetupMessage"
+      class="small">
+      📸 Please upload a live cover photo first.
+    </p>
+
   </div>
+
+</div>
 
 
   <!-- =========================
