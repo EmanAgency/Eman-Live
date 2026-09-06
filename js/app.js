@@ -810,62 +810,92 @@ async function createLiveRoom() {
    LIVEKIT TOKEN
 ========================================================= */
 
-async function getLiveKitToken(
-  roomName
-) {
+async function getLiveKitToken(roomName) {
 
-  /*
-    This uses the development
-    LiveKit token endpoint.
-  */
+  try {
 
-  const url =
-    "https://cloud-api.livekit.io/api/sandbox/connection-details";
+    console.log("Getting LiveKit token...");
+    console.log("Room:", roomName);
 
-
-  const response =
-    await fetch(
-      url,
+    const response = await fetch(
+      "https://cloud-api.livekit.io/api/sandbox/connection-details",
       {
         method: "POST",
 
         headers: {
-          "Content-Type":
-            "application/json"
+          "Content-Type": "application/json",
+          "X-Sandbox-ID": TOKEN_SERVER_ID
         },
 
         body: JSON.stringify({
-
-          room_name:
-            roomName
-
+          room_name: roomName,
+          participant_name:
+            "EmanUser-" + Date.now()
         })
-
       }
     );
 
-
-  if (!response.ok) {
-
-    throw new Error(
-      "Could not obtain LiveKit token."
+    console.log(
+      "LiveKit token response:",
+      response.status
     );
 
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      console.error(
+        "LiveKit token server error:",
+        errorText
+      );
+
+      throw new Error(
+        "LiveKit token server returned " +
+        response.status
+      );
+    }
+
+    const data =
+      await response.json();
+
+    console.log(
+      "LiveKit connection details:",
+      data
+    );
+
+    if (
+      !data.participantToken ||
+      !data.serverUrl
+    ) {
+
+      console.error(
+        "Invalid LiveKit response:",
+        data
+      );
+
+      throw new Error(
+        "LiveKit token was not returned."
+      );
+    }
+
+    return {
+      token: data.participantToken,
+      serverUrl: data.serverUrl
+    };
+
+  } catch (error) {
+
+    console.error(
+      "LiveKit token error:",
+      error
+    );
+
+    throw new Error(
+      "Could not obtain LiveKit token"
+    );
   }
-
-
-  const data =
-    await response.json();
-
-
-  return (
-    data.participant_token ||
-    data.token ||
-    data.participantToken
-  );
-
 }
-
 
 /* =========================================================
    REALTIME
