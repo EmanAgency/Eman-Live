@@ -500,10 +500,6 @@ async function goLive() {
       Connect
     */
 
-    const wsUrl =
-      "wss://" +
-      TOKEN_SERVER_ID +
-      ".livekit.cloud";
 
 
     await room.connect(
