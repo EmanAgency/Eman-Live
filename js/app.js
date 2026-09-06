@@ -3144,3 +3144,332 @@ async function loadLiveRooms() {
   }
 
 }
+
+/* =========================================================
+   EMAN LIVE AUTHENTICATION
+========================================================= */
+
+let authMode = "login";
+
+
+function openAuth(mode = "login") {
+
+  authMode = mode;
+
+  const modal =
+    document.getElementById("authModal");
+
+  if (!modal) {
+    alert("Login window could not be found.");
+    return;
+  }
+
+  updateAuthUI();
+
+  modal.classList.add("open");
+}
+
+
+function switchAuthMode() {
+
+  authMode =
+    authMode === "login"
+      ? "signup"
+      : "login";
+
+  updateAuthUI();
+}
+
+
+function updateAuthUI() {
+
+  const title =
+    document.getElementById("authTitle");
+
+  const subtitle =
+    document.getElementById("authSubtitle");
+
+  const button =
+    document.getElementById("authMainButton");
+
+  const switchButton =
+    document.getElementById("authSwitchButton");
+
+  const confirmPassword =
+    document.getElementById(
+      "authConfirmPassword"
+    );
+
+  const message =
+    document.getElementById("authMessage");
+
+  if (!title) return;
+
+  if (message) {
+    message.textContent = "";
+  }
+
+  if (authMode === "login") {
+
+    title.textContent =
+      "Welcome Back";
+
+    subtitle.textContent =
+      "Login to your Eman Live account";
+
+    button.textContent =
+      "🔐 LOGIN";
+
+    switchButton.textContent =
+      "Don't have an account? Sign Up";
+
+    if (confirmPassword) {
+      confirmPassword.style.display =
+        "none";
+    }
+
+  } else {
+
+    title.textContent =
+      "Create Your Eman Live Account";
+
+    subtitle.textContent =
+      "Join Eman Live today";
+
+    button.textContent =
+      "✨ CREATE ACCOUNT";
+
+    switchButton.textContent =
+      "Already have an account? Login";
+
+    if (confirmPassword) {
+      confirmPassword.style.display =
+        "block";
+    }
+
+  }
+}
+
+
+async function handleAuth() {
+
+  const emailInput =
+    document.getElementById("authEmail");
+
+  const passwordInput =
+    document.getElementById("authPassword");
+
+  const confirmInput =
+    document.getElementById(
+      "authConfirmPassword"
+    );
+
+  const message =
+    document.getElementById("authMessage");
+
+  if (!emailInput || !passwordInput) {
+    return;
+  }
+
+  const email =
+    emailInput.value.trim();
+
+  const password =
+    passwordInput.value;
+
+  if (!email) {
+
+    message.textContent =
+      "Please enter your email.";
+
+    return;
+  }
+
+  if (!password) {
+
+    message.textContent =
+      "Please enter your password.";
+
+    return;
+  }
+
+
+  /* =========================
+     SIGN UP
+  ========================= */
+
+  if (authMode === "signup") {
+
+    const confirmPassword =
+      confirmInput
+        ? confirmInput.value
+        : "";
+
+    if (password.length < 6) {
+
+      message.textContent =
+        "Password must be at least 6 characters.";
+
+      return;
+    }
+
+    if (password !== confirmPassword) {
+
+      message.textContent =
+        "Passwords do not match.";
+
+      return;
+    }
+
+    message.textContent =
+      "Creating your account...";
+
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
+
+      if (error) {
+        throw error;
+      }
+
+
+      /* CREATE PROFILE */
+
+      if (data && data.user) {
+
+        await supabaseClient
+          .from("profiles")
+          .upsert({
+            id: data.user.id,
+            username:
+              email.split("@")[0]
+          });
+
+      }
+
+
+      message.textContent =
+        "✅ Account created successfully!";
+
+
+      setTimeout(() => {
+
+        closeModal("authModal");
+
+      }, 1000);
+
+
+    } catch (error) {
+
+      console.error(
+        "Sign up error:",
+        error
+      );
+
+      message.textContent =
+        error.message ||
+        "Could not create account.";
+
+    }
+
+    return;
+  }
+
+
+  /* =========================
+     LOGIN
+  ========================= */
+
+  message.textContent =
+    "Logging in...";
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth
+        .signInWithPassword({
+          email: email,
+          password: password
+        });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(
+      "Logged in:",
+      data.user
+    );
+
+
+    message.textContent =
+      "✅ Login successful!";
+
+
+    setTimeout(() => {
+
+      closeModal("authModal");
+
+    }, 700);
+
+
+  } catch (error) {
+
+    console.error(
+      "Login error:",
+      error
+    );
+
+    message.textContent =
+      error.message ||
+      "Login failed.";
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTH STATUS
+========================================================= */
+
+async function getCurrentUser() {
+
+  const {
+    data: { user }
+  } =
+    await supabaseClient.auth.getUser();
+
+  return user;
+}
+
+
+/* =========================================================
+   REQUIRE LOGIN BEFORE LIVE
+========================================================= */
+
+async function requireLogin() {
+
+  const user =
+    await getCurrentUser();
+
+  if (user) {
+    return true;
+  }
+
+  openAuth("login");
+
+  return false;
+       }
