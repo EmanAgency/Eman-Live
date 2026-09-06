@@ -207,7 +207,14 @@ function goHome() {
    MODALS
 ========================================================= */
 
-function openLive() {
+async function openLive() {
+
+  const loggedIn =
+    await requireLogin();
+
+  if (!loggedIn) {
+    return;
+  }
 
   const modal =
     document.getElementById("liveModal");
@@ -224,107 +231,6 @@ function openLive() {
   modal.classList.add("open");
 
   startCamera();
-
-}
-
-
-function closeModal(id) {
-
-  const modal =
-    document.getElementById(id);
-
-  if (modal) {
-
-    modal.classList.remove("open");
-
-  }
-
-}
-
-
-function openParty() {
-
-  const modal =
-    document.getElementById("partyModal");
-
-  if (!modal) {
-
-    alert(
-      "Party Room could not be found."
-    );
-
-    return;
-  }
-
-  modal.classList.add("open");
-
-  console.log(
-    "Party Room opened."
-  );
-
-}
-
-
-function openGifts() {
-
-  const modal =
-    document.getElementById("giftModal");
-
-  if (!modal) {
-
-    alert(
-      "Wallet could not be found."
-    );
-
-    return;
-  }
-
-  modal.classList.add("open");
-
-  updateCoinDisplay();
-
-  console.log(
-    "Wallet opened."
-  );
-
-}
-
-
-function openInbox() {
-
-  const modal =
-    document.getElementById("inboxModal");
-
-  if (!modal) {
-
-    alert(
-      "Inbox could not be found."
-    );
-
-    return;
-  }
-
-  modal.classList.add("open");
-
-}
-
-
-function openProfile() {
-
-  const modal =
-    document.getElementById("profileModal");
-
-  if (!modal) {
-
-    alert(
-      "Profile could not be found."
-    );
-
-    return;
-  }
-
-  modal.classList.add("open");
-
 }
 
 
