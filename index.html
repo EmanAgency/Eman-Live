@@ -119,134 +119,205 @@
        PARTY ROOM MODAL
   ========================== -->
 
-  <div class="modal" id="partyModal">
+ <!-- =========================
+     PARTY LIVE ROOM
+========================= -->
 
-    <div class="partyBox">
+<div class="modal" id="partyModal">
+
+  <div class="partyBox">
+
+    <!-- PARTY HEADER -->
+
+    <div class="partyHeader">
+
+      <div>
+        <h2>🎉 Party Live</h2>
+
+        <div class="small">
+          Room #EMAN-001 • 4 Seats
+        </div>
+      </div>
 
       <button
         type="button"
-        class="close"
+        class="partyClose"
         onclick="closeModal('partyModal')">
         ×
       </button>
 
-      <div class="partyHeader">
-
-        <div>
-
-          <h2>🎉 Party Room</h2>
-
-          <div class="small">
-            Room #EMAN-001 • 4 seats
-          </div>
-
-        </div>
-
-        <span class="live">
-          ● LIVE
-        </span>
-
-      </div>
+    </div>
 
 
-      <!-- MULTI VIDEO AREA -->
+    <!-- LIVE STATUS -->
+
+    <div class="partyStatus">
+      <span class="partyLiveDot">🔴</span>
+      <span id="partyStatusText">
+        PARTY LIVE
+      </span>
+
+      <span class="partyViewerCount">
+        👁 <span id="partyViewerCount">0</span>
+      </span>
+    </div>
+
+
+    <!-- 4 VIDEO SEATS -->
+
+    <div
+      class="partyVideoGrid"
+      id="partyVideoGrid">
+
+      <!-- SEAT 1 -->
 
       <div
-        class="videoGrid"
-        id="videoGrid">
+        class="partySeat"
+        id="partySeat1">
 
-        <div class="partySeat">
-          <div class="seatIcon">👤</div>
-          <span>Seat 1</span>
+        <div class="seatVideo">
+          <div class="seatIcon">
+            👤
+          </div>
         </div>
 
-        <div class="partySeat">
-          <div class="seatIcon">👤</div>
-          <span>Seat 2</span>
-        </div>
-
-        <div class="partySeat">
-          <div class="seatIcon">👤</div>
-          <span>Seat 3</span>
-        </div>
-
-        <div class="partySeat">
-          <div class="seatIcon">👤</div>
-          <span>Seat 4</span>
+        <div class="seatName">
+          Seat 1
         </div>
 
       </div>
 
 
-      <!-- PARTY CONTROLS -->
+      <!-- SEAT 2 -->
 
-      <div class="partyControls">
+      <div
+        class="partySeat"
+        id="partySeat2">
 
-        <button
-          type="button"
-          onclick="togglePartyMute()">
-          🎤 Mute
-        </button>
+        <div class="seatVideo">
+          <div class="seatIcon">
+            👤
+          </div>
+        </div>
 
-        <button
-          type="button"
-          onclick="togglePartyCamera()">
-          📹 Camera
-        </button>
-
-        <button
-          type="button"
-          onclick="openGifts(); closeModal('partyModal')">
-          🎁 Gifts
-        </button>
-
-        <button
-          type="button"
-          onclick="alert('Invite feature coming soon.')">
-          👋 Invite
-        </button>
+        <div class="seatName">
+          Seat 2
+        </div>
 
       </div>
 
 
-      <!-- PARTY CHAT -->
+      <!-- SEAT 3 -->
 
-      <div class="chat">
+      <div
+        class="partySeat"
+        id="partySeat3">
 
-        <b>Live Chat</b>
-
-        <div id="partyChatMessages">
-
-          <p>
-            Angel: Welcome everyone! 💜
-          </p>
-
-          <p>
-            KingTee: Sending gifts! 🎁
-          </p>
-
+        <div class="seatVideo">
+          <div class="seatIcon">
+            👤
+          </div>
         </div>
 
-        <div class="chatSend">
+        <div class="seatName">
+          Seat 3
+        </div>
 
-          <input
-            id="partyChatInput"
-            type="text"
-            placeholder="Say something...">
+      </div>
 
-          <button
-            type="button"
-            onclick="sendPartyChat()">
-            ➤
-          </button>
 
+      <!-- SEAT 4 -->
+
+      <div
+        class="partySeat"
+        id="partySeat4">
+
+        <div class="seatVideo">
+          <div class="seatIcon">
+            👤
+          </div>
+        </div>
+
+        <div class="seatName">
+          Seat 4
         </div>
 
       </div>
 
     </div>
 
+
+    <!-- PARTY CONTROLS -->
+
+    <div class="partyControls">
+
+      <button
+        type="button"
+        onclick="joinPartySeat()">
+        🎥 Join Seat
+      </button>
+
+      <button
+        type="button"
+        onclick="togglePartyMute()">
+        🎤 Mute
+      </button>
+
+      <button
+        type="button"
+        onclick="togglePartyCamera()">
+        📹 Camera
+      </button>
+
+      <button
+        type="button"
+        onclick="openGifts(); closeModal('partyModal')">
+        🎁 Gifts
+      </button>
+
+    </div>
+
+
+    <!-- PARTY CHAT -->
+
+    <div class="partyChat">
+
+      <div class="partyChatTitle">
+        💬 Party Chat
+      </div>
+
+      <div
+        id="partyChatMessages"
+        class="partyChatMessages">
+
+        <p>
+          <b>System:</b>
+          Welcome to the Party Room! 🎉
+        </p>
+
+      </div>
+
+
+      <div class="partyChatSend">
+
+        <input
+          id="partyChatInput"
+          type="text"
+          placeholder="Say something...">
+
+        <button
+          type="button"
+          onclick="sendPartyChat()">
+          ➤
+        </button>
+
+      </div>
+
+    </div>
+
   </div>
+
+</div>
 
 
   <!-- =========================
