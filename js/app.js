@@ -25,9 +25,7 @@ const supabaseClient =
    LIVEKIT
 ========================================================= */
 
-const TOKEN_SERVER_ID =
-  "emanlive-2j2epi";
-
+const TOKEN_SERVER_ID = "emanlive-2j2epi";
 
 /* =========================================================
    GLOBAL VARIABLES
