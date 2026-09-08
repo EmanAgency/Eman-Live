@@ -1381,90 +1381,72 @@ function attachLocalLiveVideo(
    LIVEKIT TOKEN
 ========================================================= */
 
-/* =========================================================
-   LIVEKIT TOKEN
-========================================================= */
-
 async function getLiveKitToken(roomName) {
-
   try {
-
     console.log("Getting LiveKit credentials...");
     console.log("Room:", roomName);
 
-    /* USE LIVEKIT DEVELOPMENT TOKEN SERVER */
-
     if (
-      window.LivekitClient &&
-      LivekitClient.TokenSource &&
-      LivekitClient.TokenSource.developmentTokenServer
+      !window.LivekitClient ||
+      !LivekitClient.TokenSource ||
+      !LivekitClient.TokenSource.developmentTokenServer
     ) {
-
-      console.log(
-        "Using LiveKit development token server..."
+      throw new Error(
+        "LiveKit JavaScript library is not loaded."
       );
-
-      const tokenSource =
-        LivekitClient.TokenSource
-          .developmentTokenServer(
-            TOKEN_SERVER_ID
-          );
-
-      const result =
-        await tokenSource.fetch({
-          roomName: roomName,
-          participantName:
-            "EmanUser-" + Date.now()
-        });
-
-      console.log(
-        "LiveKit credentials received."
-      );
-
-      if (
-        !result ||
-        !result.serverUrl ||
-        !result.participantToken
-      ) {
-
-        throw new Error(
-          "LiveKit returned invalid credentials."
-        );
-
-      }
-
-      return {
-        serverUrl:
-          result.serverUrl,
-
-        participantToken:
-          result.participantToken
-      };
-
     }
 
+    const tokenSource =
+      LivekitClient.TokenSource.developmentTokenServer(
+        "emanlive-2j2epi"
+      );
 
-    throw new Error(
-      "LiveKit TokenSource is not available. Please check that the LiveKit JavaScript library is loaded."
+    console.log("Requesting LiveKit token...");
+
+    const result = await tokenSource.fetch({
+      roomName: roomName,
+      participantName:
+        "EmanUser-" + Date.now()
+    });
+
+    console.log(
+      "LiveKit response:",
+      result
     );
 
+    if (
+      !result ||
+      !result.serverUrl ||
+      !result.participantToken
+    ) {
+      throw new Error(
+        "LiveKit did not return valid connection details."
+      );
+    }
+
+    console.log(
+      "LiveKit credentials received."
+    );
+
+    return {
+      serverUrl: result.serverUrl,
+      participantToken: result.participantToken
+    };
 
   } catch (error) {
 
     console.error(
-      "LiveKit token error:",
+      "LIVEKIT TOKEN ERROR:",
       error
     );
 
     throw new Error(
-      "LiveKit connection failed: " +
+      "LiveKit token request failed: " +
       (error.message || error)
     );
-
   }
-
 }
-
+ 
 
 /* =========================================================
    LOAD LIVE ROOMS
