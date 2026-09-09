@@ -645,6 +645,18 @@ function render() {
       renderLive();
       break;
 
+case "soloMute":
+  toggleSoloMicrophone();
+  break;
+
+case "flipCamera":
+  flipCamera();
+  break;
+
+case "liveMenu":
+  openLiveMenu();
+  break;
+        
     case "chat":
       renderChat();
       break;
@@ -672,6 +684,13 @@ function render() {
     default:
       renderHome();
 
+        case "partyMute":
+  togglePartyMicrophone();
+  break;
+
+case "partyFlip":
+  flipPartyCamera();
+  break;
   }
 
 }
@@ -1554,6 +1573,120 @@ function stopCamera() {
   cameraStream =
     null;
 
+}
+
+/* =========================================================
+   PARTY MICROPHONE
+========================================================= */
+
+function togglePartyMicrophone() {
+
+  if (!partyRoom) {
+    toast("Party room is not connected.");
+    return;
+  }
+
+  const enabled =
+    partyRoom.localParticipant
+      .isMicrophoneEnabled;
+
+  partyRoom.localParticipant
+    .setMicrophoneEnabled(!enabled);
+
+  const button =
+    document.getElementById(
+      "partyMuteBtn"
+    );
+
+  if (button) {
+
+    button.innerHTML =
+      enabled
+        ? "🔇"
+        : "🎤";
+
+    button.classList.toggle(
+      "muted",
+      enabled
+    );
+
+  }
+
+  toast(
+    enabled
+      ? "Microphone muted"
+      : "Microphone on"
+  );
+}
+
+
+/* =========================================================
+   PARTY CAMERA FLIP
+========================================================= */
+
+async function flipPartyCamera() {
+
+  if (!partyRoom) {
+    toast("Party room is not connected.");
+    return;
+  }
+
+  try {
+
+    const enabled =
+      partyRoom.localParticipant
+        .isCameraEnabled;
+
+    if (!enabled) {
+      await partyRoom.localParticipant
+        .setCameraEnabled(true);
+    }
+
+    const publication =
+      partyRoom.localParticipant
+        .getTrackPublication(
+          LivekitClient.Track.Source.Camera
+        );
+
+    if (
+      publication &&
+      publication.track
+    ) {
+
+      await publication.track.restartTrack({
+        facingMode:
+          facingMode === "user"
+            ? "environment"
+            : "user"
+      });
+
+      facingMode =
+        facingMode === "user"
+          ? "environment"
+          : "user";
+
+    }
+
+    attachLocalPartyCamera();
+
+    toast(
+      facingMode === "user"
+        ? "Front camera"
+        : "Back camera"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "PARTY FLIP ERROR:",
+      error
+    );
+
+    toast(
+      "Unable to flip party camera."
+    );
+
+  }
 }
 
 /* =========================================================
@@ -2612,7 +2745,62 @@ async function startPartyLive() {
     /*
      * Open the 4-seat party room
      */
+     
+<!-- PARTY HEART -->
 
+<button
+  class="live-heart-top"
+  data-action="heart"
+  type="button">
+
+  ❤️
+
+</button>
+
+
+<!-- PARTY CONTROLS -->
+
+<div class="live-control-column">
+
+  <button
+    id="partyMuteBtn"
+    class="live-control-btn"
+    data-action="partyMute"
+    type="button">
+
+    🎤
+
+  </button>
+
+  <button
+    class="live-control-btn"
+    data-action="partyFlip"
+    type="button">
+
+    🔄
+
+  </button>
+
+  <button
+    class="live-control-btn gift"
+    data-action="sendGift"
+    type="button">
+
+    🎁
+
+  </button>
+
+  <button
+    class="live-control-btn menu"
+    data-action="liveMenu"
+    type="button">
+
+    ☰
+
+  </button>
+
+</div>
+     
     renderPartyLive();
 
 
