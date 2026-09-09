@@ -2213,3 +2213,68 @@ select.input {
   }
 
 }
+
+/* =========================================================
+   FULLSCREEN LIVE / PARTY BROADCAST
+========================================================= */
+
+.live-screen,
+.party-live-screen {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000 !important;
+  z-index: 100000 !important;
+  overflow: hidden !important;
+}
+
+/* Hide bottom navigation while broadcasting */
+body:has(.live-screen) .bottom-nav,
+body:has(.party-live-screen) .bottom-nav {
+  display: none !important;
+}
+
+/* Make the main screen itself full size */
+body:has(.live-screen) #screen,
+body:has(.party-live-screen) #screen {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+}
+
+/* Live video fills entire screen */
+.live-screen .live-video {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: #000 !important;
+}
+
+/* Camera fills screen */
+.live-screen video,
+.party-live-screen video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Keep controls above the video */
+.live-screen .live-overlay,
+.party-live-screen .live-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 20 !important;
+  pointer-events: none;
+}
+
+.live-screen button,
+.party-live-screen button {
+  pointer-events: auto !important;
+}
