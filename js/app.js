@@ -1399,68 +1399,149 @@ function setupCoverInput() {
 
 
 /* =========================================================
-   START SOLO
+   START SOLO LIVE
 ========================================================= */
 
-function startSoloLive() {
+async function startSoloLive() {
 
   const title =
     document
-      .getElementById(
-        "liveTitle"
-      )
+      .getElementById("liveTitle")
       ?.value
       .trim();
 
-
   if (!title) {
-
-    toast(
-      "Please enter a live title."
-    );
-
+    toast("Please enter a live title.");
     return;
-
   }
-
 
   if (!state.currentCover) {
-
-    toast(
-      "Please select a live cover photo."
-    );
-
+    toast("Please select a live cover photo.");
     return;
-
   }
 
+  const roomName =
+    "eman-live-" +
+    Date.now() +
+    "-" +
+    Math.random()
+      .toString(36)
+      .substring(2, 8);
 
-  state.currentStream = {
+  const hostName =
+    state.profile?.username ||
+    state.profile?.display_name ||
+    "Eman Host";
 
-    type: "solo",
+  try {
 
-    title,
+    toast("Starting your live...");
 
-    cover:
-      state.currentCover,
+    /*
+     * Create the live room in Supabase
+     */
 
-    startedAt:
-      Date.now(),
+    const { data, error } =
+      await supabase
+        .from("live_rooms")
+        .insert({
 
-    viewers: 0,
+          host_name: hostName,
 
-    hearts: 0
+          title: title,
 
-  };
+          is_live: true,
+
+          host_id:
+            state.user?.id ||
+            null,
+
+          room_name: roomName,
+
+          cover_photo:
+            state.currentCover,
+
+          live_type: "live",
+
+          status: "live",
+
+          viewer_count: 0
+
+        })
+        .select()
+        .single();
 
 
-  saveState();
+    if (error) {
 
-  renderOwnStream();
+      console.error(
+        "Supabase live room error:",
+        error
+      );
+
+      toast(
+        "Could not create live room: " +
+        error.message
+      );
+
+      return;
+    }
+
+
+    /*
+     * Save the current live room locally
+     */
+
+    state.currentStream = {
+
+      id: data.id,
+
+      type: "solo",
+
+      title: title,
+
+      cover: state.currentCover,
+
+      roomName: roomName,
+
+      hostName: hostName,
+
+      viewers: 0,
+
+      hearts: 0,
+
+      startedAt: Date.now()
+
+    };
+
+
+    saveState();
+
+
+    /*
+     * Open the live screen
+     */
+
+    renderOwnStream();
+
+
+  } catch (error) {
+
+    console.error(
+      "START LIVE ERROR:",
+      error
+    );
+
+    toast(
+      "Unable to start live: " +
+      (error.message || error)
+    );
+
+  }
 
 }
 
-
+  
 /* =========================================================
    PARTY SETUP
 ========================================================= */
