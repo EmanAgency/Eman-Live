@@ -895,13 +895,12 @@ function renderLive() {
   screen.innerHTML = `
 
     <h1 class="page-title">
-      Go Live
+      Live
     </h1>
 
     <p class="page-subtitle">
-      Choose how you want to go live.
+      Watch live streamers or start your own live stream.
     </p>
-
 
     <div class="option-grid">
 
@@ -931,43 +930,30 @@ function renderLive() {
 
       </div>
 
-
-      <div class="option-card">
-
-        <div class="big-icon">
-          🎥
-        </div>
-
-        <h2>
-          Party Room
-        </h2>
-
-        <p>
-          Start a multi-video party room
-          with other users.
-        </p>
-
-        <button
-          class="primary-btn"
-          data-action="partySetup"
-          type="button">
-
-          Start Party Room
-
-        </button>
-
-      </div>
-
     </div>
-
 
     <div class="section">
 
-      <h2 style="margin-bottom:12px">
-        Popular Party Rooms
+      <h2 style="margin-bottom:12px;">
+        🔴 Live Now
       </h2>
 
-      ${partyRoomCards()}
+      <div id="liveStreamList">
+
+        <div class="form-card">
+
+          <h3>
+            No streamers are live yet.
+          </h3>
+
+          <p style="color:#aaa;">
+            When someone starts a Solo Live,
+            they will appear here.
+          </p>
+
+        </div>
+
+      </div>
 
     </div>
 
@@ -1637,6 +1623,58 @@ function renderPartySetup() {
 
 }
 
+/* =========================================================
+   PARTY ROOM PAGE
+========================================================= */
+
+function renderParty() {
+
+  screen.innerHTML = `
+
+    <h1 class="page-title">
+      Party Room
+    </h1>
+
+    <p class="page-subtitle">
+      Join a live multi-video party room.
+    </p>
+
+    <div class="section">
+
+      <h2 style="margin-bottom:12px;">
+        Online Party Rooms
+      </h2>
+
+      <div id="partyRoomsList">
+        ${partyRoomCards()}
+      </div>
+
+    </div>
+
+    <div class="form-card">
+
+      <h2>
+        👥 Start Your Own Party Room
+      </h2>
+
+      <p style="color:#aaa;">
+        Create a room and invite other users to join.
+      </p>
+
+      <button
+        class="primary-btn"
+        data-action="partySetup"
+        type="button">
+
+        👥 Start Party Room
+
+      </button>
+
+    </div>
+
+  `;
+
+}
 
 /* =========================================================
    START PARTY
