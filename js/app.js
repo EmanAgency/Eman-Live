@@ -16,11 +16,18 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_LsGL8Os9cgqLmItWgk0ADg_nBWuLs7I";
 
-const supabaseClient =
-  window.supabase.createClient(
+let supabaseClient = null;
+
+if (window.supabase) {
+  supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
+} else {
+  console.error(
+    "Supabase library was not loaded."
+  );
+}
 
 let currentSupabaseUser = null;
 
