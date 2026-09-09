@@ -1556,6 +1556,260 @@ function stopCamera() {
 
 }
 
+/* =========================================================
+   SOLO LIVE MICROPHONE
+========================================================= */
+
+let soloMicMuted = false;
+
+function toggleSoloMicrophone() {
+
+  if (!cameraStream) {
+    toast("Camera is not ready.");
+    return;
+  }
+
+  soloMicMuted = !soloMicMuted;
+
+  cameraStream
+    .getAudioTracks()
+    .forEach(track => {
+      track.enabled = !soloMicMuted;
+    });
+
+  const button =
+    document.getElementById("soloMuteBtn");
+
+  if (button) {
+
+    button.innerHTML =
+      soloMicMuted
+        ? "🔇"
+        : "🎤";
+
+    button.classList.toggle(
+      "muted",
+      soloMicMuted
+    );
+
+  }
+
+  toast(
+    soloMicMuted
+      ? "Microphone muted"
+      : "Microphone on"
+  );
+}
+
+
+/* =========================================================
+   FLIP SOLO CAMERA
+========================================================= */
+
+async function flipCamera() {
+
+  if (!cameraStream) {
+    toast("Camera is not ready.");
+    return;
+  }
+
+  try {
+
+    const newFacingMode =
+      facingMode === "user"
+        ? "environment"
+        : "user";
+
+    cameraStream
+      .getTracks()
+      .forEach(track => track.stop());
+
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: newFacingMode
+        },
+        audio: true
+      });
+
+    facingMode =
+      newFacingMode;
+
+    const video =
+      document.getElementById("liveCamera");
+
+    if (video) {
+
+      video.srcObject =
+        cameraStream;
+
+      video.play().catch(() => {});
+
+    }
+
+    /* Restore mute state */
+
+    if (soloMicMuted) {
+
+      cameraStream
+        .getAudioTracks()
+        .forEach(track => {
+          track.enabled = false;
+        });
+
+    }
+
+    toast(
+      facingMode === "user"
+        ? "Front camera"
+        : "Back camera"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "FLIP CAMERA ERROR:",
+      error
+    );
+
+    toast(
+      "Unable to flip camera."
+    );
+
+  }
+}
+
+
+/* =========================================================
+   LIVE MENU
+========================================================= */
+
+function openLiveMenu() {
+
+  const existing =
+    document.getElementById(
+      "liveMenuOverlay"
+    );
+
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.id =
+    "liveMenuOverlay";
+
+  overlay.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:200000;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    align-items:flex-end;
+    justify-content:flex-end;
+    padding:20px;
+    box-sizing:border-box;
+  `;
+
+  overlay.innerHTML = `
+
+    <div style="
+      width:220px;
+      background:#181818;
+      border-radius:18px;
+      padding:10px;
+      box-shadow:0 10px 35px rgba(0,0,0,.6);
+    ">
+
+      <button
+        data-menu-action="viewers"
+        style="
+          width:100%;
+          padding:15px;
+          border:0;
+          background:none;
+          color:white;
+          text-align:left;
+          font-size:15px;
+        ">
+        👥 Viewers
+      </button>
+
+      <button
+        data-menu-action="settings"
+        style="
+          width:100%;
+          padding:15px;
+          border:0;
+          background:none;
+          color:white;
+          text-align:left;
+          font-size:15px;
+        ">
+        ⚙️ Live Settings
+      </button>
+
+      <button
+        data-menu-action="end"
+        style="
+          width:100%;
+          padding:15px;
+          border:0;
+          background:none;
+          color:#ff4444;
+          text-align:left;
+          font-size:15px;
+          font-weight:bold;
+        ">
+        🔴 End Live
+      </button>
+
+      <button
+        data-menu-action="close"
+        style="
+          width:100%;
+          padding:15px;
+          border:0;
+          background:none;
+          color:#aaa;
+          text-align:left;
+          font-size:15px;
+        ">
+        Cancel
+      </button>
+
+    </div>
+
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+  overlay.addEventListener(
+    "click",
+    event => {
+
+      const action =
+        event.target.dataset.menuAction;
+
+      if (!action) return;
+
+      if (action === "end") {
+        overlay.remove();
+        endLive();
+      }
+
+      if (action === "close") {
+        overlay.remove();
+      }
+
+    }
+  );
+}
 
 /* =========================================================
    SOLO LIVE SETUP — FULLSCREEN CAMERA
@@ -3157,7 +3411,7 @@ function removeParticipantFromParty(
 }
 
 /* =========================================================
-   OWN LIVE STREAM
+   SOLO LIVE FULLSCREEN
 ========================================================= */
 
 function renderOwnStream() {
@@ -3169,7 +3423,6 @@ function renderOwnStream() {
     return;
   }
 
-  // Stop any previous camera stream
   stopCamera();
 
   screen.innerHTML = `
@@ -3182,8 +3435,7 @@ function renderOwnStream() {
           id="liveCamera"
           autoplay
           muted
-          playsinline
-          style="width:100%;height:100%;object-fit:cover;">
+          playsinline>
         </video>
 
         <div
@@ -3192,52 +3444,104 @@ function renderOwnStream() {
           Starting camera...
         </div>
 
-        <div class="live-overlay">
+        <!-- TOP LEFT HEART -->
 
-          <div class="live-top">
+        <button
+          class="live-heart-top"
+          data-action="heart"
+          type="button">
 
-            <span class="live-badge">
-              🔴 LIVE
-            </span>
+          ❤️
 
-            <span>
-              ${Number(stream.viewers || 0)} viewers
-            </span>
+        </button>
 
+
+        <!-- TOP LIVE INFORMATION -->
+
+        <div class="live-info-top">
+
+          <div class="live-title">
+            ${escapeHTML(stream.title)}
           </div>
 
-          <div class="live-bottom">
-
-            <h2>
-              ${escapeHTML(stream.title)}
-            </h2>
-
-            <div class="live-actions">
-
-              <button
-                class="secondary-btn"
-                data-action="heart"
-                type="button">
-                ❤️ ${Number(stream.hearts || 0)}
-              </button>
-
-              <button
-                class="secondary-btn"
-                data-action="sendGift"
-                type="button">
-                🎁 Gifts
-              </button>
-
-              <button
-                class="danger-btn"
-                data-action="endLive"
-                type="button">
-                End Live
-              </button>
-
-            </div>
-
+          <div class="live-viewers">
+            🔴 LIVE
+            &nbsp; • &nbsp;
+            👁 ${Number(stream.viewers || 0)}
           </div>
+
+        </div>
+
+
+        <!-- BOTTOM INFORMATION -->
+
+        <div class="live-bottom-info">
+
+          <h2>
+            ${escapeHTML(stream.title)}
+          </h2>
+
+          <p>
+            👤
+            ${escapeHTML(
+              stream.hostName || "Eman Host"
+            )}
+          </p>
+
+        </div>
+
+
+        <!-- RIGHT SIDE CONTROLS -->
+
+        <div class="live-control-column">
+
+          <!-- MUTE -->
+
+          <button
+            id="soloMuteBtn"
+            class="live-control-btn"
+            data-action="soloMute"
+            type="button">
+
+            🎤
+
+          </button>
+
+
+          <!-- FLIP CAMERA -->
+
+          <button
+            class="live-control-btn"
+            data-action="flipCamera"
+            type="button">
+
+            🔄
+
+          </button>
+
+
+          <!-- GIFTS -->
+
+          <button
+            class="live-control-btn gift"
+            data-action="sendGift"
+            type="button">
+
+            🎁
+
+          </button>
+
+
+          <!-- MENU -->
+
+          <button
+            class="live-control-btn menu"
+            data-action="liveMenu"
+            type="button">
+
+            ☰
+
+          </button>
 
         </div>
 
@@ -3247,15 +3551,17 @@ function renderOwnStream() {
 
   `;
 
-  // Start the live camera after the screen has been created
   setTimeout(() => {
+
     startCameraPreview(
       "liveCamera",
       "liveCameraMessage"
     );
+
   }, 100);
 
-         }
+}
+  
 
 /* =========================================================
    END LIVE
