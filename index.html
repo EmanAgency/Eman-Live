@@ -1,1 +1,68 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0b10"><title>Eman Live</title><link rel="stylesheet" href="./css/style.css"></head><body><div id="app"><header><b>🔴 Eman Live</b><button id="coinBtn">🪙 <span id="coins">0</span></button></header><main id="screen"></main><nav><button data-nav="home">⌂<small>Home</small></button><button data-nav="live">●<small>Live</small></button><button data-nav="chat">💬<small>Chat</small></button><button data-nav="me">☺<small>Me</small></button></nav></div><div id="toast"></div><script src="./js/app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b12">
+  <title>Eman Live</title>
+
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+  <div id="app">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span>Eman Live</span>
+      </div>
+
+      <button class="coin-button" data-action="wallet">
+        🪙 <span id="coinMini">0</span>
+      </button>
+    </header>
+
+
+    <!-- MAIN APP SCREEN -->
+    <main id="screen"></main>
+
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+
+      <button data-nav="home">
+        <span>⌂</span>
+        <small>Home</small>
+      </button>
+
+      <button data-nav="live">
+        <span>🔴</span>
+        <small>Live</small>
+      </button>
+
+      <button data-nav="chat">
+        <span>💬</span>
+        <small>Chat</small>
+      </button>
+
+      <button data-nav="me">
+        <span>👤</span>
+        <small>Me</small>
+      </button>
+
+    </nav>
+
+  </div>
+
+
+  <!-- TOAST MESSAGE -->
+  <div id="toast" class="toast"></div>
+
+
+  <script src="./js/app.js"></script>
+
+</body>
+    </html>
