@@ -2,61 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#09090f">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>Eman Live</title>
 
-  <link rel="stylesheet" href="./css/style.css">
+  <meta
+    name="theme-color"
+    content="#111111"
+  >
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
 </head>
 
 <body>
 
-<div id="app">
+  <!-- =========================================
+       HEADER
+  ========================================== -->
 
-  <!-- HEADER -->
-  <header class="topbar">
-    <button class="brand" data-action="home">
-      <span class="brand-dot">●</span>
-      <span>Eman Live</span>
+  <header class="app-header">
+
+    <div class="brand">
+      <div class="brand-logo">E</div>
+
+      <div>
+        <strong>Eman Live</strong>
+        <span>Live • Connect • Earn</span>
+      </div>
+    </div>
+
+
+    <button
+      class="coin-display"
+      data-action="wallet"
+      type="button"
+    >
+      🪙
+      <span id="headerCoins">0</span>
     </button>
 
-    <button class="coin-button" data-action="wallet">
-      🪙 <span id="headerCoins">0</span>
-    </button>
   </header>
 
-  <!-- MAIN SCREEN -->
+
+  <!-- =========================================
+       MAIN APP
+  ========================================== -->
+
   <main id="screen"></main>
 
-  <!-- BOTTOM NAVIGATION -->
+
+  <!-- =========================================
+       BOTTOM NAVIGATION
+  ========================================== -->
+
   <nav class="bottom-nav">
 
-    <button data-action="home" class="nav-button" id="navHome">
-      <span>⌂</span>
+    <button
+      id="navHome"
+      class="nav-button active"
+      data-action="home"
+      type="button"
+    >
+      <span>🏠</span>
       <small>Home</small>
     </button>
 
-    <button data-action="live" class="nav-button" id="navLive">
-      <span>●</span>
+
+    <button
+      id="navLive"
+      class="nav-button"
+      data-action="live"
+      type="button"
+    >
+      <span>🔴</span>
       <small>Live</small>
     </button>
 
-    <button data-action="chat" class="nav-button" id="navChat">
+
+    <button
+      id="navChat"
+      class="nav-button"
+      data-action="chat"
+      type="button"
+    >
       <span>💬</span>
       <small>Chat</small>
     </button>
 
-    <button data-action="me" class="nav-button" id="navMe">
-      <span>☺</span>
+
+    <button
+      id="navMe"
+      class="nav-button"
+      data-action="me"
+      type="button"
+    >
+      <span>👤</span>
       <small>Me</small>
     </button>
 
   </nav>
 
-</div>
 
-<!-- TOAST -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/app.js"></script>
+  <!-- =========================================
+       TOAST
+  ========================================== -->
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+
+  <!-- =========================================
+       SUPABASE
+  ========================================== -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <!-- =========================================
+       EMAN LIVE APP
+  ========================================== -->
+
+  <script src="js/app.js"></script>
+
 </body>
-</html>
+    </html>
