@@ -1998,7 +1998,211 @@ function startPartyLive() {
 
 }
 
+/* =========================================================
+   PARTY LIVE ROOM — 4 SEATS
+========================================================= */
 
+function renderPartyLive() {
+
+  const stream =
+    state.currentStream;
+
+  if (!stream ||
+      stream.type !== "party") {
+
+    go("party");
+
+    return;
+  }
+
+  screen.innerHTML = `
+
+    <div class="party-live-screen">
+
+      <!-- TOP BAR -->
+
+      <div class="party-live-header">
+
+        <button
+          class="party-back-btn"
+          data-action="party"
+          type="button">
+
+          ✕
+
+        </button>
+
+        <div class="party-live-title">
+
+          <strong>
+            ${escapeHTML(stream.title)}
+          </strong>
+
+          <small>
+            👥 Party Room
+          </small>
+
+        </div>
+
+        <div class="party-viewers">
+
+          👁
+          ${Number(stream.viewers || 0)}
+
+        </div>
+
+      </div>
+
+
+      <!-- 4 SEAT GRID -->
+
+      <div class="party-seat-grid">
+
+
+        <!-- SEAT 1 -->
+
+        <div
+          class="party-seat occupied"
+          id="partySeat1">
+
+          <video
+            id="partyLocalVideo"
+            autoplay
+            muted
+            playsinline>
+          </video>
+
+          <div class="seat-overlay">
+
+            <span class="seat-live">
+              🔴 LIVE
+            </span>
+
+            <span class="seat-name">
+              You
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- SEAT 2 -->
+
+        <div
+          class="party-seat empty"
+          id="partySeat2">
+
+          <div class="empty-seat">
+
+            <div class="seat-number">
+              2
+            </div>
+
+            <div>
+              Waiting for player
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- SEAT 3 -->
+
+        <div
+          class="party-seat empty"
+          id="partySeat3">
+
+          <div class="empty-seat">
+
+            <div class="seat-number">
+              3
+            </div>
+
+            <div>
+              Waiting for player
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- SEAT 4 -->
+
+        <div
+          class="party-seat empty"
+          id="partySeat4">
+
+          <div class="empty-seat">
+
+            <div class="seat-number">
+              4
+            </div>
+
+            <div>
+              Waiting for player
+            </div>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+
+      <!-- BOTTOM CONTROLS -->
+
+      <div class="party-controls">
+
+        <button
+          class="party-control-btn"
+          data-action="heart"
+          type="button">
+
+          ❤️
+        </button>
+
+        <button
+          class="party-control-btn"
+          data-action="sendGift"
+          type="button">
+
+          🎁
+        </button>
+
+        <button
+          class="party-end-btn"
+          data-action="endLive"
+          type="button">
+
+          End
+
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  /*
+   * Start camera automatically.
+   */
+
+  setTimeout(() => {
+
+    startCameraPreview(
+      "partyLocalVideo",
+      null
+    );
+
+  }, 100);
+
+       }
 
 /* =========================================================
    OWN LIVE STREAM
