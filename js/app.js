@@ -31,7 +31,6 @@ if (window.supabase) {
 
 let currentSupabaseUser = null;
 
-const supabase = supabaseClient;
 
 /* =========================================================
    CONFIG
@@ -1589,6 +1588,12 @@ async function startSoloLive() {
     return;
   }
 
+  if (!supabaseClient) {
+    toast("Supabase is not connected.");
+    console.error("supabaseClient is null.");
+    return;
+  }
+
   const roomName =
     "eman-live-" +
     Date.now() +
@@ -1611,7 +1616,7 @@ async function startSoloLive() {
      */
 
     const { data, error } =
-      await supabase
+      await supabaseClient
         .from("live_rooms")
         .insert({
 
@@ -1658,7 +1663,7 @@ async function startSoloLive() {
 
 
     /*
-     * Save the current live room locally
+     * Save current live room
      */
 
     state.currentStream = {
@@ -1688,7 +1693,7 @@ async function startSoloLive() {
 
 
     /*
-     * Open the live screen
+     * Open live screen
      */
 
     renderOwnStream();
@@ -1709,6 +1714,8 @@ async function startSoloLive() {
   }
 
 }
+
+
 
   
 /* =========================================================
