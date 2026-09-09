@@ -1,830 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#7b2cff">
   <title>Eman Live</title>
-
-  <link rel="stylesheet" href="./css/style.css?v=10">
+  <link rel="stylesheet" href="./css/style.css?v=20">
 </head>
-
 <body>
+  <div id="app">
 
-  <!-- =========================
-       HEADER
-  ========================== -->
+    <!-- HOME -->
+    <section id="screen-home" class="screen active">
+      <header class="topbar">
+        <div class="brand"><span>💜</span><strong>EMAN LIVE</strong></div>
+        <button class="coin-pill" type="button" onclick="openMeTab('wallet','buy')">🪙 <span id="headerCoins">0</span></button>
+      </header>
 
-  <header class="topHeader">
+      <div class="home-content">
+        <div class="hero-card">
+          <div class="hero-glow"></div>
+          <p class="eyebrow">WELCOME</p>
+          <h1>Go Live. Meet People.<br>Have Fun.</h1>
+          <p>Stream, chat, send gifts and join the party.</p>
+          <div class="hero-actions">
+            <button class="primary-btn" type="button" onclick="openLiveSetup()">🎥 Go Live</button>
+            <button class="secondary-btn" type="button" onclick="openPartySetup()">🎉 Party</button>
+          </div>
+        </div>
 
-    <div class="brand">
-      <span class="brandIcon">💜</span>
-      <span>EMAN LIVE</span>
-    </div>
-
-    <div class="coinDisplay">
-      🪙 <span id="coinBalance">0</span>
-    </div>
-
-  </header>
-
-
-  <!-- =========================
-       HOME
-  ========================== -->
-
-  <main class="home">
-
-    <section class="hero">
-
-      <h1>Welcome to Eman Live</h1>
-
-      <p>
-        Go live, meet people, chat and enjoy the party.
-      </p>
-
-      <button
-        type="button"
-        onclick="openLive()"
-        class="mainLiveButton">
-        🎥 GO LIVE
-      </button>
-
+        <div class="section-head">
+          <h2>🔴 Live Now</h2>
+          <button type="button" class="text-btn" onclick="loadLiveRooms()">Refresh</button>
+        </div>
+        <div id="liveList" class="live-grid">
+          <div class="empty-card">No live streams yet.</div>
+        </div>
+      </div>
     </section>
 
+    <!-- LIVE TAB / GO LIVE SETUP -->
+    <section id="screen-live" class="screen">
+      <header class="page-header">
+        <button class="icon-btn" type="button" onclick="showScreen('home')">‹</button>
+        <h2>Go Live</h2>
+        <span></span>
+      </header>
 
-    <!-- LIVE LIST -->
-
-    <section class="liveSection">
-
-      <div class="sectionTitle">
-        <h2>🔴 Live Now</h2>
-      </div>
-
-      <div id="liveList" class="liveList">
-
-        <div class="emptyLive">
-          No live streams yet.
+      <div class="page-scroll">
+        <div class="cover-card">
+          <div class="cover-preview-wrap">
+            <img id="liveCoverPreview" class="cover-preview" alt="Live cover">
+            <div id="coverPlaceholder" class="cover-placeholder">
+              <span>📸</span>
+              <strong>Upload Live Cover</strong>
+              <small>Your cover represents your live room</small>
+            </div>
+          </div>
+          <input id="liveCoverInput" type="file" accept="image/*" hidden>
+          <button class="outline-btn full" type="button" onclick="document.getElementById('liveCoverInput').click()">📸 Choose Cover Photo</button>
         </div>
 
-      </div>
+        <label class="field-label">Live title</label>
+        <input id="liveTitleInput" class="field" maxlength="100" placeholder="What are you doing today?">
 
+        <div class="setup-card">
+          <h3>Category</h3>
+          <div class="category-grid">
+            <button type="button" class="category active" data-category="Chat" onclick="selectCategory(this)">💬<span>Chat</span></button>
+            <button type="button" class="category" data-category="Music" onclick="selectCategory(this)">🎵<span>Music</span></button>
+            <button type="button" class="category" data-category="Games" onclick="selectCategory(this)">🎮<span>Games</span></button>
+            <button type="button" class="category" data-category="Dance" onclick="selectCategory(this)">💃<span>Dance</span></button>
+            <button type="button" class="category" data-category="Beauty" onclick="selectCategory(this)">💄<span>Beauty</span></button>
+            <button type="button" class="category" data-category="Friends" onclick="selectCategory(this)">👥<span>Friends</span></button>
+            <button type="button" class="category" data-category="Party" onclick="selectCategory(this)">🎉<span>Party</span></button>
+            <button type="button" class="category" data-category="Other" onclick="selectCategory(this)">✨<span>Other</span></button>
+          </div>
+        </div>
+
+        <div class="tip-card">💡 <strong>Tip:</strong> A clear cover photo and friendly title help viewers find your room.</div>
+        <button id="startLiveButton" class="primary-btn full" type="button" onclick="startLiveFromSetup()" disabled>🔴 START LIVE</button>
+        <p id="liveSetupMessage" class="form-message">Upload a cover photo and enter a title.</p>
+      </div>
     </section>
 
-  </main>
-
-
-  <!-- =========================
-     LIVE SETUP
-========================= -->
-
-<div class="modal" id="liveModal">
-
-  <div class="modalBox">
-
-    <button
-      type="button"
-      class="close"
-      onclick="closeModal('liveModal')">
-      ×
-    </button>
-
-    <h2>🎥 Go Live</h2>
-
-    <p>
-      Add your live cover before starting.
-    </p>
-
-
-    <!-- LIVE COVER -->
-
-    <div class="liveCoverUpload">
-
-      <img
-        id="liveCoverPreview"
-        src=""
-        alt="Live Cover"
-        style="display:none;">
-
-      <label
-        for="liveCoverInput"
-        class="coverUploadButton">
-        📸 Upload Live Cover
-      </label>
-
-      <input
-        type="file"
-        id="liveCoverInput"
-        accept="image/*"
-        style="display:none;">
-
-    </div>
-
-
-    <!-- LIVE TITLE -->
-
-    <input
-      type="text"
-      id="liveTitleInput"
-      class="liveTitleInput"
-      placeholder="Enter your live title..."
-      maxlength="100">
-
-
-    <!-- CAMERA PREVIEW -->
-
-    <video
-      id="previewVideo"
-      autoplay
-      muted
-      playsinline>
-    </video>
-
-
-    <!-- START LIVE -->
-
-    <button
-      type="button"
-      id="startLiveButton"
-      class="primaryButton"
-      onclick="startLiveFromFullscreen()"
-      disabled>
-      🔴 START LIVE
-    </button>
-
-    <p
-      id="liveSetupMessage"
-      class="small">
-      📸 Please upload a live cover photo first.
-    </p>
-
-  </div>
-
-</div>
-
-
- <!-- =========================
-     PARTY LIVE ROOM
-========================= -->
-
-<div class="modal" id="partyModal">
-
-  <div class="partyBox">
-
-    <!-- PARTY HEADER -->
-
-    <div class="partyHeader">
-
-      <div>
-        <h2>🎉 Party Live</h2>
-
-        <div class="small">
-          Room #EMAN-001 • 4 Seats
+    <!-- CHAT TAB -->
+    <section id="screen-chat" class="screen">
+      <header class="page-header">
+        <h2>💬 Chat</h2>
+        <button class="icon-btn" type="button" onclick="refreshInbox()">↻</button>
+      </header>
+      <div class="page-scroll">
+        <div id="chatList" class="chat-list">
+          <div class="empty-card">📭 No conversations yet.</div>
         </div>
       </div>
+    </section>
 
-      <button
-        type="button"
-        class="partyClose"
-        onclick="closeModal('partyModal')">
-        ×
-      </button>
+    <!-- ME -->
+    <section id="screen-me" class="screen">
+      <header class="me-header">
+        <div>
+          <p class="eyebrow">MY ACCOUNT</p>
+          <h2>My Profile</h2>
+        </div>
+        <button class="icon-btn" type="button" onclick="openSettings()">⚙️</button>
+      </header>
 
-    </div>
+      <div class="page-scroll me-scroll">
+        <div class="profile-card">
+          <button class="avatar-button" type="button" onclick="chooseProfilePhoto()">
+            <img id="meAvatar" alt="Profile">
+            <span>📷</span>
+          </button>
+          <div class="profile-summary">
+            <h2 id="meName">Eman Live User</h2>
+            <p>ID: <strong id="meUserId">—</strong></p>
+            <p id="meBio">Welcome to Eman Live 👋</p>
+          </div>
+          <button class="edit-btn" type="button" onclick="openMeTab('profile')">Edit</button>
+        </div>
 
+        <div class="me-tabs">
+          <button id="meTabProfile" type="button" class="active" onclick="openMeTab('profile')">Profile</button>
+          <button id="meTabWallet" type="button" onclick="openMeTab('wallet','buy')">Wallet</button>
+          <button id="meTabIncome" type="button" onclick="openMeTab('income')">Income</button>
+          <button id="meTabLevels" type="button" onclick="openMeTab('levels')">Levels</button>
+        </div>
 
-    <!-- LIVE STATUS -->
+        <div id="mePanelProfile" class="me-panel active">
+          <div class="info-card">
+            <div class="info-row"><span>Name</span><button id="profileNameValue" onclick="editProfileField('name')">—</button></div>
+            <div class="info-row"><span>Bio</span><button id="profileBioValue" onclick="editProfileField('bio')">—</button></div>
+            <div class="info-row"><span>Gender</span><button id="profileGenderValue" onclick="editProfileField('gender')">—</button></div>
+            <div class="info-row"><span>Birthday</span><button id="profileBirthdayValue" onclick="editProfileField('birthday')">—</button></div>
+            <div class="info-row"><span>Country</span><button id="profileCountryValue" onclick="editProfileField('country')">—</button></div>
+            <div class="info-row"><span>Language</span><button id="profileLanguageValue" onclick="editProfileField('language')">—</button></div>
+          </div>
+          <div class="section-head"><h3>Album</h3><button class="text-btn" onclick="addAlbumPhoto()">+ Add</button></div>
+          <div id="albumGrid" class="album-grid"></div>
+        </div>
 
-    <div class="partyStatus">
-      <span class="partyLiveDot">🔴</span>
-      <span id="partyStatusText">
-        PARTY LIVE
-      </span>
-
-      <span class="partyViewerCount">
-        👁 <span id="partyViewerCount">0</span>
-      </span>
-    </div>
-
-
-    <!-- 4 VIDEO SEATS -->
-
-    <div
-      class="partyVideoGrid"
-      id="partyVideoGrid">
-
-      <!-- SEAT 1 -->
-
-      <div
-        class="partySeat"
-        id="partySeat1">
-
-        <div class="seatVideo">
-          <div class="seatIcon">
-            👤
+        <div id="mePanelWallet" class="me-panel">
+          <div class="balance-card">
+            <div><small>COINS</small><strong id="walletCoins">0</strong></div>
+            <div><small>BEANS</small><strong id="walletBeans">0</strong></div>
+          </div>
+          <div class="wallet-tabs">
+            <button id="walletSubBuy" class="active" onclick="openWalletSub('buy')">Buy Coins</button>
+            <button id="walletSubShop" onclick="openWalletSub('shop')">Gift Shop</button>
+            <button id="walletSubHistory" onclick="openWalletSub('history')">Gift History</button>
+          </div>
+          <div id="walletSubBuyPanel" class="wallet-panel active">
+            <button class="usdt-banner" type="button" onclick="copyPaymentAddress()">₿ USDT · BNB Smart Chain · BEP20 <span>Copy</span></button>
+            <div id="coinPackages" class="package-grid"></div>
+            <p class="small-note">After payment, keep your transaction hash/receipt for verification.</p>
+          </div>
+          <div id="walletSubShopPanel" class="wallet-panel">
+            <div id="giftCatalogue" class="gift-grid"></div>
+          </div>
+          <div id="walletSubHistoryPanel" class="wallet-panel">
+            <div id="giftHistory" class="history-list"></div>
           </div>
         </div>
 
-        <div class="seatName">
-          Seat 1
+        <div id="mePanelIncome" class="me-panel">
+          <div class="income-card">
+            <small>BEANS BALANCE</small>
+            <strong id="incomeBeans">0</strong>
+            <p>10,000 🫘 = $1 USD</p>
+          </div>
+          <div class="info-card">
+            <h3>Withdrawal</h3>
+            <p class="small-note">Minimum 100,000 beans = $10. Payments are made every Friday.</p>
+            <label class="field-label">Withdrawal amount</label>
+            <select id="withdrawAmount" class="field">
+              <option value="10">$10</option><option value="20">$20</option><option value="30">$30</option>
+              <option value="40">$40</option><option value="50">$50</option><option value="100">$100</option>
+              <option value="200">$200</option><option value="500">$500</option>
+            </select>
+            <label class="field-label">USDT wallet address</label>
+            <input id="withdrawAddress" class="field" placeholder="BNB Smart Chain · BEP20 address">
+            <button class="primary-btn full" onclick="requestWithdrawal()">Request Withdrawal</button>
+            <p id="withdrawMessage" class="form-message"></p>
+          </div>
+          <div class="section-head"><h3>Withdrawal History</h3></div>
+          <div id="withdrawalHistory" class="history-list"></div>
         </div>
 
-      </div>
-
-
-      <!-- SEAT 2 -->
-
-      <div
-        class="partySeat"
-        id="partySeat2">
-
-        <div class="seatVideo">
-          <div class="seatIcon">
-            👤
+        <div id="mePanelLevels" class="me-panel">
+          <div class="level-card">
+            <div class="level-head"><div><span>👑 Wealth Level</span><strong id="wealthLevel">1</strong></div><span id="wealthXPText">0 / 100 XP</span></div>
+            <div class="progress"><i id="wealthProgress"></i></div>
+            <p>Sending gifts increases Wealth XP.</p>
+          </div>
+          <div class="level-card">
+            <div class="level-head"><div><span>💖 Charm Level</span><strong id="charmLevel">1</strong></div><span id="charmXPText">0 / 100 XP</span></div>
+            <div class="progress"><i id="charmProgress"></i></div>
+            <p>Receiving gifts increases Charm XP.</p>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="seatName">
-          Seat 2
+    <!-- ME QUICK MENU -->
+    <div id="meQuickMenu" class="quick-menu hidden">
+      <button onclick="openMeTab('wallet','buy'); closeQuickMenu()">🪙 <span><strong>My Wallet</strong><small>Coins & balance</small></span></button>
+      <button onclick="openMeTab('income'); closeQuickMenu()">💰 <span><strong>My Income</strong><small>Beans & withdraw</small></span></button>
+      <button onclick="openMeTab('profile'); closeQuickMenu()">👤 <span><strong>My Profile</strong><small>Profile & album</small></span></button>
+    </div>
+
+    <!-- FULL SCREEN LIVE ROOM -->
+    <section id="liveRoom" class="fullscreen-room hidden">
+      <video id="liveRemoteVideo" class="room-video" autoplay playsinline></video>
+      <div id="liveNoVideo" class="room-backdrop"><span>🔴</span><strong>Connecting to live…</strong></div>
+      <div class="room-top">
+        <div class="host-pill"><div id="roomHostAvatar" class="mini-avatar">👤</div><div><strong id="roomHostName">Live Host</strong><small id="roomTitle">Live Room</small></div></div>
+        <div class="room-stats">👁 <span id="roomViewerCount">0</span> &nbsp; ❤️ <span id="roomHeartCount">0</span></div>
+        <button class="room-close" onclick="leaveLiveRoom()">×</button>
+      </div>
+      <div id="topGifters" class="top-gifters"></div>
+      <div id="giftBurst" class="gift-burst"></div>
+      <div id="giftBanner" class="gift-banner"></div>
+      <div id="roomChat" class="room-chat"></div>
+      <div class="room-bottom">
+        <input id="roomChatInput" class="room-chat-input" placeholder="Say something…">
+        <button onclick="sendRoomChat()">➤</button>
+        <button class="heart-btn" onclick="sendHeart()">♥</button>
+        <button onclick="openGiftDrawer()">🎁</button>
+      </div>
+    </section>
+
+    <!-- HOST LIVE DASHBOARD -->
+    <section id="hostRoom" class="fullscreen-room hidden">
+      <video id="hostPreview" class="room-video" autoplay muted playsinline></video>
+      <div class="host-overlay">
+        <div class="room-top">
+          <div class="host-pill"><div class="mini-avatar">🎥</div><div><strong>YOU ARE LIVE</strong><small id="hostLiveTimer">00:00</small></div></div>
+          <button class="room-close" onclick="endLive()">×</button>
         </div>
-
-      </div>
-
-
-      <!-- SEAT 3 -->
-
-      <div
-        class="partySeat"
-        id="partySeat3">
-
-        <div class="seatVideo">
-          <div class="seatIcon">
-            👤
-          </div>
+        <div class="host-stats">
+          <div><span>👁</span><strong id="hostViewers">0</strong><small>Viewers</small></div>
+          <div><span>❤️</span><strong id="hostHearts">0</strong><small>Hearts</small></div>
+          <div><span>💎</span><strong id="hostDiamonds">0</strong><small>Gifts</small></div>
+          <div><span>🪙</span><strong id="hostCoins">0</strong><small>Coins</small></div>
         </div>
-
-        <div class="seatName">
-          Seat 3
+        <div id="hostChat" class="room-chat"></div>
+        <div class="host-controls">
+          <button id="hostMuteBtn" onclick="toggleHostMute()">🎤</button>
+          <button id="hostCameraBtn" onclick="toggleHostCamera()">📹</button>
+          <button onclick="flipHostCamera()">🔄</button>
+          <button class="end-btn" onclick="endLive()">END LIVE</button>
         </div>
-
       </div>
+    </section>
 
+    <!-- PARTY SETUP -->
+    <section id="partySetup" class="fullscreen-room setup-room hidden">
+      <div class="setup-full-card">
+        <button class="room-close" onclick="showScreen('home')">×</button>
+        <h1>🎉 Party Live</h1>
+        <p>Upload a cover photo before opening your 4-seat party room.</p>
+        <img id="partyCoverPreview" class="party-cover-preview" alt="Party cover">
+        <input id="partyCoverInput" type="file" accept="image/*" hidden>
+        <button class="outline-btn full" onclick="document.getElementById('partyCoverInput').click()">📸 Choose Party Cover</button>
+        <input id="partyTitleInput" class="field" placeholder="Party title">
+        <button id="startPartyButton" class="primary-btn full" onclick="startParty()" disabled>🎉 START PARTY</button>
+        <p id="partySetupMessage" class="form-message">Upload a cover photo and enter a title.</p>
+      </div>
+    </section>
 
-      <!-- SEAT 4 -->
-
-      <div
-        class="partySeat"
-        id="partySeat4">
-
-        <div class="seatVideo">
-          <div class="seatIcon">
-            👤
-          </div>
+    <!-- PARTY ROOM -->
+    <section id="partyRoom" class="fullscreen-room party-room hidden">
+      <div class="party-bg"></div>
+      <div class="party-top">
+        <div><strong id="partyRoomTitle">Welcome to my live room</strong><small>🎉 PARTY · 4 SEATS</small></div>
+        <button class="room-close" onclick="leaveParty()">×</button>
+      </div>
+      <div id="partySeats" class="party-seats">
+        <div class="party-seat" id="seat1"><div class="seat-video">🛋️</div><strong>Seat 1</strong></div>
+        <div class="party-seat" id="seat2"><div class="seat-video">🛋️</div><strong>Seat 2</strong></div>
+        <div class="party-seat" id="seat3"><div class="seat-video">🛋️</div><strong>Seat 3</strong></div>
+        <div class="party-seat" id="seat4"><div class="seat-video">🛋️</div><strong>Seat 4</strong></div>
+      </div>
+      <div class="party-panel">
+        <div class="party-modes"><button class="active">Cover</button><button>Voice</button><button>Make Friends</button><button>Sing</button><button>Games</button></div>
+        <div class="party-controls">
+          <button onclick="joinPartySeat()">🎥 Join Seat</button>
+          <button onclick="togglePartyMute()">🎤 Mute</button>
+          <button onclick="togglePartyCamera()">📹 Camera</button>
+          <button onclick="openGiftDrawer()">🎁 Gifts</button>
+          <button onclick="leaveParty()">Leave</button>
         </div>
+        <div id="partyChat" class="party-chat"></div>
+        <div class="party-send"><input id="partyChatInput" placeholder="Say something…"><button onclick="sendPartyChat()">➤</button></div>
+      </div>
+    </section>
 
-        <div class="seatName">
-          Seat 4
+    <!-- GIFT DRAWER -->
+    <div id="giftDrawer" class="drawer hidden">
+      <div class="drawer-box">
+        <div class="drawer-head"><h2>🎁 Gifts</h2><button onclick="closeGiftDrawer()">×</button></div>
+        <div class="gift-balance">🪙 <span id="drawerCoins">0</span> <button onclick="openMeTab('wallet','buy'); closeGiftDrawer()">Recharge</button></div>
+        <div id="drawerGifts" class="gift-grid"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <section id="settingsScreen" class="fullscreen-page hidden">
+      <header class="page-header"><button class="icon-btn" onclick="closeSettings()">‹</button><h2>Settings</h2><span></span></header>
+      <div class="page-scroll">
+        <div class="info-card">
+          <button class="setting-row" onclick="alert('Notification settings are ready for the next backend milestone.')">🔔 Notifications <span>›</span></button>
+          <button class="setting-row" onclick="alert('Privacy settings are ready for the next backend milestone.')">🔒 Privacy <span>›</span></button>
+          <button class="setting-row" onclick="logout()">🚪 Log Out <span>›</span></button>
         </div>
-
+        <div class="agency-card"><h3>🏢 My Agency</h3><p>Agency tools and host management can be connected here.</p><button class="outline-btn" onclick="openAgency()">Open Agency</button></div>
       </div>
+    </section>
 
-    </div>
-
-
-    <!-- PARTY CONTROLS -->
-
-    <div class="partyControls">
-
-      <button
-        type="button"
-        onclick="joinPartySeat()">
-        🎥 Join Seat
-      </button>
-
-      <button
-        type="button"
-        onclick="togglePartyMute()">
-        🎤 Mute
-      </button>
-
-      <button
-        type="button"
-        onclick="togglePartyCamera()">
-        📹 Camera
-      </button>
-
-      <button
-        type="button"
-        onclick="openGifts(); closeModal('partyModal')">
-        🎁 Gifts
-      </button>
-
-    </div>
-
-
-    <!-- PARTY CHAT -->
-
-    <div class="partyChat">
-
-      <div class="partyChatTitle">
-        💬 Party Chat
+    <!-- AUTH FULL SCREEN -->
+    <section id="authScreen" class="fullscreen-page hidden">
+      <div class="auth-page">
+        <div class="auth-logo">👑</div>
+        <h1 id="authTitle">Welcome Back</h1>
+        <p id="authSubtitle">Login to your Eman Live account</p>
+        <input id="authEmail" class="field" type="email" placeholder="Email address">
+        <input id="authPassword" class="field" type="password" placeholder="Password">
+        <input id="authConfirmPassword" class="field hidden" type="password" placeholder="Confirm password">
+        <button id="authMainButton" class="primary-btn full" onclick="handleAuth()">🔐 LOGIN</button>
+        <p id="authMessage" class="form-message"></p>
+        <button id="authSwitchButton" class="text-btn" onclick="switchAuthMode()">Don't have an account? Sign Up</button>
       </div>
+    </section>
 
-      <div
-        id="partyChatMessages"
-        class="partyChatMessages">
-
-        <p>
-          <b>System:</b>
-          Welcome to the Party Room! 🎉
-        </p>
-
-      </div>
-
-
-      <div class="partyChatSend">
-
-        <input
-          id="partyChatInput"
-          type="text"
-          placeholder="Say something...">
-
-        <button
-          type="button"
-          onclick="sendPartyChat()">
-          ➤
-        </button>
-
-      </div>
-
-    </div>
-
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button id="navHome" class="active" onclick="showScreen('home')">🏠<span>Home</span></button>
+      <button id="navLive" onclick="openLiveSetup()">🎥<span>Live</span></button>
+      <button id="navChat" onclick="openChat()">💬<span>Chat</span></button>
+      <button id="navMe" onclick="toggleMeMenu()">👤<span>Me</span></button>
+    </nav>
   </div>
 
-</div>
-
-
-  <!-- =========================
-       WALLET / GIFTS MODAL
-  ========================== -->
-
-  <div class="modal" id="giftModal">
-
-    <div class="modalBox walletBox">
-
-      <button
-        type="button"
-        class="close"
-        onclick="closeModal('giftModal')">
-        ×
-      </button>
-
-      <h2>🪙 Wallet</h2>
-
-      <div class="walletBalance">
-
-        <span>Your Coins</span>
-
-        <strong id="walletCoins">
-          0
-        </strong>
-
-      </div>
-
-
-      <h3>🎁 Send a Gift</h3>
-
-      <div class="giftGrid">
-
-        <button
-          type="button"
-          onclick="sendGift('❤️', 10)">
-          ❤️
-          <small>10</small>
-        </button>
-
-        <button
-          type="button"
-          onclick="sendGift('🌹', 50)">
-          🌹
-          <small>50</small>
-        </button>
-
-        <button
-          type="button"
-          onclick="sendGift('💎', 100)">
-          💎
-          <small>100</small>
-        </button>
-
-        <button
-          type="button"
-          onclick="sendGift('👑', 500)">
-          👑
-          <small>500</small>
-        </button>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="primaryButton"
-        onclick="buyCoins()">
-        🪙 BUY COINS
-      </button>
-
-    </div>
-
-  </div>
-
-
-<!-- =========================
-     ME / PROFILE MENU
-========================= -->
-
-<div class="modal" id="profileModal">
-
-  <div class="modalBox profileBox">
-
-    <button
-      type="button"
-      class="close"
-      onclick="closeModal('profileModal')">
-      ×
-    </button>
-
-    <div class="profileHeader">
-
-  <div class="profileAvatar">
-    👤
-  </div>
-
-  <h2 id="profileUsername">My Profile</h2>
-
-  <p>
-    User ID:
-    <span id="profileUserId">Loading...</span>
-  </p>
-
-    </div>
-
-    <div class="profileMenu">
-
-      <button
-        type="button"
-        onclick="openGifts(); closeModal('profileModal')">
-        🪙 My Wallet
-        <span>View your coins and wallet</span>
-      </button>
-
-      <button
-        type="button"
-        onclick="alert('My Income coming soon.')">
-        💰 My Income
-        <span>View your earnings and income</span>
-      </button>
-
-      <button
-        type="button"
-        onclick="alert('My Profile coming soon.')">
-        👤 My Profile
-        <span>Edit your profile information</span>
-      </button>
-
-      <button
-        type="button"
-        onclick="alert('Level system coming soon.')">
-        ⭐ Level
-        <span>View your Eman Live level</span>
-      </button>
-
-      <button
-  type="button"
-  onclick="openAgency(); closeModal('profileModal')">
-
-  🏢 My Agency
-
-  <span>
-    Manage your agency and team
-  </span>
-
-      </button>
-      
-      <button
-        type="button"
-        onclick="alert('Settings coming soon.')">
-        ⚙️ Settings
-        <span>Manage your account settings</span>
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================
-     INBOX MODAL
-========================= -->
-
-<div class="modal" id="inboxModal">
-
-  <div class="modalBox inboxBox">
-
-    <button
-      type="button"
-      class="close"
-      onclick="closeModal('inboxModal')">
-      ×
-    </button>
-
-    <h2>💬 Inbox</h2>
-
-    <p>
-      Your private messages
-    </p>
-
-    <div
-      id="privateMessages"
-      class="privateMessages">
-
-      <div class="emptyInbox">
-        📭 No private messages yet.
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-  
-  <!-- =========================
-       FULLSCREEN LIVE
-  ========================== -->
-
-  <div id="liveFullscreen">
-
-    <video
-      id="fullLiveVideo"
-      autoplay
-      muted
-      playsinline>
-    </video>
-
-
-    <!-- TOP BAR -->
-
-    <div class="liveTopBar">
-
-      <div class="liveTitle">
-        🔴 EMAN LIVE
-      </div>
-
-      <div class="viewerCount">
-        👁 <span id="viewerCount">0</span>
-      </div>
-
-      <button
-        type="button"
-        class="liveCloseButton"
-        onclick="stopLive()">
-        ×
-      </button>
-
-    </div>
-
-
-    <!-- JOIN NOTIFICATIONS -->
-
-    <div
-      id="joinNotifications"
-      class="joinNotifications">
-    </div>
-
-
-    <!-- FULLSCREEN CHAT -->
-
-    <div
-      id="fullChat"
-      class="fullChat">
-
-      <div id="fullChatMessages">
-      </div>
-
-    </div>
-
-
-    <!-- CHAT INPUT -->
-
-    <div class="fullChatInput">
-
-      <input
-        id="liveChatInput"
-        type="text"
-        placeholder="Say something...">
-
-      <button
-        type="button"
-        onclick="sendLiveChat()">
-        ➤
-      </button>
-
-    </div>
-
-
-    <!-- FLOATING GIFT -->
-
-    <button
-      type="button"
-      class="giftFloating"
-      onclick="openGifts()">
-      🎁
-    </button>
-
-
-    <!-- GO LIVE -->
-
-    <div class="fullscreenGoLive">
-
-      <button
-        type="button"
-        onclick="startLiveFromFullscreen()">
-        🔴 GO LIVE
-      </button>
-
-    </div>
-
-
-    <!-- LIVE CONTROLS -->
-
-    <div class="liveControls">
-
-      <button
-        type="button"
-        id="liveMuteButton"
-        onclick="toggleLiveMute()">
-        🎤
-      </button>
-
-      <button
-        type="button"
-        id="liveCameraButton"
-        onclick="toggleLiveCamera()">
-        📹
-      </button>
-
-      <button
-        type="button"
-        onclick="flipLiveCamera()">
-        🔄
-      </button>
-
-      <button
-        type="button"
-        class="endLiveButton"
-        onclick="stopLive()">
-        ✕ END
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       BOTTOM NAVIGATION
-  ========================== -->
-
-  <nav class="bottom">
-
-  <button
-    type="button"
-    class="active"
-    onclick="goHome()">
-    🏠
-    <span>Home</span>
-  </button>
-
-  <button
-    type="button"
-    onclick="openLive()">
-    🎥
-    <span>Live</span>
-  </button>
-
-  <button
-    type="button"
-    onclick="openParty()">
-    🎉
-    <span>Party</span>
-  </button>
-
-  <button
-    type="button"
-    onclick="openInbox()">
-    💬
-    <span>Inbox</span>
-  </button>
-
-  <button
-    type="button"
-    onclick="openProfile()">
-    👤
-    <span>Me</span>
-  </button>
-
-</nav>
-
-<!-- =========================
-     AUTH MODAL
-========================= -->
-
-<div class="modal" id="authModal">
-
-  <div class="modalBox authBox">
-
-    <button
-      type="button"
-      class="close"
-      onclick="closeModal('authModal')">
-      ×
-    </button>
-
-    <div class="authHeader">
-
-      <div class="authLogo">
-        👑
-      </div>
-
-      <h2 id="authTitle">Welcome to Eman Live</h2>
-
-      <p id="authSubtitle">
-        Login to continue
-      </p>
-
-    </div>
-
-    <input
-      type="email"
-      id="authEmail"
-      class="authInput"
-      placeholder="Email address"
-      autocomplete="email">
-
-    <input
-      type="password"
-      id="authPassword"
-      class="authInput"
-      placeholder="Password"
-      autocomplete="current-password">
-
-    <input
-      type="password"
-      id="authConfirmPassword"
-      class="authInput"
-      placeholder="Confirm password"
-      autocomplete="new-password"
-      style="display:none;">
-
-    <button
-      type="button"
-      id="authMainButton"
-      class="primaryButton"
-      onclick="handleAuth()">
-      🔐 LOGIN
-    </button>
-
-    <p
-      id="authMessage"
-      class="authMessage">
-    </p>
-
-    <button
-      type="button"
-      class="authSwitch"
-      id="authSwitchButton"
-      onclick="switchAuthMode()">
-      Don't have an account? Sign Up
-    </button>
-
-  </div>
-
-</div>  
-
-  <!-- =========================
-       SCRIPTS
-  ========================== -->
+  <input id="profilePhotoInput" type="file" accept="image/*" hidden>
+  <input id="albumPhotoInput" type="file" accept="image/*" hidden>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-<script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.min.js"></script>
-<script src="js/app.js"></script>
-  <script src="./js/app.js?v=10"></script>
-
+  <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.min.js"></script>
+  <script src="./js/app.js?v=20"></script>
 </body>
-
 </html>
