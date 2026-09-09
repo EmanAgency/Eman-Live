@@ -1865,3 +1865,351 @@ select.input {
   font-weight: bold;
 
 }
+
+/* =========================================================
+   EMAN LIVE — POPULAR PAGES
+========================================================= */
+
+.popular-page {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+.popular-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 20px;
+
+  padding: 4px 0;
+}
+
+
+.popular-title {
+  margin: 0;
+
+  font-size: 28px;
+
+  font-weight: 800;
+
+  color: white;
+}
+
+
+.popular-subtitle {
+  margin: 4px 0 0;
+
+  color: #999;
+
+  font-size: 13px;
+}
+
+
+.popular-start-btn {
+  flex-shrink: 0;
+
+  border: none;
+
+  border-radius: 22px;
+
+  padding: 11px 15px;
+
+  background: #e00000;
+
+  color: white;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+.party-start-btn {
+  background: #7b2cff;
+}
+
+
+.popular-section-title {
+  margin: 0 0 14px;
+
+  font-size: 18px;
+
+  color: white;
+}
+
+
+/* =========================================================
+   POPULAR LIVE CARD
+========================================================= */
+
+.popular-live-card {
+  margin-bottom: 12px;
+
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  background: #151515;
+
+  border: 1px solid #292929;
+
+  cursor: pointer;
+}
+
+
+.popular-live-cover {
+  position: relative;
+
+  width: 100%;
+
+  height: 210px;
+
+  background: #222;
+
+  overflow: hidden;
+}
+
+
+.popular-live-cover img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+
+.default-live-cover {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 55px;
+}
+
+
+.popular-live-badge {
+  position: absolute;
+
+  top: 10px;
+  left: 10px;
+
+  padding: 5px 9px;
+
+  border-radius: 10px;
+
+  background: rgba(200,0,0,.9);
+
+  color: white;
+
+  font-size: 11px;
+
+  font-weight: bold;
+}
+
+
+.popular-viewers {
+  position: absolute;
+
+  right: 10px;
+  bottom: 10px;
+
+  padding: 5px 9px;
+
+  border-radius: 10px;
+
+  background: rgba(0,0,0,.7);
+
+  color: white;
+
+  font-size: 11px;
+}
+
+
+.popular-live-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 12px;
+}
+
+
+.popular-rank {
+  min-width: 28px;
+
+  color: #aaa;
+
+  font-size: 12px;
+
+  font-weight: bold;
+}
+
+
+.popular-live-details {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.popular-live-details h3 {
+  margin: 0;
+
+  color: white;
+
+  font-size: 15px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+.popular-live-details p {
+  margin: 5px 0 0;
+
+  color: #999;
+
+  font-size: 12px;
+}
+
+
+.watch-live-btn {
+  border: none;
+
+  border-radius: 18px;
+
+  padding: 8px 13px;
+
+  background: #e00000;
+
+  color: white;
+
+  font-weight: bold;
+}
+
+
+/* =========================================================
+   POPULAR PARTY CARD
+========================================================= */
+
+.popular-party-card {
+  margin-bottom: 14px;
+
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  background: #151515;
+
+  border: 1px solid #292929;
+}
+
+
+.popular-party-card .party-cover {
+  height: 190px;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+
+.popular-party-card .party-cover img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+
+.default-party-cover {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #222;
+
+  font-size: 55px;
+}
+
+
+.popular-party-card .party-content {
+  position: relative;
+
+  padding: 13px;
+}
+
+
+.popular-party-card .party-content h3 {
+  margin: 3px 0 5px;
+
+  color: white;
+
+  font-size: 17px;
+}
+
+
+.popular-party-card .party-content p {
+  margin: 0 0 12px;
+
+  color: #999;
+
+  font-size: 12px;
+}
+
+
+.popular-party-card .primary-btn {
+  width: 100%;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .popular-title {
+    font-size: 25px;
+  }
+
+  .popular-start-btn {
+    padding: 10px 11px;
+
+    font-size: 12px;
+  }
+
+  .popular-live-cover {
+    height: 180px;
+  }
+
+  .popular-party-card .party-cover {
+    height: 170px;
+  }
+
+}
