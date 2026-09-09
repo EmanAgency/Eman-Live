@@ -1,2 +1,1419 @@
-const C={wallet:'0xec05bb37867f5e75a706a1face5304fd40a8f54c',network:'BNB Smart Chain · BEP20',tokenServer:'https://emanlive-2j2epi.sandbox.livekit.io',livekit:'wss://eman-live-ckbb612s.livekit.cloud'};let S=JSON.parse(localStorage.eman||'null')||{screen:'home',tab:'profile',walletTab:'buy',coins:7000,beans:0,user:{name:'New User',username:'New User',id:'ID814203',bio:'',gender:'',birthday:'',country:'',language:'',avatar:''},withdrawals:[],gifts:[]};const hosts=[['Luna','ID100201',1842,'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800'],['Mia','ID100338',1250,'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800'],['Sofia','ID100441',986,'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800'],['Nina','ID100577',731,'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800']];const save=()=>localStorage.eman=JSON.stringify(S),fmt=n=>Number(n).toLocaleString(),toast=t=>{let x=document.querySelector('#toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',1800)};function render(){document.querySelector('#coins').textContent=fmt(S.coins);document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.nav===S.screen));document.querySelector('#screen').innerHTML=S.screen==='home'?home():S.screen==='live'?live():S.screen==='chat'?chat():me()}function home(){return `<div class=hero><h1>Popular</h1><p class=muted>Popular hosts who are online now.</p></div><div class=grid>${hosts.map(h=>`<article class="card host"><div class=cover><img src="${h[3]}"><span class=live>● LIVE</span></div><div class=info><b>${h[0]}</b><div class=muted>${h[1]} · 👁 ${fmt(h[2])}</div><button class=btn onclick="room('${h[0]}')">Watch Live</button></div></article>`).join('')}</div><h2 style="margin-top:20px">Explore</h2><div class=features><button class=feature onclick="party()">🎉<br><b>Party Room</b><br><span class=muted>Popular rooms online</span></button><button class=feature onclick="moments()">📸<br><b>Moments</b><br><span class=muted>Photos and videos</span></button><button class=feature onclick="S.screen='chat';save();render()">📥<br><b>Inbox</b><br><span class=muted>Private messages</span></button><button class=feature onclick="S.screen='me';save();render()">👤<br><b>Me</b><br><span class=muted>Profile, wallet, income</span></button></div>`}function live(){return `<div class=hero><h1>Go Live</h1><p class=muted>Camera opens when you choose a broadcast type.</p></div><button class=choice onclick="setup('solo')">📹 <strong>Solo Live</strong><br><span class=muted>One-person livestream</span></button><button class="choice party" onclick="setup('party')">👥 <strong>Party Room</strong><br><span class=muted>Multi-video live room</span></button>`}async function setup(mode){document.querySelector('#screen').innerHTML=`<h1>${mode==='party'?'Party Room':'Solo Live'}</h1><div class=camera><video id=preview autoplay muted playsinline></video></div><label class=coverpick>📷 Upload live cover photo<input id=cover type=file accept=image/* hidden></label><input id=title class=field placeholder="Live title"><select id=cat class=field><option>Chat</option><option>Music</option><option>Dance</option><option>Beauty</option><option>Gaming</option><option>Party</option></select><button class=btn onclick="start('${mode}')">Start ${mode==='party'?'Party Room':'Live'}</button><button class="btn dark" onclick="S.screen='live';render()">Cancel</button>`;try{window.cam=await navigator.mediaDevices.getUserMedia({video:true,audio:true});preview.srcObject=cam}catch(e){toast('Allow camera and microphone access')}}function start(mode){if(!cover.files[0])return toast('Live cover photo is required');if(!title.value.trim())return toast('Enter a live title');room(S.user.username,true);toast('Starting '+mode+'…')}function room(host,party=false){if(window.cam){cam.getTracks().forEach(t=>t.stop());window.cam=null}let d=document.createElement('div');d.className='room';d.innerHTML=`<video id=rv autoplay muted playsinline></video><div class=top><b>${party?'🎉 PARTY':'🔴 LIVE'}<br>${host}</b><button onclick="this.closest('.room').remove()">×</button></div><div class=bottom><button onclick="toast('❤️ Heart sent')">❤️</button><button onclick="gift()">🎁</button><button onclick="toast('Chat ready')">💬</button><button class=end onclick="this.closest('.room').remove()">End</button></div>`;document.body.appendChild(d);navigator.mediaDevices?.getUserMedia({video:true,audio:true}).then(s=>{rv.srcObject=s;d._s=s}).catch(()=>{})}function gift(){if(S.coins<100)return toast('Not enough coins');S.coins-=100;save();toast('🎁 100 coins sent')}function party(){document.querySelector('#screen').innerHTML=`<div class=hero><h1>Party Room</h1><p class=muted>Popular multi-video rooms online.</p></div><div class=grid>${hosts.map((h,i)=>`<div class=card><b>Room ${i+1} · ${h[0]}</b><p class=muted>👁 ${fmt(h[2])} · 4 seats</p><button class=btn onclick="room('${h[0]}',true)">Join Room</button></div>`).join('')}</div>`}function moments(){document.querySelector('#screen').innerHTML=`<div class=hero><h1>Moments</h1><p class=muted>Post pictures and videos.</p><button class=btn onclick="postMoment()">＋ Post a Moment</button></div><div class=grid>${hosts.map(h=>`<div class=card><img src="${h[3]}" style="width:100%;border-radius:12px"><b>${h[0]}</b><p class=muted>Having a great time on Eman Live 💕</p></div>`).join('')}</div>`}function postMoment(){let i=document.createElement('input');i.type='file';i.accept='image/*,video/*';i.onchange=()=>toast('Moment selected — connect storage backend to publish it');i.click()}function chat(){return `<h1>Inbox</h1><div class=card><div class=msg>Welcome to Eman Live private messages.</div><div class=msg>No conversations yet.</div><input id=mi class=field placeholder="Write a private message"><button class=btn onclick="if(mi.value){toast('Message sent');mi.value=''}">Send</button></div>`}function me(){return `<h1>Me</h1><div class=card profile>${S.user.avatar?`<img class=avatar src="${S.user.avatar}">`:'<div class=avatar>👤</div>'}<div><h2>${S.user.username}</h2><span class=muted>${S.user.id}</span></div></div><div class=tabs>${['profile','wallet','income','level','agency'].map(t=>`<button class=${S.tab===t?'active':''} onclick="S.tab='${t}';save();render()">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>${S.tab==='profile'?profile():S.tab==='wallet'?wallet():S.tab==='income'?income():S.tab==='level'?level():agency()}`}function profile(){return `<div class=card><h2>Profile</h2><input id=n class=field value="${S.user.name}" placeholder=Name><input id=u class=field value="${S.user.username}" placeholder=Username><input id=b class=field value="${S.user.bio}" placeholder=Bio><input id=g class=field value="${S.user.gender}" placeholder=Gender><input id=bd class=field type=date value="${S.user.birthday}"><input id=c class=field value="${S.user.country}" placeholder=Country><input id=l class=field value="${S.user.language}" placeholder=Language><button class=btn onclick="S.user={...S.user,name:n.value,username:u.value,bio:b.value,gender:g.value,birthday:bd.value,country:c.value,language:l.value};save();render();toast('Profile saved')">Save Profile</button></div><div class=card><h2>Album</h2><button class=btn onclick="toast('Album upload ready for storage backend')">＋ Add Photo</button></div>`}function wallet(){let p=[[7000,1],[35000,5],[70000,10],[210000,30],[350000,50],[700000,100],[2100000,300],[3500000,500],[7000000,1000]];return `<div class=card><span class=muted>Coins</span><div class=balance>🪙 ${fmt(S.coins)}</div><p>🫘 ${fmt(S.beans)} beans · $${(S.beans/10000).toFixed(2)}</p></div><div class=card><div class=tabs>${['buy','gifts','history'].map(x=>`<button class=${S.walletTab===x?'active':''} onclick="S.walletTab='${x}';save();render()">${x==='buy'?'Buy Coins':x==='gifts'?'Gift Shop':'Gift History'}</button>`).join('')}</div>${S.walletTab==='buy'?`<div class=card><b>USDT · ${C.network}</b><p class=muted style="word-break:break-all">${C.wallet}</p><button class=btn onclick="navigator.clipboard?.writeText(C.wallet);toast('Address copied')">Copy Address</button></div><div class=packages>${p.map(x=>`<button class=pkg onclick="toast('Payment request created — verify USDT before crediting coins')"><b>${fmt(x[0])} 🪙</b><br>$${x[1]} USD</button>`).join('')}</div>`:S.walletTab==='gifts'?'<div class=grid><button class=pkg>💖 Heart<br>10 coins</button><button class=pkg>🌹 Rose<br>100 coins</button><button class=pkg>🎁 Gift Box<br>500 coins</button><button class=pkg>👑 Crown<br>5,000 coins</button></div>':'<div class=card>No gift history yet.</div>'}</div>`}function income(){return `<div class=card><span class=muted>Beans</span><div class=balance>🫘 ${fmt(S.beans)}</div><p>10,000 beans = $1</p></div><div class=card><b>Withdraw</b><p class=muted>Minimum 100,000 beans ($10). Paid every Friday.</p><select id=amt class=field>${[10,20,30,40,50,100,200,500].map(x=>`<option>${x}</option>`).join('')}</select><input id=addr class=field placeholder="BEP20 wallet address"><button class=btn onclick="withdraw()">Request Withdrawal</button></div>`}function withdraw(){let a=+amt.value;if(S.beans<100000)return toast('Minimum is 100,000 beans');if(S.beans<a*10000)return toast('Not enough beans');if(!addr.value.trim())return toast('Enter BEP20 address');S.beans-=a*10000;save();render();toast('Withdrawal request submitted')}function level(){let w=Math.floor((S.wealthXP||0)/100)+1,c=Math.floor((S.charmXP||0)/100)+1;return `<div class=card><h2>Wealth Level ${w}</h2><p class=muted>Sending gifts increases Wealth XP.</p><div class=bar><i style="width:${(S.wealthXP||0)%100}%"></i></div></div><div class=card><h2>Charm Level ${c}</h2><p class=muted>Receiving gifts increases Charm XP.</p><div class=bar><i style="width:${(S.charmXP||0)%100}%"></i></div></div>`}function agency(){return `<div class=card><h2>Agency Settings</h2><div class=row><b>Agency</b><span class=muted>Not connected</span></div><div class=row><b>Agency ID</b><span class=muted>—</span></div></div>`}document.addEventListener('click',e=>{let b=e.target.closest('[data-nav]');if(b){S.screen=b.dataset.nav;save();render()}});document.querySelector('#coinBtn').onclick=()=>{S.screen='me';S.tab='wallet';S.walletTab='buy';save();render()};render();
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+/* =========================================================
+   EMAN LIVE
+   CLEAN APP VERSION
+========================================================= */
+
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const CONFIG = {
+
+  appName: "Eman Live",
+
+  livekitUrl:
+    "wss://eman-live-ckbb612s.livekit.cloud",
+
+  tokenServer:
+    "https://emanlive-2j2epi.sandbox.livekit.io",
+
+  paymentNetwork:
+    "BNB Smart Chain · BEP20",
+
+  paymentWallet:
+    "0xec05bb37867f5e75a706a1face5304fd40a8f54c"
+
+};
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+const savedState =
+  localStorage.getItem("emanLiveState");
+
+const state =
+  savedState
+    ? JSON.parse(savedState)
+    : {
+
+        user: {
+
+          id: "ID814203",
+
+          username: "New User",
+
+          name: "New User",
+
+          bio: "",
+
+          gender: "",
+
+          birthday: "",
+
+          country: "",
+
+          language: "",
+
+          avatar: "",
+
+          album: []
+
+        },
+
+        coins: 7000,
+
+        beans: 0,
+
+        wealthXP: 120,
+
+        charmXP: 80,
+
+        messages: [],
+
+        moments: [],
+
+        withdrawals: [],
+
+        gifts: [],
+
+        currentScreen: "home",
+
+        meTab: "profile",
+
+        walletTab: "buy"
+
+      };
+
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+function saveState() {
+
+  localStorage.setItem(
+    "emanLiveState",
+    JSON.stringify(state)
+  );
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function $(selector) {
+
+  return document.querySelector(selector);
+
+}
+
+
+function escapeHTML(value) {
+
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function formatNumber(number) {
+
+  return Number(number || 0)
+    .toLocaleString();
+
+}
+
+
+function showToast(message) {
+
+  const toast = $("#toast");
+
+  if (!toast) return;
+
+  toast.textContent = message;
+
+  toast.classList.add("show");
+
+  setTimeout(() => {
+
+    toast.classList.remove("show");
+
+  }, 2200);
+
+}
+
+
+function dateNow() {
+
+  return new Date()
+    .toLocaleDateString();
+
+}
+
+
+/* =========================================================
+   AVATARS
+========================================================= */
+
+function avatarHTML() {
+
+  if (state.user.avatar) {
+
+    return `
+      <div class="avatar">
+        <img
+          src="${escapeHTML(state.user.avatar)}"
+          alt="Profile"
+        >
+      </div>
+    `;
+
+  }
+
+  return `
+    <div class="avatar">
+      👤
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   POPULAR HOSTS
+========================================================= */
+
+const popularHosts = [
+
+  {
+    name: "Luna",
+    id: "ID100201",
+    viewers: 1842,
+    cover:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900"
+  },
+
+  {
+    name: "Mia",
+    id: "ID100338",
+    viewers: 1250,
+    cover:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=900"
+  },
+
+  {
+    name: "Sofia",
+    id: "ID100441",
+    viewers: 986,
+    cover:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=900"
+  },
+
+  {
+    name: "Nina",
+    id: "ID100577",
+    viewers: 731,
+    cover:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=900"
+  },
+
+  {
+    name: "Emma",
+    id: "ID100689",
+    viewers: 614,
+    cover:
+      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=900"
+  },
+
+  {
+    name: "Bella",
+    id: "ID100721",
+    viewers: 508,
+    cover:
+      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=900"
+  }
+
+];
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function navigate(screen) {
+
+  state.currentScreen = screen;
+
+  saveState();
+
+  render();
+
+}
+
+
+document.addEventListener(
+  "click",
+  function(event) {
+
+    const nav =
+      event.target.closest("[data-nav]");
+
+    if (nav) {
+
+      navigate(nav.dataset.nav);
+
+      return;
+
+    }
+
+
+    const action =
+      event.target.closest("[data-action]");
+
+    if (action) {
+
+      handleAction(
+        action.dataset.action,
+        action
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   MAIN RENDER
+========================================================= */
+
+function render() {
+
+  renderScreen();
+
+  updateNavigation();
+
+  updateCoins();
+
+}
+
+
+/* =========================================================
+   NAV ACTIVE STATE
+========================================================= */
+
+function updateNavigation() {
+
+  document
+    .querySelectorAll("[data-nav]")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.nav ===
+        state.currentScreen
+      );
+
+    });
+
+}
+
+
+/* =========================================================
+   COIN DISPLAY
+========================================================= */
+
+function updateCoins() {
+
+  const mini =
+    $("#coinMini");
+
+  if (mini) {
+
+    mini.textContent =
+      formatNumber(state.coins);
+
+  }
+
+}
+
+
+/* =========================================================
+   SCREEN ROUTER
+========================================================= */
+
+function renderScreen() {
+
+  const screen =
+    $("#screen");
+
+  if (!screen) return;
+
+
+  switch (state.currentScreen) {
+
+    case "home":
+
+      screen.innerHTML =
+        homePage();
+
+      break;
+
+
+    case "live":
+
+      screen.innerHTML =
+        livePage();
+
+      break;
+
+
+    case "chat":
+
+      screen.innerHTML =
+        chatPage();
+
+      break;
+
+
+    case "me":
+
+      screen.innerHTML =
+        mePage();
+
+      break;
+
+
+    default:
+
+      state.currentScreen = "home";
+
+      screen.innerHTML =
+        homePage();
+
+  }
+
+}
+
+
+/* =========================================================
+   HOME / POPULAR
+========================================================= */
+
+function homePage() {
+
+  return `
+
+    <div class="hero">
+
+      <h1>Popular</h1>
+
+      <p>
+        Discover the most popular hosts
+        who are online right now.
+      </p>
+
+    </div>
+
+
+    <div class="pill-row">
+
+      <button class="pill active">
+        Popular
+      </button>
+
+      <button class="pill">
+        Following
+      </button>
+
+      <button class="pill">
+        New
+      </button>
+
+    </div>
+
+
+    <div class="section-title">
+
+      <h2>
+        Popular Live
+      </h2>
+
+      <span class="muted">
+        ${popularHosts.length} online
+      </span>
+
+    </div>
+
+
+    <div class="host-grid">
+
+      ${popularHosts.map(host => `
+
+        <article class="host-card">
+
+          <div class="host-cover">
+
+            <img
+              src="${host.cover}"
+              alt="${escapeHTML(host.name)}"
+              loading="lazy"
+            >
+
+            <span class="online">
+              ● LIVE
+            </span>
+
+            <span class="viewer">
+              👁 ${formatNumber(host.viewers)}
+            </span>
+
+          </div>
+
+
+          <div class="host-info">
+
+            <div class="host-name">
+              ${escapeHTML(host.name)}
+            </div>
+
+            <div class="host-id">
+              ${escapeHTML(host.id)}
+            </div>
+
+
+            <button
+              class="primary"
+              data-action="watchHost"
+              data-name="${escapeHTML(host.name)}"
+            >
+              Watch Live
+            </button>
+
+          </div>
+
+        </article>
+
+      `).join("")}
+
+    </div>
+
+
+    <div class="section-title">
+
+      <h2>
+        Explore
+      </h2>
+
+    </div>
+
+
+    <div class="feature-list">
+
+
+      <button
+        class="feature"
+        data-action="party"
+      >
+
+        <b>
+          🎉 Party Room
+        </b>
+
+        <span>
+          Join popular multi-video
+          party rooms.
+        </span>
+
+      </button>
+
+
+      <button
+        class="feature"
+        data-action="moments"
+      >
+
+        <b>
+          📸 Moments
+        </b>
+
+        <span>
+          See pictures and videos
+          from hosts.
+        </span>
+
+      </button>
+
+
+      <button
+        class="feature"
+        data-action="inbox"
+      >
+
+        <b>
+          📥 Inbox
+        </b>
+
+        <span>
+          Private messages and
+          conversations.
+        </span>
+
+      </button>
+
+
+      <button
+        class="feature"
+        data-action="me"
+      >
+
+        <b>
+          👤 Me
+        </b>
+
+        <span>
+          Profile, Wallet, Income,
+          Level and Agency.
+        </span>
+
+      </button>
+
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   LIVE PAGE
+========================================================= */
+
+function livePage() {
+
+  return `
+
+    <div class="page-head">
+
+      <h1>
+        Go Live
+      </h1>
+
+    </div>
+
+
+    <div class="hero">
+
+      <h1>
+        Start your live
+      </h1>
+
+      <p>
+        Choose how you want to broadcast.
+        Your camera will open before
+        you start.
+      </p>
+
+    </div>
+
+
+    <div class="live-choice">
+
+
+      <button
+        class="choice"
+        data-action="solo"
+      >
+
+        <div class="big">
+          📹
+        </div>
+
+        <h2>
+          Solo Live
+        </h2>
+
+        <p>
+          Go live by yourself and
+          receive gifts from viewers.
+        </p>
+
+      </button>
+
+
+      <button
+        class="choice party"
+        data-action="partySetup"
+      >
+
+        <div class="big">
+          👥
+        </div>
+
+        <h2>
+          Party Room
+        </h2>
+
+        <p>
+          Start a multi-video room and
+          invite other users.
+        </p>
+
+      </button>
+
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   CAMERA SETUP
+========================================================= */
+
+function cameraSetup(mode) {
+
+  return `
+
+    <div class="page-head">
+
+      <button
+        class="back"
+        data-action="live"
+      >
+        ‹
+      </button>
+
+      <h1>
+        ${
+          mode === "party"
+            ? "Party Room"
+            : "Solo Live"
+        }
+      </h1>
+
+    </div>
+
+
+    <div class="camera-box">
+
+      <video
+        id="preview"
+        autoplay
+        muted
+        playsinline
+      ></video>
+
+      <div class="camera-label">
+        Camera Preview
+      </div>
+
+    </div>
+
+
+    <div class="form">
+
+
+      <div class="label">
+        Live cover photo — required
+      </div>
+
+
+      <label
+        class="cover-picker"
+        id="coverPicker"
+      >
+
+        <span>
+          📷 Tap to choose a live
+          cover photo
+        </span>
+
+        <input
+          id="coverInput"
+          type="file"
+          accept="image/*"
+          hidden
+        >
+
+      </label>
+
+
+      <input
+        class="field"
+        id="liveTitle"
+        placeholder="Live title"
+      >
+
+
+      <select
+        class="field"
+        id="category"
+      >
+
+        <option>
+          Chat
+        </option>
+
+        <option>
+          Music
+        </option>
+
+        <option>
+          Dance
+        </option>
+
+        <option>
+          Beauty
+        </option>
+
+        <option>
+          Gaming
+        </option>
+
+        <option>
+          Party
+        </option>
+
+        <option>
+          Talent
+        </option>
+
+        <option>
+          Other
+        </option>
+
+      </select>
+
+
+      <select
+        class="field"
+        id="privacy"
+      >
+
+        <option>
+          Public
+        </option>
+
+        <option>
+          Friends
+        </option>
+
+      </select>
+
+
+      <button
+        class="primary"
+        data-action="startBroadcast"
+        data-mode="${mode}"
+      >
+
+        Start ${
+          mode === "party"
+            ? "Party Room"
+            : "Live"
+        }
+
+      </button>
+
+
+      <button
+        class="secondary"
+        data-action="live"
+      >
+
+        Cancel
+
+      </button>
+
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   OPEN CAMERA
+========================================================= */
+
+async function openCamera() {
+
+  try {
+
+    if (
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia
+    ) {
+
+      showToast(
+        "Camera is not supported by this browser."
+      );
+
+      return;
+
+    }
+
+
+    const stream =
+      await navigator.mediaDevices
+        .getUserMedia({
+
+          video: true,
+
+          audio: true
+
+        });
+
+
+    window.emanCamera =
+      stream;
+
+
+    const preview =
+      $("#preview");
+
+
+    if (preview) {
+
+      preview.srcObject =
+        stream;
+
+    }
+
+  }
+
+  catch (error) {
+
+    console.log(error);
+
+    showToast(
+      "Please allow camera and microphone access."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   STOP CAMERA
+========================================================= */
+
+function stopCamera() {
+
+  if (window.emanCamera) {
+
+    window.emanCamera
+      .getTracks()
+      .forEach(track => {
+
+        track.stop();
+
+      });
+
+    window.emanCamera =
+      null;
+
+  }
+
+}
+
+
+/* =========================================================
+   SETUP LIVE
+========================================================= */
+
+function setupLive(mode) {
+
+  stopCamera();
+
+  window.liveCover = null;
+
+
+  $("#screen").innerHTML =
+    cameraSetup(mode);
+
+
+  openCamera();
+
+
+  const input =
+    $("#coverInput");
+
+
+  if (!input) return;
+
+
+  input.addEventListener(
+    "change",
+    function() {
+
+      const file =
+        input.files[0];
+
+      if (!file) return;
+
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        function() {
+
+          window.liveCover =
+            reader.result;
+
+
+          const picker =
+            $("#coverPicker");
+
+
+          if (picker) {
+
+            picker.innerHTML = `
+
+              <img
+                src="${reader.result}"
+                alt="Live Cover"
+              >
+
+            `;
+
+          }
+
+        };
+
+
+      reader.readAsDataURL(file);
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   PARTY ROOM PAGE
+========================================================= */
+
+function partyPage() {
+
+  return `
+
+    <div class="page-head">
+
+      <h1>
+        Party Room
+      </h1>
+
+    </div>
+
+
+    <div class="hero">
+
+      <h1>
+        Popular Party Rooms
+      </h1>
+
+      <p>
+        Join a multi-video party room
+        with popular users online.
+      </p>
+
+    </div>
+
+
+    <div class="host-grid">
+
+      ${popularHosts.slice(0, 4).map(
+        (host, index) => `
+
+        <article class="host-card">
+
+          <div class="host-cover">
+
+            <img
+              src="${host.cover}"
+              alt="${escapeHTML(host.name)}"
+            >
+
+            <span class="online">
+              ● LIVE
+            </span>
+
+            <span class="viewer">
+              👁 ${formatNumber(host.viewers)}
+            </span>
+
+          </div>
+
+
+          <div class="host-info">
+
+            <div class="host-name">
+
+              Room ${index + 1}
+
+              ·
+
+              ${escapeHTML(host.name)}
+
+            </div>
+
+
+            <div class="host-id">
+
+              ${
+                index === 0
+                  ? "4 seats available"
+                  : "3 seats available"
+              }
+
+            </div>
+
+
+            <button
+              class="primary"
+              data-action="joinParty"
+              data-name="${escapeHTML(host.name)}"
+            >
+
+              Join Room
+
+            </button>
+
+          </div>
+
+        </article>
+
+      `).join("")}
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   MOMENTS
+========================================================= */
+
+function momentsPage() {
+
+  const demoMoments =
+    state.moments.length
+      ? state.moments
+      : popularHosts.map(host => ({
+
+          name: host.name,
+
+          img: host.cover,
+
+          text:
+            "Having a great time on Eman Live! 💕"
+
+        }));
+
+
+  return `
+
+    <div class="page-head">
+
+      <h1>
+        Moments
+      </h1>
+
+    </div>
+
+
+    <div class="hero">
+
+      <h1>
+        Moments
+      </h1>
+
+      <p>
+        Share pictures and videos
+        with your audience.
+      </p>
+
+
+      <button
+        class="primary"
+        data-action="postMoment"
+      >
+
+        ＋ Post a Moment
+
+      </button>
+
+    </div>
+
+
+    <div class="moment-grid">
+
+      ${demoMoments.map(moment => `
+
+        <article class="moment">
+
+          <img
+            src="${escapeHTML(moment.img)}"
+            loading="lazy"
+            alt="Moment"
+          >
+
+          <div class="body">
+
+            <b>
+              ${escapeHTML(moment.name)}
+            </b>
+
+            <p class="muted">
+
+              ${escapeHTML(moment.text)}
+
+            </p>
+
+          </div>
+
+        </article>
+
+      `).join("")}
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   CHAT / INBOX
+========================================================= */
+
+function chatPage() {
+
+  return `
+
+    <div class="page-head">
+
+      <h1>
+        Inbox
+      </h1>
+
+    </div>
+
+
+    <div class="chat-list">
+
+      ${
+        state.messages.length
+
+        ?
+
+        state.messages.map(message => `
+
+          <div class="chat-item">
+
+            <div class="avatar-sm">
+              👤
+            </div>
+
+            <div>
+
+              <b>
+                ${escapeHTML(message.from)}
+              </b>
+
+              <div class="muted">
+
+                ${escapeHTML(message.text)}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `).join("")
+
+        :
+
+        `
+
+          <div class="empty">
+
+            No private messages yet.
+
+            <br><br>
+
+            Messages from hosts and
+            friends will appear here.
+
+          </div>
+
+        `
+      }
+
+    </div>
+
+
+    <div class="message-box">
+
+      <input
+        id="messageInput"
+        class="field"
+        placeholder="Write a private message"
+      >
+
+
+      <button
+        class="primary"
+        style="width:auto;margin:0"
+        data-action="sendMessage"
+      >
+
+        Send
+
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   ME PAGE
+========================================================= */
+
+function mePage() {
+
+  const tab =
+    state.meTab || "profile";
+
+
+  return `
+
+    <div class="page-head">
+
+      <h1>
+        Me
+      </h1>
+
+    </div>
+
+
+    <div class="profile-head">
+
+      ${avatarHTML()}
+
+
+      <div>
+
+        <h2 style="margin:0">
+
+          ${escapeHTML(
+            state.user.username
+          )}
+
+        </h2>
+
+
+        <div class="muted">
+
+          ${escapeHTML(
+            state.user.id
+          )}
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="tabs">
+
+
+      <button
+        class="${tab === "profile" ? "active" : ""}"
+        data-action="meTab"
+        data-tab="profile"
+      >
+
+        Profile
+
+      </button>
+
+
+      <button
+        class="${tab === "wallet" ? "active" : ""}"
+        data-action="meTab"
+        data-tab="wallet"
+      >
+
+        Wallet
+
+      </button>
+
+
+      <button
+        class="${tab === "income" ? "active" : ""}"
+        data-action="meTab"
+        data-tab="income"
+      >
+
+        Income
+
+      </button>
+
+
+      <button
+        class="${tab === "level" ? "active" : ""}"
+        data-action="meTab"
+        data-tab="level"
+      >
+
+        Level
+
+      </button>
+
+
+      <button
+        class="${tab === "agency" ? "active" : ""}"
+        data-action="meTab"
+        data-tab="agency"
+      >
+
+        Agency
+
+      </button>
+
+
+    </div>
+
+
+    ${
+      tab === "profile"
+        ? profileTab()
+
+        : tab === "wallet"
+        ? walletTab
