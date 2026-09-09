@@ -1346,25 +1346,17 @@ function stopCamera() {
 
 
 /* =========================================================
-   SOLO SETUP
+   SOLO LIVE SETUP — FULLSCREEN CAMERA
 ========================================================= */
 
 function renderLiveSetup() {
 
   screen.innerHTML = `
 
-    <h1 class="page-title">
-      Solo Live Setup
-    </h1>
+    <div class="fullscreen-live-setup">
 
-    <p class="page-subtitle">
-      Camera and cover photo are required.
-    </p>
-
-
-    <div class="form-card">
-
-      <div class="camera-box">
+      <!-- FULLSCREEN CAMERA -->
+      <div class="fullscreen-camera">
 
         <video
           id="setupCamera"
@@ -1376,130 +1368,106 @@ function renderLiveSetup() {
         <div
           id="cameraMessage"
           class="camera-message">
+          Starting camera...
+        </div>
 
-          Camera preview will appear here.
+        <!-- TOP BAR -->
+        <div class="setup-top-bar">
+
+          <button
+            class="camera-close-btn"
+            data-action="live"
+            type="button">
+            ✕
+          </button>
+
+          <span class="setup-title">
+            Go Live
+          </span>
+
+        </div>
+
+
+        <!-- SETUP CONTROLS -->
+        <div class="live-setup-panel">
+
+          <div class="live-setup-card">
+
+            <label>
+              Live Cover Photo *
+            </label>
+
+            <div
+              id="coverPreview"
+              class="cover-preview">
+              Select a cover photo
+            </div>
+
+            <input
+              id="coverInput"
+              class="input"
+              type="file"
+              accept="image/*">
+
+
+            <label>
+              Live Title *
+            </label>
+
+            <input
+              id="liveTitle"
+              class="input"
+              type="text"
+              placeholder="Enter your live title">
+
+
+            <label>
+              Category
+            </label>
+
+            <select
+              id="liveCategory"
+              class="input">
+
+              <option>Chat</option>
+              <option>Music</option>
+              <option>Entertainment</option>
+              <option>Gaming</option>
+              <option>Lifestyle</option>
+
+            </select>
+
+
+            <button
+              class="primary-btn start-live-full-btn"
+              data-action="startSolo"
+              type="button">
+
+              🔴 START LIVE
+
+            </button>
+
+          </div>
 
         </div>
 
       </div>
 
-
-      <button
-        class="secondary-btn"
-        data-action="camera"
-        type="button">
-
-        📷 Open Camera
-
-      </button>
-
     </div>
-
-
-    <div class="form-card">
-
-      <div class="form-group">
-
-        <label>
-          Live Cover Photo *
-        </label>
-
-        <div
-          id="coverPreview"
-          class="cover-preview">
-
-          Select a cover photo
-
-        </div>
-
-        <input
-          id="coverInput"
-          class="input"
-          type="file"
-          accept="image/*">
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>
-          Live Title *
-        </label>
-
-        <input
-          id="liveTitle"
-          class="input"
-          placeholder="Enter your live title">
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>
-          Category
-        </label>
-
-        <select
-          id="liveCategory"
-          class="input">
-
-          <option>
-            Chat
-          </option>
-
-          <option>
-            Music
-          </option>
-
-          <option>
-            Entertainment
-          </option>
-
-          <option>
-            Gaming
-          </option>
-
-          <option>
-            Lifestyle
-          </option>
-
-        </select>
-
-      </div>
-
-
-      <button
-        class="primary-btn"
-        data-action="startSolo"
-        type="button">
-
-        🔴 Start Live
-
-      </button>
-
-    </div>
-
-
-    <button
-      class="secondary-btn"
-      data-action="live"
-      type="button">
-
-      ← Back
-
-    </button>
 
   `;
 
-
   setupCoverInput();
 
-  startCameraPreview();
+  /*
+   * Automatically open camera
+   */
+  startCameraPreview(
+    "setupCamera",
+    "cameraMessage"
+  );
 
 }
-
 
 /* =========================================================
    COVER INPUT
