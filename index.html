@@ -76,10 +76,6 @@
 
 
   <!-- =========================
-       LIVE SETUP MODAL
-  ========================== -->
-
-  <!-- =========================
      LIVE SETUP
 ========================= -->
 
@@ -167,10 +163,6 @@
 
 </div>
 
-
-  <!-- =========================
-       PARTY ROOM MODAL
-  ========================== -->
 
  <!-- =========================
      PARTY LIVE ROOM
@@ -447,9 +439,6 @@
 
   </div>
 
-<!-- =========================
-     PROFILE MODAL
-========================= -->
 
 <!-- =========================
      ME / PROFILE MENU
@@ -468,13 +457,16 @@
 
     <div class="profileHeader">
 
-      <div class="profileAvatar">
-        👤
-      </div>
+  <div class="profileAvatar">
+    👤
+  </div>
 
-      <h2>My Profile</h2>
+  <h2 id="profileUsername">My Profile</h2>
 
-      <p>Eman Live User</p>
+  <p>
+    User ID:
+    <span id="profileUserId">Loading...</span>
+  </p>
 
     </div>
 
@@ -508,6 +500,18 @@
         <span>View your Eman Live level</span>
       </button>
 
+      <button
+  type="button"
+  onclick="openAgency(); closeModal('profileModal')">
+
+  🏢 My Agency
+
+  <span>
+    Manage your agency and team
+  </span>
+
+      </button>
+      
       <button
         type="button"
         onclick="alert('Settings coming soon.')">
