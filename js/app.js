@@ -65,6 +65,346 @@ const CONFIG = {
 
 };
 
+/* =========================================================
+   EMAN LIVE MAIN BUTTON HANDLER
+========================================================= */
+
+document.addEventListener("click", function (event) {
+
+  const button =
+    event.target.closest("[data-action]");
+
+  if (!button) return;
+
+  const action =
+    button.getAttribute("data-action");
+
+  if (!action) return;
+
+
+  /* =========================
+     NAVIGATION
+  ========================= */
+
+  if (action === "home") {
+    go("home");
+    return;
+  }
+
+  if (action === "live") {
+    go("live");
+    return;
+  }
+
+  if (action === "party") {
+    go("party");
+    return;
+  }
+
+  if (action === "moments") {
+    go("moments");
+    return;
+  }
+
+  if (action === "chat") {
+    go("chat");
+    return;
+  }
+
+  if (action === "me") {
+    go("me");
+    return;
+  }
+
+
+  /* =========================
+     LIVE SETUP
+  ========================= */
+
+  if (action === "soloSetup") {
+    go("setup");
+    return;
+  }
+
+  if (action === "partySetup") {
+    go("partySetup");
+    return;
+  }
+
+
+  /* =========================
+     CAMERA
+  ========================= */
+
+  if (action === "camera") {
+    openCameraAgain();
+    return;
+  }
+
+
+  /* =========================
+     START LIVE
+  ========================= */
+
+  if (action === "startSolo") {
+    startSoloLive();
+    return;
+  }
+
+  if (action === "startParty") {
+    startPartyLive();
+    return;
+  }
+
+
+  /* =========================
+     END LIVE
+  ========================= */
+
+  if (action === "endLive") {
+    endLive();
+    return;
+  }
+
+
+  /* =========================
+     SOLO MICROPHONE
+  ========================= */
+
+  if (action === "soloMute") {
+    toggleSoloMicrophone();
+    return;
+  }
+
+
+  /* =========================
+     PARTY MICROPHONE
+  ========================= */
+
+  if (action === "partyMute") {
+    togglePartyMicrophone();
+    return;
+  }
+
+
+  /* =========================
+     CAMERA FLIP
+  ========================= */
+
+  if (action === "flipCamera") {
+
+    if (
+      state.currentStream &&
+      state.currentStream.type === "party"
+    ) {
+
+      flipPartyCamera();
+
+    } else {
+
+      flipCamera();
+
+    }
+
+    return;
+  }
+
+
+  /* =========================
+     HEART
+  ========================= */
+
+  if (action === "heart") {
+
+    if (state.currentStream) {
+
+      state.currentStream.hearts =
+        Number(
+          state.currentStream.hearts || 0
+        ) + 1;
+
+      saveState();
+
+    }
+
+    return;
+  }
+
+
+  /* =========================
+     GIFTS
+  ========================= */
+
+  if (action === "sendGift") {
+    renderGifts();
+    return;
+  }
+
+
+  /* =========================
+     LIVE MENU
+  ========================= */
+
+  if (action === "liveMenu") {
+    openLiveMenu();
+    return;
+  }
+
+
+  /* =========================
+     PROFILE / ME
+  ========================= */
+
+  if (action === "profile") {
+    state.page = "me";
+    renderProfile();
+    return;
+  }
+
+  if (action === "wallet") {
+    state.page = "me";
+    renderWallet();
+    return;
+  }
+
+  if (action === "income") {
+    state.page = "me";
+    renderIncome();
+    return;
+  }
+
+  if (action === "levels") {
+    state.page = "me";
+    renderLevels();
+    return;
+  }
+
+  if (action === "agency") {
+    state.page = "me";
+    renderAgency();
+    return;
+  }
+
+
+  /* =========================
+     WALLET
+  ========================= */
+
+  if (action === "walletBuy") {
+    state.walletTab = "buy";
+    renderWallet();
+    return;
+  }
+
+  if (action === "walletHistory") {
+    state.walletTab = "history";
+    renderWallet();
+    return;
+  }
+
+  if (action === "recharge") {
+
+    recharge(
+      Number(button.dataset.coins),
+      Number(button.dataset.price)
+    );
+
+    return;
+  }
+
+  if (action === "submitTx") {
+    submitTransactionHash();
+    return;
+  }
+
+  if (action === "copyAddress") {
+    copyPaymentAddress();
+    return;
+  }
+
+
+  /* =========================
+     OTHER
+  ========================= */
+
+  if (action === "withdraw") {
+    withdraw();
+    return;
+  }
+
+  if (action === "saveProfile") {
+    saveProfile();
+    return;
+  }
+
+  if (action === "saveAgency") {
+    saveAgency();
+    return;
+  }
+
+
+  /* =========================
+     PARTY JOIN
+  ========================= */
+
+  if (action === "joinParty") {
+
+    const roomName =
+      button.dataset.room;
+
+    const roomId =
+      button.dataset.id;
+
+    console.log(
+      "Join Party:",
+      roomName,
+      roomId
+    );
+
+    /*
+     * We will connect viewers to the
+     * real LiveKit party room here.
+     */
+
+    toast(
+      "Joining party room..."
+    );
+
+    return;
+  }
+
+
+  /* =========================
+     LIVE JOIN
+  ========================= */
+
+  if (action === "joinLive") {
+
+    const roomName =
+      button.dataset.room;
+
+    const roomId =
+      button.dataset.id;
+
+    console.log(
+      "Join Live:",
+      roomName,
+      roomId
+    );
+
+    /*
+     * We will connect viewers to the
+     * real LiveKit live room here.
+     */
+
+    toast(
+      "Joining live..."
+    );
+
+    return;
+  }
+
+});
 
 /* =========================================================
    SUPABASE USER
