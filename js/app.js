@@ -895,12 +895,13 @@ function renderLive() {
   screen.innerHTML = `
 
     <h1 class="page-title">
-      Live
+      🔴 Live
     </h1>
 
     <p class="page-subtitle">
       Watch live streamers or start your own live stream.
     </p>
+
 
     <div class="option-grid">
 
@@ -924,13 +925,14 @@ function renderLive() {
           data-action="soloSetup"
           type="button">
 
-          Start Solo Live
+          🔴 Start Solo Live
 
         </button>
 
       </div>
 
     </div>
+
 
     <div class="section">
 
@@ -942,13 +944,8 @@ function renderLive() {
 
         <div class="form-card">
 
-          <h3>
-            No streamers are live yet.
-          </h3>
-
-          <p style="color:#aaa;">
-            When someone starts a Solo Live,
-            they will appear here.
+          <p>
+            Loading live streamers...
           </p>
 
         </div>
@@ -958,6 +955,177 @@ function renderLive() {
     </div>
 
   `;
+
+
+  /*
+   * Load actual live streamers
+   */
+
+  liveRoomCards();
+
+}
+
+
+
+/* =========================================================
+   LIVE STREAM CARDS
+========================================================= */
+
+async function liveRoomCards() {
+
+  const container =
+    document.getElementById("liveStreamList");
+
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="form-card">
+      <p>Loading live streamers...</p>
+    </div>
+  `;
+
+
+  try {
+
+    const { data, error } =
+      await supabase
+        .from("live_rooms")
+        .select("*")
+        .eq("is_live", true)
+        .eq("status", "live")
+        .eq("live_type", "live")
+        .order("created_at", {
+          ascending: false
+        });
+
+
+    if (error) {
+
+      console.error(
+        "Live rooms error:",
+        error
+      );
+
+      container.innerHTML = `
+        <div class="form-card">
+          <p>
+            Unable to load live streamers.
+          </p>
+          <p style="color:#aaa;font-size:13px;">
+            ${escapeHTML(error.message)}
+          </p>
+        </div>
+      `;
+
+      return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+      container.innerHTML = `
+        <div class="form-card">
+
+          <h3>
+            🔴 No one is live right now
+          </h3>
+
+          <p style="color:#aaa;">
+            When a streamer starts a live stream,
+            they will appear here.
+          </p>
+
+        </div>
+      `;
+
+      return;
+    }
+
+
+    container.innerHTML =
+      data.map(room => `
+
+        <div class="party-room">
+
+          <div class="party-cover">
+
+            ${
+              room.cover_photo
+                ? `
+                  <img
+                    src="${room.cover_photo}"
+                    alt="${escapeHTML(room.title || "Live Stream")}"
+                  >
+                `
+                : `
+                  <div style="
+                    height:100%;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:50px;
+                  ">
+                    📱
+                  </div>
+                `
+            }
+
+            <span class="live-badge">
+              🔴 LIVE
+            </span>
+
+            <span class="viewer-badge">
+              👁
+              ${Number(room.viewer_count || 0)}
+            </span>
+
+          </div>
+
+
+          <div class="party-content">
+
+            <h3>
+              ${escapeHTML(room.title || "Live Stream")}
+            </h3>
+
+            <p>
+              ${escapeHTML(room.host_name || "Eman Host")}
+            </p>
+
+            <button
+              class="primary-btn"
+              data-action="joinLive"
+              data-room="${escapeHTML(room.room_name || "")}"
+              data-id="${escapeHTML(room.id || "")}"
+              type="button">
+
+              ▶ Watch Live
+
+            </button>
+
+          </div>
+
+        </div>
+
+      `).join("");
+
+
+  } catch (error) {
+
+    console.error(
+      "LIVE ROOM LOAD ERROR:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="form-card">
+        <p>
+          Unable to load live streams.
+        </p>
+      </div>
+    `;
+
+  }
 
 }
 
