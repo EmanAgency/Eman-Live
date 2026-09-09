@@ -31,7 +31,7 @@ if (window.supabase) {
 
 let currentSupabaseUser = null;
 
-
+const supabase = supabaseClient;
 /* =========================================================
    CONFIG
 ========================================================= */
