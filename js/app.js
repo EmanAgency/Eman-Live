@@ -898,66 +898,58 @@ function hostCard(host) {
 
 
 /* =========================================================
-   LIVE PAGE
+   POPULAR LIVE PAGE
 ========================================================= */
 
 function renderLive() {
 
   screen.innerHTML = `
 
-    <h1 class="page-title">
-      🔴 Live
-    </h1>
+    <div class="popular-page">
 
-    <p class="page-subtitle">
-      Watch live streamers or start your own live stream.
-    </p>
+      <!-- HEADER -->
 
+      <div class="popular-header">
 
-    <div class="option-grid">
+        <div>
+          <h1 class="popular-title">
+            Popular
+          </h1>
 
-      <div class="option-card">
-
-        <div class="big-icon">
-          📱
+          <p class="popular-subtitle">
+            Popular live streamers
+          </p>
         </div>
 
-        <h2>
-          Solo Live
-        </h2>
-
-        <p>
-          Start your own live stream
-          with your camera.
-        </p>
-
         <button
-          class="primary-btn"
+          class="popular-start-btn"
           data-action="soloSetup"
           type="button">
 
-          🔴 Start Solo Live
+          🔴 Start Live
 
         </button>
 
       </div>
 
-    </div>
 
+      <!-- POPULAR STREAMERS -->
 
-    <div class="section">
+      <div class="section">
 
-      <h2 style="margin-bottom:12px;">
-        🔴 Live Now
-      </h2>
+        <h2 class="popular-section-title">
+          🔥 Popular Live Streamers
+        </h2>
 
-      <div id="liveStreamList">
+        <div id="liveStreamList">
 
-        <div class="form-card">
+          <div class="form-card">
 
-          <p>
-            Loading live streamers...
-          </p>
+            <p>
+              Loading popular streamers...
+            </p>
+
+          </div>
 
         </div>
 
@@ -969,7 +961,7 @@ function renderLive() {
 
 
   /*
-   * Load actual live streamers
+   * Load real live streamers
    */
 
   liveRoomCards();
@@ -977,64 +969,89 @@ function renderLive() {
 }
 
 
-
 /* =========================================================
-   LIVE STREAM CARDS
+   POPULAR LIVE STREAMERS
 ========================================================= */
 
 async function liveRoomCards() {
 
   const container =
-    document.getElementById("liveStreamList");
+    document.getElementById(
+      "liveStreamList"
+    );
 
   if (!container) return;
 
+
   container.innerHTML = `
+
     <div class="form-card">
-      <p>Loading live streamers...</p>
+
+      <p>
+        Loading popular streamers...
+      </p>
+
     </div>
+
   `;
 
 
   try {
 
-    const { data, error } =
-      await supabase
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
         .from("live_rooms")
         .select("*")
         .eq("is_live", true)
         .eq("status", "live")
         .eq("live_type", "live")
-        .order("created_at", {
-          ascending: false
-        });
+        .order(
+          "viewer_count",
+          {
+            ascending: false
+          }
+        );
 
 
     if (error) {
 
       console.error(
-        "Live rooms error:",
+        "Popular live rooms error:",
         error
       );
 
       container.innerHTML = `
+
         <div class="form-card">
-          <p>
-            Unable to load live streamers.
+
+          <h3>
+            Unable to load live streams
+          </h3>
+
+          <p style="color:#aaa;">
+            ${escapeHTML(
+              error.message
+            )}
           </p>
-          <p style="color:#aaa;font-size:13px;">
-            ${escapeHTML(error.message)}
-          </p>
+
         </div>
+
       `;
 
       return;
     }
 
 
-    if (!data || data.length === 0) {
+    if (
+      !data ||
+      data.length === 0
+    ) {
 
       container.innerHTML = `
+
         <div class="form-card">
 
           <h3>
@@ -1042,11 +1059,21 @@ async function liveRoomCards() {
           </h3>
 
           <p style="color:#aaa;">
-            When a streamer starts a live stream,
-            they will appear here.
+            Start a live stream and become
+            one of the first popular streamers.
           </p>
 
+          <button
+            class="primary-btn"
+            data-action="soloSetup"
+            type="button">
+
+            🔴 Start Live
+
+          </button>
+
         </div>
+
       `;
 
       return;
@@ -1054,9 +1081,246 @@ async function liveRoomCards() {
 
 
     container.innerHTML =
-      data.map(room => `
 
-        <div class="party-room">
+      data.map(
+        (room, index) => `
+
+        <div
+          class="popular-live-card"
+          data-action="joinLive"
+          data-room="${escapeHTML(
+            room.room_name || ""
+          )}"
+          data-id="${escapeHTML(
+            room.id || ""
+          )}"
+        >
+
+          <div class="popular-live-cover">
+
+            ${
+              room.cover_photo
+                ? `
+                  <img
+                    src="${room.cover_photo}"
+                    alt="${escapeHTML(
+                      room.title ||
+                      "Live Stream"
+                    )}">
+                `
+                : `
+                  <div class="default-live-cover">
+                    📱
+                  </div>
+                `
+            }
+
+            <span class="popular-live-badge">
+              🔴 LIVE
+            </span>
+
+            <span class="popular-viewers">
+              👁
+              ${Number(
+                room.viewer_count || 0
+              ).toLocaleString()}
+            </span>
+
+          </div>
+
+
+          <div class="popular-live-info">
+
+            <div class="popular-rank">
+              #${index + 1}
+            </div>
+
+            <div class="popular-live-details">
+
+              <h3>
+                ${escapeHTML(
+                  room.title ||
+                  "Live Stream"
+                )}
+              </h3>
+
+              <p>
+                👤
+                ${escapeHTML(
+                  room.host_name ||
+                  "Eman Host"
+                )}
+              </p>
+
+            </div>
+
+            <button
+              class="watch-live-btn"
+              data-action="joinLive"
+              data-room="${escapeHTML(
+                room.room_name || ""
+              )}"
+              data-id="${escapeHTML(
+                room.id || ""
+              )}"
+              type="button">
+
+              Watch
+
+            </button>
+
+          </div>
+
+        </div>
+
+      `
+      ).join("");
+
+
+  } catch (error) {
+
+    console.error(
+      "POPULAR LIVE ERROR:",
+      error
+    );
+
+    container.innerHTML = `
+
+      <div class="form-card">
+
+        <p>
+          Unable to load popular streamers.
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   POPULAR PARTY ROOMS
+========================================================= */
+
+async function partyRoomCards() {
+
+  const container =
+    document.getElementById(
+      "partyRoomsList"
+    );
+
+  if (!container) return;
+
+
+  container.innerHTML = `
+
+    <div class="form-card">
+
+      <p>
+        Loading popular party rooms...
+      </p>
+
+    </div>
+
+  `;
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("live_rooms")
+        .select("*")
+        .eq("is_live", true)
+        .eq("status", "live")
+        .eq("live_type", "party")
+        .order(
+          "viewer_count",
+          {
+            ascending: false
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Party rooms error:",
+        error
+      );
+
+      container.innerHTML = `
+
+        <div class="form-card">
+
+          <h3>
+            Unable to load party rooms
+          </h3>
+
+          <p style="color:#aaa;">
+            ${escapeHTML(
+              error.message
+            )}
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+    }
+
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="form-card">
+
+          <h3>
+            👥 No party rooms are live
+          </h3>
+
+          <p style="color:#aaa;">
+            Start a Party Room and become
+            one of the first popular players.
+          </p>
+
+          <button
+            class="primary-btn"
+            data-action="partySetup"
+            type="button">
+
+            👥 Start Party
+
+          </button>
+
+        </div>
+
+      `;
+
+      return;
+    }
+
+
+    container.innerHTML =
+
+      data.map(
+        (room, index) => `
+
+        <div class="popular-party-card">
+
+
+          <!-- COVER -->
 
           <div class="party-cover">
 
@@ -1065,18 +1329,14 @@ async function liveRoomCards() {
                 ? `
                   <img
                     src="${room.cover_photo}"
-                    alt="${escapeHTML(room.title || "Live Stream")}"
-                  >
+                    alt="${escapeHTML(
+                      room.title ||
+                      "Party Room"
+                    )}">
                 `
                 : `
-                  <div style="
-                    height:100%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:50px;
-                  ">
-                    📱
+                  <div class="default-party-cover">
+                    👥
                   </div>
                 `
             }
@@ -1087,143 +1347,84 @@ async function liveRoomCards() {
 
             <span class="viewer-badge">
               👁
-              ${Number(room.viewer_count || 0)}
+              ${Number(
+                room.viewer_count || 0
+              ).toLocaleString()}
             </span>
 
           </div>
 
 
+          <!-- INFORMATION -->
+
           <div class="party-content">
 
+            <div class="popular-rank">
+              #${index + 1}
+            </div>
+
             <h3>
-              ${escapeHTML(room.title || "Live Stream")}
+              ${escapeHTML(
+                room.title ||
+                "Party Room"
+              )}
             </h3>
 
             <p>
-              ${escapeHTML(room.host_name || "Eman Host")}
+              👤
+              ${escapeHTML(
+                room.host_name ||
+                "Party Player"
+              )}
             </p>
+
 
             <button
               class="primary-btn"
-              data-action="joinLive"
-              data-room="${escapeHTML(room.room_name || "")}"
-              data-id="${escapeHTML(room.id || "")}"
+              data-action="joinParty"
+              data-room="${escapeHTML(
+                room.room_name || ""
+              )}"
+              data-id="${escapeHTML(
+                room.id || ""
+              )}"
               type="button">
 
-              ▶ Watch Live
+              ▶ Join Party
 
             </button>
 
           </div>
 
+
         </div>
 
-      `).join("");
+      `
+      ).join("");
 
 
   } catch (error) {
 
     console.error(
-      "LIVE ROOM LOAD ERROR:",
+      "POPULAR PARTY ERROR:",
       error
     );
 
     container.innerHTML = `
+
       <div class="form-card">
+
         <p>
-          Unable to load live streams.
+          Unable to load popular party rooms.
         </p>
+
       </div>
+
     `;
 
   }
 
 }
-
-
-/* =========================================================
-   PARTY ROOM CARDS
-========================================================= */
-
-function partyRoomCards() {
-
-  const rooms = [
-
-    {
-      name: "Girls Night",
-      users: 4,
-      viewers: 1850,
-      image: hosts[0].image
-    },
-
-    {
-      name: "Music Party",
-      users: 3,
-      viewers: 1240,
-      image: hosts[1].image
-    },
-
-    {
-      name: "Late Night",
-      users: 4,
-      viewers: 970,
-      image: hosts[2].image
-    }
-
-  ];
-
-
-  return rooms.map(room => `
-
-    <div class="party-room">
-
-      <div class="party-cover">
-
-        <img
-          src="${room.image}"
-          alt="${escapeHTML(room.name)}">
-
-        <span class="live-badge">
-          LIVE
-        </span>
-
-        <span class="viewer-badge">
-          👁
-          ${room.viewers.toLocaleString()}
-        </span>
-
-      </div>
-
-
-      <div class="party-content">
-
-        <h3>
-          ${escapeHTML(room.name)}
-        </h3>
-
-        <p>
-          ${room.users}
-          people in the room
-        </p>
-
-        <button
-          class="primary-btn"
-          data-action="joinParty"
-          data-name="${escapeHTML(room.name)}"
-          type="button">
-
-          Join Party Room
-
-        </button>
-
-      </div>
-
-    </div>
-
-  `).join("");
-
-}
-
 
 /* =========================================================
    CAMERA
@@ -1860,55 +2061,76 @@ function renderPartySetup() {
 }
 
 /* =========================================================
-   PARTY ROOM PAGE
+   POPULAR PARTY ROOM PAGE
 ========================================================= */
 
 function renderParty() {
 
   screen.innerHTML = `
 
-    <h1 class="page-title">
-      Party Room
-    </h1>
+    <div class="popular-page">
 
-    <p class="page-subtitle">
-      Join a live multi-video party room.
-    </p>
+      <!-- HEADER -->
 
-    <div class="section">
+      <div class="popular-header">
 
-      <h2 style="margin-bottom:12px;">
-        Online Party Rooms
-      </h2>
+        <div>
 
-      <div id="partyRoomsList">
-        ${partyRoomCards()}
+          <h1 class="popular-title">
+            Popular
+          </h1>
+
+          <p class="popular-subtitle">
+            Popular party players
+          </p>
+
+        </div>
+
+
+        <button
+          class="popular-start-btn party-start-btn"
+          data-action="partySetup"
+          type="button">
+
+          👥 Start Party
+
+        </button>
+
+      </div>
+
+
+      <!-- POPULAR PARTY ROOMS -->
+
+      <div class="section">
+
+        <h2 class="popular-section-title">
+          🔥 Popular Party Players
+        </h2>
+
+        <div id="partyRoomsList">
+
+          <div class="form-card">
+
+            <p>
+              Loading popular party rooms...
+            </p>
+
+          </div>
+
+        </div>
+
       </div>
 
     </div>
 
-    <div class="form-card">
-
-      <h2>
-        👥 Start Your Own Party Room
-      </h2>
-
-      <p style="color:#aaa;">
-        Create a room and invite other users to join.
-      </p>
-
-      <button
-        class="primary-btn"
-        data-action="partySetup"
-        type="button">
-
-        👥 Start Party Room
-
-      </button>
-
-    </div>
-
   `;
+
+
+  /*
+   * Load real party rooms
+   */
+
+  partyRoomCards();
 
 }
 
