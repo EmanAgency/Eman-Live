@@ -2278,3 +2278,281 @@ body:has(.party-live-screen) #screen {
 .party-live-screen button {
   pointer-events: auto !important;
 }
+
+/* =========================================================
+   FULLSCREEN LIVE CONTROLS
+========================================================= */
+
+.live-screen,
+.party-live-screen {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  background: #000 !important;
+  z-index: 100000 !important;
+  overflow: hidden !important;
+}
+
+body:has(.live-screen) .bottom-nav,
+body:has(.party-live-screen) .bottom-nav {
+  display: none !important;
+}
+
+body:has(.live-screen) #screen,
+body:has(.party-live-screen) #screen {
+  width: 100vw !important;
+  height: 100dvh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+/* =========================================================
+   SOLO LIVE VIDEO
+========================================================= */
+
+.live-screen .live-video {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: #000 !important;
+}
+
+.live-screen .live-video > video {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* =========================================================
+   TOP LEFT HEART
+========================================================= */
+
+.live-heart-top {
+  position: absolute;
+  top: max(18px, env(safe-area-inset-top));
+  left: 16px;
+  z-index: 50;
+
+  width: 52px;
+  height: 52px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(220, 0, 0, 0.88);
+  color: #fff;
+
+  font-size: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,.35);
+}
+
+/* =========================================================
+   BOTTOM RIGHT CONTROL COLUMN
+========================================================= */
+
+.live-control-column {
+  position: absolute;
+
+  right: 14px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+
+  z-index: 60;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Individual circular controls */
+
+.live-control-btn {
+  width: 52px;
+  height: 52px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(0,0,0,.62);
+  color: #fff;
+
+  font-size: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 3px 12px rgba(0,0,0,.4);
+
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.live-control-btn:active {
+  transform: scale(.92);
+  background: rgba(255,255,255,.2);
+}
+
+/* Active / muted state */
+
+.live-control-btn.muted {
+  background: rgba(190,0,0,.85);
+}
+
+/* Gift button */
+
+.live-control-btn.gift {
+  background: rgba(255, 80, 0, .82);
+}
+
+/* Menu button */
+
+.live-control-btn.menu {
+  background: rgba(0,0,0,.72);
+}
+
+/* =========================================================
+   LIVE INFO TOP
+========================================================= */
+
+.live-info-top {
+  position: absolute;
+  top: max(18px, env(safe-area-inset-top));
+  left: 82px;
+  right: 85px;
+
+  z-index: 40;
+
+  color: #fff;
+}
+
+.live-info-top .live-title {
+  font-size: 16px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.live-info-top .live-viewers {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255,255,255,.85);
+}
+
+/* =========================================================
+   BOTTOM LIVE INFORMATION
+========================================================= */
+
+.live-bottom-info {
+  position: absolute;
+
+  left: 15px;
+  right: 85px;
+  bottom: max(22px, env(safe-area-inset-bottom));
+
+  z-index: 35;
+
+  color: #fff;
+
+  pointer-events: none;
+}
+
+.live-bottom-info h2 {
+  margin: 0 0 5px;
+  font-size: 17px;
+}
+
+.live-bottom-info p {
+  margin: 0;
+  color: rgba(255,255,255,.8);
+  font-size: 12px;
+}
+
+/* Hide old action buttons */
+
+.live-screen .live-actions {
+  display: none !important;
+}
+
+/* =========================================================
+   PARTY ROOM FULLSCREEN
+========================================================= */
+
+.party-live-screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.party-live-screen .party-seat-grid {
+  position: absolute !important;
+  inset: 0 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  display: grid !important;
+
+  grid-template-columns: 1fr 1fr !important;
+  grid-template-rows: 1fr 1fr !important;
+
+  gap: 2px !important;
+
+  background: #000 !important;
+}
+
+/* Party controls stay above the seats */
+
+.party-live-screen .live-control-column {
+  z-index: 100 !important;
+}
+
+.party-live-screen .live-heart-top {
+  z-index: 100 !important;
+}
+
+/* Party header */
+
+.party-live-screen .party-live-header {
+  position: absolute !important;
+  top: max(15px, env(safe-area-inset-top));
+  left: 82px;
+  right: 80px;
+
+  z-index: 90;
+
+  color: white;
+}
+
+/* Party bottom information */
+
+.party-live-screen .party-live-bottom {
+  position: absolute !important;
+  left: 15px;
+  right: 85px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+
+  z-index: 90;
+
+  color: white;
+
+  pointer-events: none;
+}
+
+/* Make sure controls are clickable */
+
+.party-live-screen button,
+.live-screen button {
+  pointer-events: auto !important;
+    }
