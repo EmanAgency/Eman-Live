@@ -61,6 +61,13 @@ const CONFIG = {
 
 async function initializeSupabaseUser() {
 
+  if (!supabaseClient) {
+    console.warn(
+      "Supabase is unavailable. App will continue without it."
+    );
+    return null;
+  }
+
   try {
 
     const {
