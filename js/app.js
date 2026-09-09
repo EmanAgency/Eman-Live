@@ -1705,18 +1705,15 @@ function startPartyLive() {
 
 function renderOwnStream() {
 
-  stopCamera();
-
-  const stream =
-    state.currentStream;
+  const stream = state.currentStream;
 
   if (!stream) {
-
     go("live");
-
     return;
-
   }
+
+  // Stop any previous camera stream
+  stopCamera();
 
   screen.innerHTML = `
 
@@ -1728,8 +1725,15 @@ function renderOwnStream() {
           id="liveCamera"
           autoplay
           muted
-          playsinline>
+          playsinline
+          style="width:100%;height:100%;object-fit:cover;">
         </video>
+
+        <div
+          id="liveCameraMessage"
+          class="camera-message">
+          Starting camera...
+        </div>
 
         <div class="live-overlay">
 
@@ -1740,8 +1744,7 @@ function renderOwnStream() {
             </span>
 
             <span>
-              ${Number(stream.viewers || 0)}
-              viewers
+              ${Number(stream.viewers || 0)} viewers
             </span>
 
           </div>
@@ -1787,13 +1790,15 @@ function renderOwnStream() {
 
   `;
 
-  startCameraPreview(
-    "liveCamera",
-    "liveCameraMessage"
-  );
+  // Start the live camera after the screen has been created
+  setTimeout(() => {
+    startCameraPreview(
+      "liveCamera",
+      "liveCameraMessage"
+    );
+  }, 100);
 
-}
-
+         }
 
 /* =========================================================
    END LIVE
