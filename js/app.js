@@ -2095,29 +2095,90 @@ function openInbox() {
    PROFILE
 ========================================================= */
 
-function openProfile() {
+async function openProfile() {
+
+  const loggedIn = await requireLogin();
+
+  if (!loggedIn) return;
 
   const modal =
-    document.getElementById(
-      "profileModal"
-    );
-
+    document.getElementById("profileModal");
 
   if (!modal) {
-
-    alert(
-      "Profile could not be found."
-    );
-
+    alert("Profile window could not be found.");
     return;
-
   }
 
+  modal.classList.add("open");
 
-  modal.classList.add(
-    "open"
-  );
+  await loadProfileDetails();
+}
 
+
+async function loadProfileDetails() {
+
+  try {
+
+    const {
+      data: { user },
+      error
+    } =
+      await supabaseClient.auth.getUser();
+
+    if (error) throw error;
+
+    if (!user) {
+      return;
+    }
+
+    const userId =
+      document.getElementById("profileUserId");
+
+    const username =
+      document.getElementById("profileUsername");
+
+    if (userId) {
+      userId.textContent = user.id;
+    }
+
+    if (username) {
+
+      const { data: profile } =
+        await supabaseClient
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .maybeSingle();
+
+      if (
+        profile &&
+        profile.username
+      ) {
+        username.textContent =
+          profile.username;
+      } else {
+        username.textContent =
+          user.email
+            ? user.email.split("@")[0]
+            : "Eman Live User";
+      }
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Profile loading error:",
+      error
+    );
+
+    const userId =
+      document.getElementById("profileUserId");
+
+    if (userId) {
+      userId.textContent =
+        "Unable to load";
+    }
+  }
 }
 
 
