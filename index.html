@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b0b12">
+  <meta name="theme-color" content="#09090f">
   <title>Eman Live</title>
 
   <link rel="stylesheet" href="./css/style.css">
@@ -11,58 +11,54 @@
 
 <body>
 
-  <div id="app">
+<div id="app">
 
-    <!-- TOP BAR -->
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-dot"></span>
-        <span>Eman Live</span>
-      </div>
+  <!-- HEADER -->
+  <header class="topbar">
+    <button class="brand" data-action="home">
+      <span class="brand-dot">●</span>
+      <span>Eman Live</span>
+    </button>
 
-      <button class="coin-button" data-action="wallet">
-        🪙 <span id="coinMini">0</span>
-      </button>
-    </header>
+    <button class="coin-button" data-action="wallet">
+      🪙 <span id="headerCoins">0</span>
+    </button>
+  </header>
 
+  <!-- MAIN SCREEN -->
+  <main id="screen"></main>
 
-    <!-- MAIN APP SCREEN -->
-    <main id="screen"></main>
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
 
+    <button data-action="home" class="nav-button" id="navHome">
+      <span>⌂</span>
+      <small>Home</small>
+    </button>
 
-    <!-- BOTTOM NAVIGATION -->
-    <nav class="bottom-nav">
+    <button data-action="live" class="nav-button" id="navLive">
+      <span>●</span>
+      <small>Live</small>
+    </button>
 
-      <button data-nav="home">
-        <span>⌂</span>
-        <small>Home</small>
-      </button>
+    <button data-action="chat" class="nav-button" id="navChat">
+      <span>💬</span>
+      <small>Chat</small>
+    </button>
 
-      <button data-nav="live">
-        <span>🔴</span>
-        <small>Live</small>
-      </button>
+    <button data-action="me" class="nav-button" id="navMe">
+      <span>☺</span>
+      <small>Me</small>
+    </button>
 
-      <button data-nav="chat">
-        <span>💬</span>
-        <small>Chat</small>
-      </button>
+  </nav>
 
-      <button data-nav="me">
-        <span>👤</span>
-        <small>Me</small>
-      </button>
+</div>
 
-    </nav>
+<!-- TOAST -->
+<div id="toast"></div>
 
-  </div>
-
-
-  <!-- TOAST MESSAGE -->
-  <div id="toast" class="toast"></div>
-
-
-  <script src="./js/app.js"></script>
+<script src="./js/app.js"></script>
 
 </body>
-    </html>
+</html>
