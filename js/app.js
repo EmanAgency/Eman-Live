@@ -2002,6 +2002,224 @@ document.addEventListener(
   }
 );
 
+/* =========================================================
+   ME PAGE
+========================================================= */
+
+function renderMe() {
+
+  screen.innerHTML = `
+
+    <div class="page-container">
+
+      <h1 class="page-title">
+        Me
+      </h1>
+
+      <p class="page-subtitle">
+        Manage your Eman Live account
+      </p>
+
+      <!-- PROFILE -->
+      <div class="form-card">
+
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:15px;
+          margin-bottom:20px;
+        ">
+
+          <div style="
+            width:65px;
+            height:65px;
+            border-radius:50%;
+            background:#333;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:32px;
+          ">
+            👤
+          </div>
+
+          <div>
+            <h2 style="margin:0;">
+              My Profile
+            </h2>
+
+            <p style="
+              margin:5px 0 0;
+              color:#aaa;
+            ">
+              View and edit your profile
+            </p>
+          </div>
+
+        </div>
+
+        <button
+          class="primary-btn"
+          data-action="profile"
+          type="button">
+          👤 Profile
+        </button>
+
+      </div>
+
+
+      <!-- WALLET -->
+      <div class="form-card">
+
+        <h2>💰 My Wallet</h2>
+
+        <p style="color:#aaa;">
+          Manage your coins and wallet
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="wallet"
+          type="button">
+          💰 Open Wallet
+        </button>
+
+      </div>
+
+
+      <!-- INCOME -->
+      <div class="form-card">
+
+        <h2>💵 My Income</h2>
+
+        <p style="color:#aaa;">
+          View your earnings from Eman Live
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="income"
+          type="button">
+          💵 View Income
+        </button>
+
+      </div>
+
+
+      <!-- LEVELS -->
+      <div class="form-card">
+
+        <h2>⭐ My Levels</h2>
+
+        <p style="color:#aaa;">
+          View your Eman Live level and progress
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="levels"
+          type="button">
+          ⭐ View Levels
+        </button>
+
+      </div>
+
+
+      <!-- AGENCY -->
+      <div class="form-card">
+
+        <h2>🏢 Agency</h2>
+
+        <p style="color:#aaa;">
+          Manage your agency information
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="agency"
+          type="button">
+          🏢 Agency
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   PROFILE PAGE
+========================================================= */
+
+function renderProfile() {
+
+  screen.innerHTML = `
+
+    <div class="page-container">
+
+      <h1 class="page-title">
+        My Profile
+      </h1>
+
+      <p class="page-subtitle">
+        Update your Eman Live profile
+      </p>
+
+      <div class="form-card">
+
+        <div class="form-group">
+
+          <label>Display Name</label>
+
+          <input
+            id="profileName"
+            class="input"
+            type="text"
+            placeholder="Enter your name"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Bio</label>
+
+          <textarea
+            id="profileBio"
+            class="input"
+            rows="4"
+            placeholder="Tell people about yourself"
+          ></textarea>
+
+        </div>
+
+
+        <button
+          class="primary-btn"
+          data-action="saveProfile"
+          type="button">
+          💾 Save Profile
+        </button>
+
+      </div>
+
+
+      <button
+        class="secondary-btn"
+        data-action="me"
+        type="button">
+        ← Back to Me
+      </button>
+
+    </div>
+
+  `;
+
+}
 
 /* =========================================================
    STARTUP
