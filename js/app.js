@@ -1,295 +1,383 @@
 /* =========================================================
    EMAN LIVE
-   CLEAN APP VERSION
+   CLEAN BUTTON SYSTEM
 ========================================================= */
 
+"use strict";
 
 /* =========================================================
-   CONFIGURATION
+   CONFIG
 ========================================================= */
 
 const CONFIG = {
-
   appName: "Eman Live",
+
+  usdtAddress:
+    "0xec05bb37867f5e75a706a1face5304fd40a8f54c",
+
+  network:
+    "BNB Smart Chain · BEP20",
 
   livekitUrl:
     "wss://eman-live-ckbb612s.livekit.cloud",
 
   tokenServer:
-    "https://emanlive-2j2epi.sandbox.livekit.io",
-
-  paymentNetwork:
-    "BNB Smart Chain · BEP20",
-
-  paymentWallet:
-    "0xec05bb37867f5e75a706a1face5304fd40a8f54c"
-
+    "https://emanlive-2j2epi.sandbox.livekit.io"
 };
 
 
 /* =========================================================
-   STATE
+   STORAGE
 ========================================================= */
 
-const savedState =
-  localStorage.getItem("emanLiveState");
-
-const state =
-  savedState
-    ? JSON.parse(savedState)
-    : {
-
-        user: {
-
-          id: "ID814203",
-
-          username: "New User",
-
-          name: "New User",
-
-          bio: "",
-
-          gender: "",
-
-          birthday: "",
-
-          country: "",
-
-          language: "",
-
-          avatar: "",
-
-          album: []
-
-        },
-
-        coins: 7000,
-
-        beans: 0,
-
-        wealthXP: 120,
-
-        charmXP: 80,
-
-        messages: [],
-
-        moments: [],
-
-        withdrawals: [],
-
-        gifts: [],
-
-        currentScreen: "home",
-
-        meTab: "profile",
-
-        walletTab: "buy"
-
-      };
+const STORAGE_KEY = "eman_live_clean_v1";
 
 
-/* =========================================================
-   SAVE
-========================================================= */
+const defaultState = {
+  page: "home",
+
+  meTab: "profile",
+
+  walletTab: "buy",
+
+  coins: 0,
+
+  beans: 0,
+
+  wealthXP: 0,
+
+  charmXP: 0,
+
+  profile: {
+    name: "Eman User",
+    username: "emanuser",
+    id: "EMAN100001",
+    bio: "Welcome to Eman Live!",
+    gender: "",
+    birthday: "",
+    country: "Trinidad and Tobago",
+    language: "English",
+    avatar: "",
+    album: []
+  },
+
+  rechargeHistory: [],
+
+  giftHistory: [],
+
+  withdrawalHistory: [],
+
+  messages: [],
+
+  moments: [],
+
+  currentCover: "",
+
+  currentStream: null
+};
+
+
+let state = loadState();
+
+
+function loadState() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+      return structuredClone(defaultState);
+    }
+
+    return {
+      ...structuredClone(defaultState),
+      ...JSON.parse(saved)
+    };
+
+  } catch (error) {
+
+    console.error(error);
+
+    return structuredClone(defaultState);
+  }
+}
+
 
 function saveState() {
 
   localStorage.setItem(
-    "emanLiveState",
+    STORAGE_KEY,
     JSON.stringify(state)
   );
 
+  updateHeaderCoins();
 }
 
 
 /* =========================================================
-   HELPERS
+   DEMO HOSTS
 ========================================================= */
 
-function $(selector) {
-
-  return document.querySelector(selector);
-
-}
-
-
-function escapeHTML(value) {
-
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
-}
-
-
-function formatNumber(number) {
-
-  return Number(number || 0)
-    .toLocaleString();
-
-}
-
-
-function showToast(message) {
-
-  const toast = $("#toast");
-
-  if (!toast) return;
-
-  toast.textContent = message;
-
-  toast.classList.add("show");
-
-  setTimeout(() => {
-
-    toast.classList.remove("show");
-
-  }, 2200);
-
-}
-
-
-function dateNow() {
-
-  return new Date()
-    .toLocaleDateString();
-
-}
-
-
-/* =========================================================
-   AVATARS
-========================================================= */
-
-function avatarHTML() {
-
-  if (state.user.avatar) {
-
-    return `
-      <div class="avatar">
-        <img
-          src="${escapeHTML(state.user.avatar)}"
-          alt="Profile"
-        >
-      </div>
-    `;
-
-  }
-
-  return `
-    <div class="avatar">
-      👤
-    </div>
-  `;
-
-}
-
-
-/* =========================================================
-   POPULAR HOSTS
-========================================================= */
-
-const popularHosts = [
+const hosts = [
 
   {
-    name: "Luna",
-    id: "ID100201",
-    viewers: 1842,
-    cover:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900"
-  },
-
-  {
+    id: 1,
     name: "Mia",
-    id: "ID100338",
-    viewers: 1250,
-    cover:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=900"
+    username: "@mia_live",
+    viewers: 1240,
+    image:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80"
   },
 
   {
+    id: 2,
+    name: "Aaliyah",
+    username: "@aaliyah",
+    viewers: 892,
+    image:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80"
+  },
+
+  {
+    id: 3,
+    name: "Jasmine",
+    username: "@jasmine_live",
+    viewers: 764,
+    image:
+      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=80"
+  },
+
+  {
+    id: 4,
     name: "Sofia",
-    id: "ID100441",
-    viewers: 986,
-    cover:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=900"
-  },
-
-  {
-    name: "Nina",
-    id: "ID100577",
-    viewers: 731,
-    cover:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=900"
-  },
-
-  {
-    name: "Emma",
-    id: "ID100689",
-    viewers: 614,
-    cover:
-      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=900"
-  },
-
-  {
-    name: "Bella",
-    id: "ID100721",
-    viewers: 508,
-    cover:
-      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=900"
+    username: "@sofia",
+    viewers: 521,
+    image:
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80"
   }
 
 ];
 
 
 /* =========================================================
-   NAVIGATION
+   GIFTS
 ========================================================= */
 
-function navigate(screen) {
+const gifts = [
 
-  state.currentScreen = screen;
+  {
+    name: "Rose",
+    icon: "🌹",
+    coins: 10,
+    category: "Popular"
+  },
 
-  saveState();
+  {
+    name: "Heart",
+    icon: "❤️",
+    coins: 20,
+    category: "Love"
+  },
 
-  render();
+  {
+    name: "Kiss",
+    icon: "💋",
+    coins: 50,
+    category: "Love"
+  },
 
+  {
+    name: "Crown",
+    icon: "👑",
+    coins: 100,
+    category: "Luxury"
+  },
+
+  {
+    name: "Diamond",
+    icon: "💎",
+    coins: 500,
+    category: "Luxury"
+  },
+
+  {
+    name: "Car",
+    icon: "🏎️",
+    coins: 1000,
+    category: "Luxury"
+  },
+
+  {
+    name: "Fire",
+    icon: "🔥",
+    coins: 30,
+    category: "Fun"
+  },
+
+  {
+    name: "Party",
+    icon: "🎉",
+    coins: 75,
+    category: "Fun"
+  },
+
+  {
+    name: "Star",
+    icon: "⭐",
+    coins: 25,
+    category: "Popular"
+  },
+
+  {
+    name: "Gift",
+    icon: "🎁",
+    coins: 150,
+    category: "Popular"
+  },
+
+  {
+    name: "Rocket",
+    icon: "🚀",
+    coins: 300,
+    category: "Luxury"
+  },
+
+  {
+    name: "Unicorn",
+    icon: "🦄",
+    coins: 700,
+    category: "Luxury"
+  },
+
+  {
+    name: "Love",
+    icon: "💖",
+    coins: 40,
+    category: "Love"
+  },
+
+  {
+    name: "Laugh",
+    icon: "😂",
+    coins: 15,
+    category: "Fun"
+  }
+
+];
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const screen =
+  document.getElementById("screen");
+
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 
-document.addEventListener(
-  "click",
-  function(event) {
+function toast(message) {
 
-    const nav =
-      event.target.closest("[data-nav]");
+  const el =
+    document.getElementById("toast");
 
-    if (nav) {
+  el.textContent = message;
 
-      navigate(nav.dataset.nav);
+  el.classList.add("show");
 
-      return;
+  clearTimeout(window.toastTimer);
 
-    }
+  window.toastTimer =
+    setTimeout(() => {
+
+      el.classList.remove("show");
+
+    }, 2500);
+}
 
 
-    const action =
-      event.target.closest("[data-action]");
+function updateHeaderCoins() {
 
-    if (action) {
+  const el =
+    document.getElementById("headerCoins");
 
-      handleAction(
-        action.dataset.action,
-        action
-      );
-
-    }
-
+  if (el) {
+    el.textContent =
+      Number(state.coins).toLocaleString();
   }
-);
+}
+
+
+function money(value) {
+
+  return "$" +
+    Number(value).toLocaleString(
+      undefined,
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }
+    );
+}
+
+
+function activateNav() {
+
+  document
+    .querySelectorAll(".nav-button")
+    .forEach(button => {
+
+      button.classList.remove("active");
+
+    });
+
+  const map = {
+    home: "navHome",
+    live: "navLive",
+    chat: "navChat",
+    me: "navMe"
+  };
+
+  const id = map[state.page];
+
+  if (id) {
+
+    const button =
+      document.getElementById(id);
+
+    if (button) {
+      button.classList.add("active");
+    }
+  }
+}
+
+
+/* =========================================================
+   ROUTING
+========================================================= */
+
+function go(page) {
+
+  state.page = page;
+
+  render();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
 
 
 /* =========================================================
@@ -298,300 +386,218 @@ document.addEventListener(
 
 function render() {
 
-  renderScreen();
+  updateHeaderCoins();
 
-  updateNavigation();
+  activateNav();
 
-  updateCoins();
-
-}
-
-
-/* =========================================================
-   NAV ACTIVE STATE
-========================================================= */
-
-function updateNavigation() {
-
-  document
-    .querySelectorAll("[data-nav]")
-    .forEach(button => {
-
-      button.classList.toggle(
-        "active",
-        button.dataset.nav ===
-        state.currentScreen
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   COIN DISPLAY
-========================================================= */
-
-function updateCoins() {
-
-  const mini =
-    $("#coinMini");
-
-  if (mini) {
-
-    mini.textContent =
-      formatNumber(state.coins);
-
-  }
-
-}
-
-
-/* =========================================================
-   SCREEN ROUTER
-========================================================= */
-
-function renderScreen() {
-
-  const screen =
-    $("#screen");
-
-  if (!screen) return;
-
-
-  switch (state.currentScreen) {
+  switch (state.page) {
 
     case "home":
-
-      screen.innerHTML =
-        homePage();
-
+      renderHome();
       break;
-
 
     case "live":
-
-      screen.innerHTML =
-        livePage();
-
+      renderLive();
       break;
-
 
     case "chat":
-
-      screen.innerHTML =
-        chatPage();
-
+      renderChat();
       break;
-
 
     case "me":
-
-      screen.innerHTML =
-        mePage();
-
+      renderMe();
       break;
 
+    case "party":
+      renderParty();
+      break;
+
+    case "moments":
+      renderMoments();
+      break;
+
+    case "setup":
+      renderLiveSetup();
+      break;
+
+    case "partySetup":
+      renderPartySetup();
+      break;
 
     default:
-
-      state.currentScreen = "home";
-
-      screen.innerHTML =
-        homePage();
-
+      renderHome();
   }
-
 }
 
 
 /* =========================================================
-   HOME / POPULAR
+   HOME
 ========================================================= */
 
-function homePage() {
+function renderHome() {
 
-  return `
+  screen.innerHTML = `
 
     <div class="hero">
 
-      <h1>Popular</h1>
+      <h1>Popular Live Hosts</h1>
 
       <p>
-        Discover the most popular hosts
-        who are online right now.
+        Watch your favorite hosts online,
+        send gifts and enjoy Eman Live.
       </p>
 
-    </div>
-
-
-    <div class="pill-row">
-
-      <button class="pill active">
-        Popular
-      </button>
-
-      <button class="pill">
-        Following
-      </button>
-
-      <button class="pill">
-        New
-      </button>
-
-    </div>
-
-
-    <div class="section-title">
-
-      <h2>
-        Popular Live
-      </h2>
-
-      <span class="muted">
-        ${popularHosts.length} online
-      </span>
-
-    </div>
-
-
-    <div class="host-grid">
-
-      ${popularHosts.map(host => `
-
-        <article class="host-card">
-
-          <div class="host-cover">
-
-            <img
-              src="${host.cover}"
-              alt="${escapeHTML(host.name)}"
-              loading="lazy"
-            >
-
-            <span class="online">
-              ● LIVE
-            </span>
-
-            <span class="viewer">
-              👁 ${formatNumber(host.viewers)}
-            </span>
-
-          </div>
-
-
-          <div class="host-info">
-
-            <div class="host-name">
-              ${escapeHTML(host.name)}
-            </div>
-
-            <div class="host-id">
-              ${escapeHTML(host.id)}
-            </div>
-
-
-            <button
-              class="primary"
-              data-action="watchHost"
-              data-name="${escapeHTML(host.name)}"
-            >
-              Watch Live
-            </button>
-
-          </div>
-
-        </article>
-
-      `).join("")}
-
-    </div>
-
-
-    <div class="section-title">
-
-      <h2>
-        Explore
-      </h2>
-
-    </div>
-
-
-    <div class="feature-list">
-
-
       <button
-        class="feature"
-        data-action="party"
-      >
-
-        <b>
-          🎉 Party Room
-        </b>
-
-        <span>
-          Join popular multi-video
-          party rooms.
-        </span>
-
+        class="primary-btn"
+        data-action="live">
+        🔴 Go Live
       </button>
 
-
-      <button
-        class="feature"
-        data-action="moments"
-      >
-
-        <b>
-          📸 Moments
-        </b>
-
-        <span>
-          See pictures and videos
-          from hosts.
-        </span>
-
-      </button>
+    </div>
 
 
-      <button
-        class="feature"
-        data-action="inbox"
-      >
+    <div class="section">
 
-        <b>
-          📥 Inbox
-        </b>
+      <div class="section-header">
+        <h2>Explore</h2>
+      </div>
 
-        <span>
-          Private messages and
-          conversations.
-        </span>
+      <div class="action-grid">
 
-      </button>
+        <button
+          class="action-card"
+          data-action="party">
+
+          <span class="icon">🎥</span>
+
+          <strong>Party Room</strong>
+
+          <span>
+            Join popular multi-video rooms
+          </span>
+
+        </button>
 
 
-      <button
-        class="feature"
-        data-action="me"
-      >
+        <button
+          class="action-card"
+          data-action="moments">
 
-        <b>
-          👤 Me
-        </b>
+          <span class="icon">📸</span>
 
-        <span>
-          Profile, Wallet, Income,
-          Level and Agency.
-        </span>
+          <strong>Moment</strong>
 
-      </button>
+          <span>
+            Photos and videos from hosts
+          </span>
 
+        </button>
+
+
+        <button
+          class="action-card"
+          data-action="chat">
+
+          <span class="icon">💬</span>
+
+          <strong>Inbox</strong>
+
+          <span>
+            Your private messages
+          </span>
+
+        </button>
+
+
+        <button
+          class="action-card"
+          data-action="me">
+
+          <span class="icon">👤</span>
+
+          <strong>Me</strong>
+
+          <span>
+            Profile, wallet and income
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="section">
+
+      <div class="section-header">
+
+        <h2>Popular Hosts Online</h2>
+
+        <button
+          class="secondary-btn small-btn"
+          data-action="live">
+          View Live
+        </button>
+
+      </div>
+
+      <div class="host-grid">
+
+        ${hosts.map(hostCard).join("")}
+
+      </div>
 
     </div>
 
   `;
+}
 
+
+function hostCard(host) {
+
+  return `
+
+    <article class="host-card">
+
+      <button
+        style="display:block;width:100%;background:none;color:white;text-align:left"
+        data-action="watch"
+        data-id="${host.id}">
+
+        <div class="host-cover">
+
+          <img
+            src="${host.image}"
+            alt="${escapeHTML(host.name)}">
+
+          <span class="live-badge">
+            LIVE
+          </span>
+
+          <span class="viewer-badge">
+            👁 ${host.viewers.toLocaleString()}
+          </span>
+
+        </div>
+
+        <div class="host-info">
+
+          <strong>
+            ${escapeHTML(host.name)}
+          </strong>
+
+          <span>
+            ${escapeHTML(host.username)}
+          </span>
+
+        </div>
+
+      </button>
+
+    </article>
+
+  `;
 }
 
 
@@ -599,821 +605,697 @@ function homePage() {
    LIVE PAGE
 ========================================================= */
 
-function livePage() {
+function renderLive() {
 
-  return `
+  screen.innerHTML = `
 
-    <div class="page-head">
+    <h1 class="page-title">
+      Go Live
+    </h1>
 
-      <h1>
-        Go Live
-      </h1>
+    <p class="page-subtitle">
+      Choose how you want to go live.
+    </p>
+
+
+    <div class="option-grid">
+
+      <div class="option-card">
+
+        <div class="big-icon">
+          📱
+        </div>
+
+        <h2>Solo Live</h2>
+
+        <p>
+          Start your own live stream
+          with your camera.
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="soloSetup">
+
+          Start Solo Live
+
+        </button>
+
+      </div>
+
+
+      <div class="option-card">
+
+        <div class="big-icon">
+          🎥
+        </div>
+
+        <h2>Party Room</h2>
+
+        <p>
+          Start a multi-video party room
+          with other users.
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="partySetup">
+
+          Start Party Room
+
+        </button>
+
+      </div>
 
     </div>
 
 
-    <div class="hero">
+    <div class="section">
 
-      <h1>
-        Start your live
-      </h1>
+      <h2 style="margin-bottom:12px">
+        Popular Party Rooms
+      </h2>
 
-      <p>
-        Choose how you want to broadcast.
-        Your camera will open before
-        you start.
-      </p>
-
-    </div>
-
-
-    <div class="live-choice">
-
-
-      <button
-        class="choice"
-        data-action="solo"
-      >
-
-        <div class="big">
-          📹
-        </div>
-
-        <h2>
-          Solo Live
-        </h2>
-
-        <p>
-          Go live by yourself and
-          receive gifts from viewers.
-        </p>
-
-      </button>
-
-
-      <button
-        class="choice party"
-        data-action="partySetup"
-      >
-
-        <div class="big">
-          👥
-        </div>
-
-        <h2>
-          Party Room
-        </h2>
-
-        <p>
-          Start a multi-video room and
-          invite other users.
-        </p>
-
-      </button>
-
+      ${partyRoomCards()}
 
     </div>
 
   `;
-
 }
 
 
 /* =========================================================
-   CAMERA SETUP
+   PARTY ROOM CARDS
 ========================================================= */
 
-function cameraSetup(mode) {
+function partyRoomCards() {
 
-  return `
+  const rooms = [
 
-    <div class="page-head">
+    {
+      name: "Girls Night",
+      users: 4,
+      viewers: 1850,
+      image: hosts[0].image
+    },
+
+    {
+      name: "Music Party",
+      users: 3,
+      viewers: 1240,
+      image: hosts[1].image
+    },
+
+    {
+      name: "Late Night",
+      users: 4,
+      viewers: 970,
+      image: hosts[2].image
+    }
+
+  ];
+
+
+  return rooms.map(room => `
+
+    <div class="party-room">
+
+      <div class="party-cover">
+
+        <img src="${room.image}">
+
+        <span class="live-badge">
+          LIVE
+        </span>
+
+        <span class="viewer-badge">
+          👁 ${room.viewers.toLocaleString()}
+        </span>
+
+      </div>
+
+      <div class="party-content">
+
+        <h3>
+          ${room.name}
+        </h3>
+
+        <p>
+          ${room.users} people in the room
+        </p>
+
+        <button
+          class="primary-btn"
+          data-action="joinParty"
+          data-name="${escapeHTML(room.name)}">
+
+          Join Party Room
+
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+}
+
+
+/* =========================================================
+   SOLO SETUP
+========================================================= */
+
+function renderLiveSetup() {
+
+  screen.innerHTML = `
+
+    <h1 class="page-title">
+      Solo Live Setup
+    </h1>
+
+    <p class="page-subtitle">
+      Your camera and cover photo are required.
+    </p>
+
+
+    <div class="form-card">
+
+      <div class="camera-box">
+
+        <video
+          id="setupCamera"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+        <div
+          id="cameraMessage"
+          class="camera-message">
+
+          Camera preview will appear here.
+
+        </div>
+
+      </div>
+
 
       <button
-        class="back"
-        data-action="live"
-      >
-        ‹
+        class="secondary-btn"
+        data-action="camera">
+
+        📷 Open Camera
+
       </button>
 
-      <h1>
-        ${
-          mode === "party"
-            ? "Party Room"
-            : "Solo Live"
-        }
-      </h1>
-
     </div>
 
 
-    <div class="camera-box">
+    <div class="form-card">
 
-      <video
-        id="preview"
-        autoplay
-        muted
-        playsinline
-      ></video>
+      <div class="form-group">
 
-      <div class="camera-label">
-        Camera Preview
-      </div>
+        <label>
+          Live Cover Photo *
+        </label>
 
-    </div>
+        <div
+          id="coverPreview"
+          class="cover-preview">
 
+          Select a cover photo
 
-    <div class="form">
-
-
-      <div class="label">
-        Live cover photo — required
-      </div>
-
-
-      <label
-        class="cover-picker"
-        id="coverPicker"
-      >
-
-        <span>
-          📷 Tap to choose a live
-          cover photo
-        </span>
+        </div>
 
         <input
           id="coverInput"
+          class="input"
           type="file"
-          accept="image/*"
-          hidden
-        >
+          accept="image/*">
 
-      </label>
+      </div>
 
 
-      <input
-        class="field"
-        id="liveTitle"
-        placeholder="Live title"
-      >
+      <div class="form-group">
+
+        <label>
+          Live Title *
+        </label>
+
+        <input
+          id="liveTitle"
+          class="input"
+          placeholder="Enter your live title">
+
+      </div>
 
 
-      <select
-        class="field"
-        id="category"
-      >
+      <div class="form-group">
 
-        <option>
-          Chat
-        </option>
+        <label>
+          Category
+        </label>
 
-        <option>
-          Music
-        </option>
+        <select
+          id="liveCategory"
+          class="input">
 
-        <option>
-          Dance
-        </option>
+          <option>Chat</option>
+          <option>Music</option>
+          <option>Entertainment</option>
+          <option>Gaming</option>
+          <option>Lifestyle</option>
 
-        <option>
-          Beauty
-        </option>
+        </select>
 
-        <option>
-          Gaming
-        </option>
-
-        <option>
-          Party
-        </option>
-
-        <option>
-          Talent
-        </option>
-
-        <option>
-          Other
-        </option>
-
-      </select>
-
-
-      <select
-        class="field"
-        id="privacy"
-      >
-
-        <option>
-          Public
-        </option>
-
-        <option>
-          Friends
-        </option>
-
-      </select>
+      </div>
 
 
       <button
-        class="primary"
-        data-action="startBroadcast"
-        data-mode="${mode}"
-      >
+        class="primary-btn"
+        data-action="startSolo">
 
-        Start ${
-          mode === "party"
-            ? "Party Room"
-            : "Live"
-        }
+        🔴 Start Live
 
       </button>
-
-
-      <button
-        class="secondary"
-        data-action="live"
-      >
-
-        Cancel
-
-      </button>
-
 
     </div>
 
+
+    <button
+      class="secondary-btn"
+      data-action="live">
+
+      ← Back
+
+    </button>
+
   `;
 
+  startCameraPreview();
 }
 
 
 /* =========================================================
-   OPEN CAMERA
+   CAMERA
 ========================================================= */
 
-async function openCamera() {
+let cameraStream = null;
+
+
+async function startCameraPreview() {
+
+  const video =
+    document.getElementById("setupCamera");
+
+  const message =
+    document.getElementById("cameraMessage");
+
+  if (!video) return;
 
   try {
 
-    if (
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
 
-      showToast(
-        "Camera is not supported by this browser."
-      );
+    video.srcObject =
+      cameraStream;
 
-      return;
-
+    if (message) {
+      message.style.display = "none";
     }
 
+  } catch (error) {
 
-    const stream =
-      await navigator.mediaDevices
-        .getUserMedia({
+    console.error(error);
 
-          video: true,
+    if (message) {
 
-          audio: true
+      message.style.display = "flex";
 
-        });
-
-
-    window.emanCamera =
-      stream;
-
-
-    const preview =
-      $("#preview");
-
-
-    if (preview) {
-
-      preview.srcObject =
-        stream;
-
+      message.innerHTML =
+        "Camera permission was not granted.<br><br>" +
+        "Tap Open Camera and allow camera access.";
     }
-
   }
-
-  catch (error) {
-
-    console.log(error);
-
-    showToast(
-      "Please allow camera and microphone access."
-    );
-
-  }
-
 }
 
 
-/* =========================================================
-   STOP CAMERA
-========================================================= */
+async function openCameraAgain() {
+
+  await startCameraPreview();
+
+  toast("Camera started");
+}
+
 
 function stopCamera() {
 
-  if (window.emanCamera) {
+  if (!cameraStream) return;
 
-    window.emanCamera
-      .getTracks()
-      .forEach(track => {
+  cameraStream
+    .getTracks()
+    .forEach(track => track.stop());
 
-        track.stop();
-
-      });
-
-    window.emanCamera =
-      null;
-
-  }
-
+  cameraStream = null;
 }
 
 
 /* =========================================================
-   SETUP LIVE
+   COVER PREVIEW
 ========================================================= */
 
-function setupLive(mode) {
-
-  stopCamera();
-
-  window.liveCover = null;
-
-
-  $("#screen").innerHTML =
-    cameraSetup(mode);
-
-
-  openCamera();
-
+function setupCoverInput() {
 
   const input =
-    $("#coverInput");
-
+    document.getElementById("coverInput");
 
   if (!input) return;
 
-
   input.addEventListener(
     "change",
-    function() {
+    event => {
 
       const file =
-        input.files[0];
+        event.target.files?.[0];
 
       if (!file) return;
-
 
       const reader =
         new FileReader();
 
+      reader.onload = () => {
 
-      reader.onload =
-        function() {
+        state.currentCover =
+          reader.result;
 
-          window.liveCover =
-            reader.result;
+        const preview =
+          document.getElementById(
+            "coverPreview"
+          );
 
+        if (preview) {
 
-          const picker =
-            $("#coverPicker");
-
-
-          if (picker) {
-
-            picker.innerHTML = `
-
-              <img
-                src="${reader.result}"
-                alt="Live Cover"
-              >
-
-            `;
-
-          }
-
-        };
-
-
-      reader.readAsDataURL(file);
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   PARTY ROOM PAGE
-========================================================= */
-
-function partyPage() {
-
-  return `
-
-    <div class="page-head">
-
-      <h1>
-        Party Room
-      </h1>
-
-    </div>
-
-
-    <div class="hero">
-
-      <h1>
-        Popular Party Rooms
-      </h1>
-
-      <p>
-        Join a multi-video party room
-        with popular users online.
-      </p>
-
-    </div>
-
-
-    <div class="host-grid">
-
-      ${popularHosts.slice(0, 4).map(
-        (host, index) => `
-
-        <article class="host-card">
-
-          <div class="host-cover">
+          preview.innerHTML = `
 
             <img
-              src="${host.cover}"
-              alt="${escapeHTML(host.name)}"
-            >
+              src="${reader.result}"
+              alt="Cover preview">
 
-            <span class="online">
-              ● LIVE
-            </span>
+          `;
+        }
+      };
 
-            <span class="viewer">
-              👁 ${formatNumber(host.viewers)}
-            </span>
-
-          </div>
+      reader.readAsDataURL(file);
+    }
+  );
+}
 
 
-          <div class="host-info">
+/* =========================================================
+   START SOLO
+========================================================= */
 
-            <div class="host-name">
+function startSoloLive() {
 
-              Room ${index + 1}
+  const title =
+    document.getElementById("liveTitle")
+      ?.value
+      .trim();
 
-              ·
+  if (!title) {
 
-              ${escapeHTML(host.name)}
+    toast("Please enter a live title.");
 
-            </div>
+    return;
+  }
 
+  if (!state.currentCover) {
 
-            <div class="host-id">
+    toast("Please select a live cover photo.");
 
-              ${
-                index === 0
-                  ? "4 seats available"
-                  : "3 seats available"
-              }
+    return;
+  }
 
-            </div>
+  state.currentStream = {
+    type: "solo",
+    title: title,
+    cover: state.currentCover,
+    startedAt: Date.now(),
+    viewers: 0,
+    hearts: 0
+  };
 
+  saveState();
 
-            <button
-              class="primary"
-              data-action="joinParty"
-              data-name="${escapeHTML(host.name)}"
-            >
-
-              Join Room
-
-            </button>
-
-          </div>
-
-        </article>
-
-      `).join("")}
-
-    </div>
-
-  `;
+  renderOwnStream();
 
 }
 
 
 /* =========================================================
-   MOMENTS
+   OWN STREAM
 ========================================================= */
 
-function momentsPage() {
+function renderOwnStream() {
 
-  const demoMoments =
-    state.moments.length
-      ? state.moments
-      : popularHosts.map(host => ({
+  const stream =
+    state.currentStream;
 
-          name: host.name,
+  screen.innerHTML = `
 
-          img: host.cover,
+    <div class="stream-room">
 
-          text:
-            "Having a great time on Eman Live! 💕"
+      <div class="stream-top">
 
-        }));
-
-
-  return `
-
-    <div class="page-head">
-
-      <h1>
-        Moments
-      </h1>
-
-    </div>
-
-
-    <div class="hero">
-
-      <h1>
-        Moments
-      </h1>
-
-      <p>
-        Share pictures and videos
-        with your audience.
-      </p>
-
-
-      <button
-        class="primary"
-        data-action="postMoment"
-      >
-
-        ＋ Post a Moment
-
-      </button>
-
-    </div>
-
-
-    <div class="moment-grid">
-
-      ${demoMoments.map(moment => `
-
-        <article class="moment">
+        <div class="stream-info">
 
           <img
-            src="${escapeHTML(moment.img)}"
-            loading="lazy"
-            alt="Moment"
-          >
+            class="stream-avatar"
+            src="${state.profile.avatar || hosts[0].image}">
 
-          <div class="body">
+          <div>
 
-            <b>
-              ${escapeHTML(moment.name)}
-            </b>
+            <strong>
+              ${escapeHTML(state.profile.name)}
+            </strong>
 
-            <p class="muted">
-
-              ${escapeHTML(moment.text)}
-
-            </p>
-
-          </div>
-
-        </article>
-
-      `).join("")}
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================================
-   CHAT / INBOX
-========================================================= */
-
-function chatPage() {
-
-  return `
-
-    <div class="page-head">
-
-      <h1>
-        Inbox
-      </h1>
-
-    </div>
-
-
-    <div class="chat-list">
-
-      ${
-        state.messages.length
-
-        ?
-
-        state.messages.map(message => `
-
-          <div class="chat-item">
-
-            <div class="avatar-sm">
-              👤
-            </div>
-
-            <div>
-
-              <b>
-                ${escapeHTML(message.from)}
-              </b>
-
-              <div class="muted">
-
-                ${escapeHTML(message.text)}
-
-              </div>
-
+            <div style="color:#ff5270;font-size:12px">
+              🔴 LIVE
             </div>
 
           </div>
-
-        `).join("")
-
-        :
-
-        `
-
-          <div class="empty">
-
-            No private messages yet.
-
-            <br><br>
-
-            Messages from hosts and
-            friends will appear here.
-
-          </div>
-
-        `
-      }
-
-    </div>
-
-
-    <div class="message-box">
-
-      <input
-        id="messageInput"
-        class="field"
-        placeholder="Write a private message"
-      >
-
-
-      <button
-        class="primary"
-        style="width:auto;margin:0"
-        data-action="sendMessage"
-      >
-
-        Send
-
-      </button>
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================================
-   ME PAGE
-========================================================= */
-
-function mePage() {
-
-  const tab =
-    state.meTab || "profile";
-
-
-  return `
-
-    <div class="page-head">
-
-      <h1>
-        Me
-      </h1>
-
-    </div>
-
-
-    <div class="profile-head">
-
-      ${avatarHTML()}
-
-
-      <div>
-
-        <h2 style="margin:0">
-
-          ${escapeHTML(
-            state.user.username
-          )}
-
-        </h2>
-
-
-        <div class="muted">
-
-          ${escapeHTML(
-            state.user.id
-          )}
 
         </div>
+
+        <button
+          class="danger-btn small-btn"
+          data-action="endLive">
+
+          End Live
+
+        </button>
+
+      </div>
+
+
+      <div class="stream-stage">
+
+        <video
+          id="liveVideo"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+      </div>
+
+
+      <div class="stream-stats">
+
+        <div class="stream-stat">
+          👁 <span id="liveViewers">0</span>
+        </div>
+
+        <div class="stream-stat">
+          ❤️ <span id="liveHearts">0</span>
+        </div>
+
+        <div class="stream-stat">
+          🪙 ${state.coins.toLocaleString()}
+        </div>
+
+      </div>
+
+
+      <div class="stream-chat">
+
+        <p>
+          <strong>System:</strong>
+          Your live stream has started.
+        </p>
+
+        <p>
+          <strong>System:</strong>
+          Viewers can send gifts here.
+        </p>
+
+      </div>
+
+
+      <div class="stream-controls">
+
+        <button
+          class="secondary-btn"
+          data-action="sendGift">
+
+          🎁 Gifts
+
+        </button>
+
+        <button
+          class="secondary-btn"
+          data-action="heart">
+
+          ❤️ Send Heart
+
+        </button>
 
       </div>
 
     </div>
 
+  `;
 
-    <div class="tabs">
+  activateOwnVideo();
+
+}
+
+
+function activateOwnVideo() {
+
+  const video =
+    document.getElementById("liveVideo");
+
+  if (!video || !cameraStream) return;
+
+  video.srcObject =
+    cameraStream;
+}
+
+
+function endLive() {
+
+  stopCamera();
+
+  state.currentStream = null;
+
+  state.currentCover = "";
+
+  saveState();
+
+  toast("Live ended.");
+
+  go("home");
+}
+
+
+/* =========================================================
+   PARTY SETUP
+========================================================= */
+
+function renderPartySetup() {
+
+  screen.innerHTML = `
+
+    <h1 class="page-title">
+      Party Room Setup
+    </h1>
+
+    <p class="page-subtitle">
+      Camera and cover photo are required.
+    </p>
+
+
+    <div class="form-card">
+
+      <div class="camera-box">
+
+        <video
+          id="partyCamera"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+        <div
+          id="partyCameraMessage"
+          class="camera-message">
+
+          Camera preview will appear here.
+
+        </div>
+
+      </div>
 
 
       <button
-        class="${tab === "profile" ? "active" : ""}"
-        data-action="meTab"
-        data-tab="profile"
-      >
+        class="secondary-btn"
+        data-action="camera">
 
-        Profile
+        📷 Open Camera
 
       </button>
-
-
-      <button
-        class="${tab === "wallet" ? "active" : ""}"
-        data-action="meTab"
-        data-tab="wallet"
-      >
-
-        Wallet
-
-      </button>
-
-
-      <button
-        class="${tab === "income" ? "active" : ""}"
-        data-action="meTab"
-        data-tab="income"
-      >
-
-        Income
-
-      </button>
-
-
-      <button
-        class="${tab === "level" ? "active" : ""}"
-        data-action="meTab"
-        data-tab="level"
-      >
-
-        Level
-
-      </button>
-
-
-      <button
-        class="${tab === "agency" ? "active" : ""}"
-        data-action="meTab"
-        data-tab="agency"
-      >
-
-        Agency
-
-      </button>
-
 
     </div>
 
 
-    ${
-      tab === "profile"
-        ? profileTab()
+    <div class="form-card">
 
-        : tab === "wallet"
-        ? walletTab
+      <div class="form-group">
+
+        <label>
+          Party Cover Photo *
+        </label>
+
+        <div
+          id="partyCoverPreview"
+          class="cover-preview">
+
+          Select a cover photo
+
+        </div>
+
+        <input
+          id="partyCoverInput"
+          class="input"
+          type="file"
+          accept="image/*">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          Party Room Name *
+        </label>
+
+        <input
+          id="partyTitle"
+          class="input"
+          placeholder="Enter party room name">
+
+      </div>
+
+
+      <button
+        class="primary-btn"
+        data-action="startParty">
+
+        🎥 Start Party Room
+
+  
