@@ -31,6 +31,17 @@ if (window.supabase) {
 
 let currentSupabaseUser = null;
 
+/* =========================================================
+   LIVEKIT
+========================================================= */
+
+const LIVEKIT_URL =
+  "wss://eman-live-ckbb612s.livekit.cloud";
+
+const LIVEKIT_TOKEN_SERVER_ID =
+  "emanlive-2j2epi";
+
+let partyRoom = null;
 
 /* =========================================================
    CONFIG
