@@ -16,6 +16,8 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_LsGL8Os9cgqLmItWgk0ADg_nBWuLs7I";
 
+let supabaseClient = null;
+
 
 if (window.supabase) {
   supabaseClient = window.supabase.createClient(
@@ -29,7 +31,6 @@ if (window.supabase) {
 }
 
 let currentSupabaseUser = null;
-
 const supabase = supabaseClient;
 
 /* =========================================================
