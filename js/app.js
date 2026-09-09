@@ -1,3 +1,84 @@
+// ============================================
+// SUPABASE
+// ============================================
+
+const SUPABASE_URL =
+  "https://kzuaaihvehqhipwmrzal.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_LsGL8Os9cgqLmItWgk0ADg_nBWuLs7I";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+// ============================================
+// SUPABASE USER SESSION
+// ============================================
+
+let currentSupabaseUser = null;
+
+async function initializeSupabaseUser() {
+
+  try {
+
+    const {
+      data: {
+        session
+      }
+    } = await supabaseClient.auth.getSession();
+
+    if (session && session.user) {
+
+      currentSupabaseUser = session.user;
+
+      console.log(
+        "Supabase user:",
+        currentSupabaseUser.id
+      );
+
+      return currentSupabaseUser;
+    }
+
+    const {
+      data,
+      error
+    } = await supabaseClient.auth.signInAnonymously();
+
+    if (error) {
+      console.error(
+        "Supabase anonymous sign-in error:",
+        error
+      );
+
+      toast(
+        "Unable to connect your account."
+      );
+
+      return null;
+    }
+
+    currentSupabaseUser = data.user;
+
+    console.log(
+      "New Supabase user:",
+      currentSupabaseUser.id
+    );
+
+    return currentSupabaseUser;
+
+  } catch (error) {
+
+    console.error(
+      "Supabase initialization error:",
+      error
+    );
+
+    return null;
+  }
+}
+
 /* =========================================================
    EMAN LIVE
    CLEAN BUTTON SYSTEM
