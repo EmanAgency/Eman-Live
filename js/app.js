@@ -1902,16 +1902,14 @@ function renderParty() {
 }
 
 /* =========================================================
-   START PARTY
+   START PARTY ROOM
 ========================================================= */
 
 function startPartyLive() {
 
   const name =
     document
-      .getElementById(
-        "partyName"
-      )
+      .getElementById("partyName")
       ?.value
       .trim();
 
@@ -1922,7 +1920,6 @@ function startPartyLive() {
     );
 
     return;
-
   }
 
   if (!state.currentCover) {
@@ -1932,8 +1929,18 @@ function startPartyLive() {
     );
 
     return;
-
   }
+
+  /*
+   * Stop setup camera before entering
+   * the party room.
+   */
+
+  stopCamera();
+
+  /*
+   * Create local party state.
+   */
 
   state.currentStream = {
 
@@ -1951,15 +1958,46 @@ function startPartyLive() {
 
     hearts: 0,
 
-    participants: []
+    participants: [
+
+      {
+        seat: 1,
+        type: "host",
+        name: "You"
+      },
+
+      {
+        seat: 2,
+        type: "empty",
+        name: ""
+      },
+
+      {
+        seat: 3,
+        type: "empty",
+        name: ""
+      },
+
+      {
+        seat: 4,
+        type: "empty",
+        name: ""
+      }
+
+    ]
 
   };
 
   saveState();
 
-  renderOwnStream();
+  /*
+   * Open the 4-seat party room.
+   */
+
+  renderPartyLive();
 
 }
+
 
 
 /* =========================================================
