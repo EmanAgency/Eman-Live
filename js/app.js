@@ -1491,31 +1491,599 @@ function renderPartySetup() {
       Camera and cover photo are required.
     </p>
 
+    <div class="form-card">
+
+      <div class="camera-box">
+
+        <video
+          id="partyCamera"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+        <div
+          id="partyCameraMessage"
+          class="camera-message">
+
+          Camera preview will appear here.
+
+        </div>
+
+      </div>
+
+      <button
+        class="secondary-btn"
+        data-action="camera"
+        type="button">
+
+        📷 Open Camera
+
+      </button>
+
+    </div>
 
     <div class="form-card">
-      
-document.addEventListener("DOMContentLoaded", function () {
-  const screen = document.getElementById("screen");
 
-  if (screen) {
-    screen.innerHTML = `
-      <div style="
-        min-height:70vh;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        text-align:center;
-        padding:20px;
-        background:#111;
-        color:white;
-      ">
-        <div>
-          <div style="font-size:60px;">🎥</div>
-          <h1>Eman Live</h1>
-          <p>JavaScript is working.</p>
-          <p style="color:#aaa;">Testing the app screen...</p>
+      <div class="form-group">
+
+        <label>
+          Party Room Cover *
+        </label>
+
+        <div
+          id="partyCoverPreview"
+          class="cover-preview">
+
+          Select a cover photo
+
         </div>
+
+        <input
+          id="partyCoverInput"
+          class="input"
+          type="file"
+          accept="image/*">
+
       </div>
-    `;
+
+      <div class="form-group">
+
+        <label>
+          Room Name *
+        </label>
+
+        <input
+          id="partyName"
+          class="input"
+          placeholder="Enter party room name">
+
+      </div>
+
+      <button
+        class="primary-btn"
+        data-action="startParty"
+        type="button">
+
+        👥 Start Party Room
+
+      </button>
+
+    </div>
+
+    <button
+      class="secondary-btn"
+      data-action="live"
+      type="button">
+
+      ← Back
+
+    </button>
+
+  `;
+
+  const input =
+    document.getElementById(
+      "partyCoverInput"
+    );
+
+  if (input) {
+
+    input.addEventListener(
+      "change",
+      event => {
+
+        const file =
+          event.target.files?.[0];
+
+        if (!file) return;
+
+        const reader =
+          new FileReader();
+
+        reader.onload = () => {
+
+          state.currentCover =
+            reader.result;
+
+          const preview =
+            document.getElementById(
+              "partyCoverPreview"
+            );
+
+          if (preview) {
+
+            preview.innerHTML = `
+              <img
+                src="${reader.result}"
+                alt="Party cover">
+            `;
+
+          }
+
+        };
+
+        reader.readAsDataURL(file);
+
+      }
+    );
+
   }
-});
+
+  startCameraPreview(
+    "partyCamera",
+    "partyCameraMessage"
+  );
+
+}
+
+
+/* =========================================================
+   START PARTY
+========================================================= */
+
+function startPartyLive() {
+
+  const name =
+    document
+      .getElementById(
+        "partyName"
+      )
+      ?.value
+      .trim();
+
+  if (!name) {
+
+    toast(
+      "Please enter a party room name."
+    );
+
+    return;
+
+  }
+
+  if (!state.currentCover) {
+
+    toast(
+      "Please select a party room cover photo."
+    );
+
+    return;
+
+  }
+
+  state.currentStream = {
+
+    type: "party",
+
+    title: name,
+
+    cover:
+      state.currentCover,
+
+    startedAt:
+      Date.now(),
+
+    viewers: 0,
+
+    hearts: 0,
+
+    participants: []
+
+  };
+
+  saveState();
+
+  renderOwnStream();
+
+}
+
+
+/* =========================================================
+   OWN LIVE STREAM
+========================================================= */
+
+function renderOwnStream() {
+
+  stopCamera();
+
+  const stream =
+    state.currentStream;
+
+  if (!stream) {
+
+    go("live");
+
+    return;
+
+  }
+
+  screen.innerHTML = `
+
+    <div class="live-screen">
+
+      <div class="live-video">
+
+        <video
+          id="liveCamera"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+        <div class="live-overlay">
+
+          <div class="live-top">
+
+            <span class="live-badge">
+              🔴 LIVE
+            </span>
+
+            <span>
+              ${Number(stream.viewers || 0)}
+              viewers
+            </span>
+
+          </div>
+
+          <div class="live-bottom">
+
+            <h2>
+              ${escapeHTML(stream.title)}
+            </h2>
+
+            <div class="live-actions">
+
+              <button
+                class="secondary-btn"
+                data-action="heart"
+                type="button">
+                ❤️ ${Number(stream.hearts || 0)}
+              </button>
+
+              <button
+                class="secondary-btn"
+                data-action="sendGift"
+                type="button">
+                🎁 Gifts
+              </button>
+
+              <button
+                class="danger-btn"
+                data-action="endLive"
+                type="button">
+                End Live
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+  startCameraPreview(
+    "liveCamera",
+    "liveCameraMessage"
+  );
+
+}
+
+
+/* =========================================================
+   END LIVE
+========================================================= */
+
+function endLive() {
+
+  stopCamera();
+
+  state.currentStream =
+    null;
+
+  saveState();
+
+  toast(
+    "Live ended."
+  );
+
+  go("home");
+
+}
+
+
+/* =========================================================
+   SIMPLE HTML ESCAPE
+========================================================= */
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+/* =========================================================
+   BUTTON HANDLER
+========================================================= */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const button =
+      event.target.closest(
+        "[data-action]"
+      );
+
+    if (!button) return;
+
+    const action =
+      button.dataset.action;
+
+    switch (action) {
+
+      case "home":
+        go("home");
+        break;
+
+      case "live":
+        go("live");
+        break;
+
+      case "chat":
+        go("chat");
+        break;
+
+      case "me":
+        go("me");
+        break;
+
+      case "party":
+        go("party");
+        break;
+
+      case "moments":
+        go("moments");
+        break;
+
+      case "soloSetup":
+        go("setup");
+        break;
+
+      case "partySetup":
+        go("partySetup");
+        break;
+
+      case "camera":
+        openCameraAgain();
+        break;
+
+      case "startSolo":
+        startSoloLive();
+        break;
+
+      case "startParty":
+        startPartyLive();
+        break;
+
+      case "endLive":
+        endLive();
+        break;
+
+      case "heart":
+
+        if (state.currentStream) {
+
+          state.currentStream.hearts =
+            Number(
+              state.currentStream.hearts || 0
+            ) + 1;
+
+          saveState();
+
+          renderOwnStream();
+
+        }
+
+        break;
+
+      case "wallet":
+        state.page = "me";
+        renderWallet();
+        break;
+
+      case "profile":
+        state.page = "me";
+        renderProfile();
+        break;
+
+      case "income":
+        state.page = "me";
+        renderIncome();
+        break;
+
+      case "levels":
+        state.page = "me";
+        renderLevels();
+        break;
+
+      case "agency":
+        state.page = "me";
+        renderAgency();
+        break;
+
+      case "walletBuy":
+        state.walletTab = "buy";
+        renderWallet();
+        break;
+
+      case "walletHistory":
+        state.walletTab = "history";
+        renderWallet();
+        break;
+
+      case "recharge":
+
+        recharge(
+          Number(button.dataset.coins),
+          Number(button.dataset.price)
+        );
+
+        break;
+
+      case "submitTx":
+        submitTransactionHash();
+        break;
+
+      case "copyAddress":
+        copyPaymentAddress();
+        break;
+
+      case "withdraw":
+        withdraw();
+        break;
+
+      case "sendGift":
+        renderGifts();
+        break;
+
+      case "gift":
+        sendGift(
+          button.dataset.name
+        );
+        break;
+
+      case "saveProfile":
+        saveProfile();
+        break;
+
+      case "saveAgency":
+        saveAgency();
+        break;
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+if (
+  document.readyState === "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializeEmanLive
+  );
+
+} else {
+
+  initializeEmanLive();
+
+}
+
+
+async function initializeEmanLive() {
+
+  try {
+
+    console.log(
+      "Eman Live starting..."
+    );
+
+    render();
+
+    updateHeaderCoins();
+
+    if (
+      typeof initializeSupabaseUser ===
+      "function"
+    ) {
+
+      await initializeSupabaseUser();
+
+    }
+
+    console.log(
+      "Eman Live loaded successfully."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Eman Live startup error:",
+      error
+    );
+
+    if (screen) {
+
+      screen.innerHTML = `
+
+        <div style="
+          padding:40px 20px;
+          text-align:center;
+          color:white;
+        ">
+
+          <h2>
+            Eman Live
+          </h2>
+
+          <p>
+            The app encountered an error while loading.
+          </p>
+
+          <p style="
+            color:#aaa;
+            font-size:13px;
+            word-break:break-word;
+          ">
+            ${escapeHTML(
+              error.message || error
+            )}
+          </p>
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+}
