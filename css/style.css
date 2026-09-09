@@ -1276,53 +1276,47 @@ select.input {
 ========================================= */
 
 .bottom-nav {
+.bottom-nav {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-
-  z-index: 150;
-
-  height: 70px;
-
+  height: 68px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-
-  background: rgba(12, 12, 17, 0.97);
-
-  border-top: 1px solid var(--border);
-
-  backdrop-filter: blur(15px);
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  padding: 5px 2px;
+  background: #111;
+  border-top: 1px solid #333;
+  z-index: 9999;
 }
 
 .nav-button {
-  color: #777785;
-
+  min-width: 0;
+  width: 100%;
+  border: 0;
   background: transparent;
-
+  padding: 4px 1px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  gap: 4px;
+  gap: 2px;
+  cursor: pointer;
 }
 
 .nav-button span {
-  font-size: 21px;
+  font-size: 20px;
+  line-height: 22px;
 }
 
 .nav-button small {
   font-size: 10px;
-  font-weight: 700;
+  white-space: nowrap;
 }
 
-.nav-button.active {
-  color: white;
-}
-
-.nav-button.active span {
-  transform: translateY(-1px);
+#screen {
+  padding-bottom: 85px;
 }
 
 
