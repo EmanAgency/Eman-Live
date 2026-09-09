@@ -2136,6 +2136,7 @@ function renderParty() {
 
 /* =========================================================
    START PARTY ROOM
+   SUPABASE + LIVEKIT
 ========================================================= */
 
 async function startPartyLive() {
@@ -2164,23 +2165,35 @@ async function startPartyLive() {
     return;
   }
 
-  if (
-    !window.LivekitClient
-  ) {
+  if (!supabaseClient) {
+
+    toast(
+      "Supabase is not connected."
+    );
+
+    console.error(
+      "supabaseClient is not available."
+    );
+
+    return;
+  }
+
+  if (!window.LivekitClient) {
 
     toast(
       "LiveKit is not loaded."
     );
 
     console.error(
-      "LiveKit JavaScript SDK was not loaded."
+      "LiveKit JavaScript SDK is not loaded."
     );
 
     return;
   }
 
+
   /*
-   * Create unique LiveKit room name
+   * Create a unique LiveKit room name
    */
 
   const roomName =
@@ -2191,54 +2204,190 @@ async function startPartyLive() {
       .toString(36)
       .substring(2, 8);
 
-  /*
-   * Stop setup camera
-   */
-
-  stopCamera();
 
   /*
-   * Save party information
+   * Get host name
    */
 
-  state.currentStream = {
+  const hostName =
+    state.profile?.username ||
+    state.profile?.display_name ||
+    "Eman Host";
 
-    type: "party",
 
-    title: name,
+  try {
 
-    cover:
-      state.currentCover,
+    toast(
+      "Creating your party room..."
+    );
 
-    roomName:
-      roomName,
 
-    startedAt:
-      Date.now(),
+    /*
+     * Create party room in Supabase
+     */
 
-    viewers: 0,
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("live_rooms")
+        .insert({
 
-    hearts: 0,
+          host_name:
+            hostName,
 
-    participants: []
+          title:
+            name,
 
-  };
+          is_live:
+            true,
 
-  saveState();
+          host_id:
+            state.user?.id ||
+            currentSupabaseUser?.id ||
+            null,
 
-  /*
-   * Show party room
-   */
+          room_name:
+            roomName,
 
-  renderPartyLive();
+          cover_photo:
+            state.currentCover,
 
-  /*
-   * Connect to LiveKit
-   */
+          live_type:
+            "party",
 
-  await connectPartyToLiveKit();
+          status:
+            "live",
+
+          viewer_count:
+            0
+
+        })
+        .select()
+        .single();
+
+
+    /*
+     * Supabase error
+     */
+
+    if (error) {
+
+      console.error(
+        "SUPABASE PARTY ROOM ERROR:",
+        error
+      );
+
+      toast(
+        "Could not create party room: " +
+        error.message
+      );
+
+      return;
+    }
+
+
+    /*
+     * Save party room locally
+     */
+
+    state.currentStream = {
+
+      id:
+        data.id,
+
+      type:
+        "party",
+
+      title:
+        name,
+
+      cover:
+        state.currentCover,
+
+      roomName:
+        roomName,
+
+      hostName:
+        hostName,
+
+      startedAt:
+        Date.now(),
+
+      viewers:
+        0,
+
+      hearts:
+        0,
+
+      participants: [
+
+        {
+          seat: 1,
+          type: "host",
+          name: hostName
+        },
+
+        {
+          seat: 2,
+          type: "empty",
+          name: ""
+        },
+
+        {
+          seat: 3,
+          type: "empty",
+          name: ""
+        },
+
+        {
+          seat: 4,
+          type: "empty",
+          name: ""
+        }
+
+      ]
+
+    };
+
+
+    saveState();
+
+
+    /*
+     * Open the 4-seat party room
+     */
+
+    renderPartyLive();
+
+
+    /*
+     * Connect to LiveKit
+     */
+
+    await connectPartyToLiveKit();
+
+
+  } catch (error) {
+
+    console.error(
+      "START PARTY ERROR:",
+      error
+    );
+
+    toast(
+      "Unable to start party: " +
+      (
+        error.message ||
+        error
+      )
+    );
+
+  }
 
 }
+
 
 /* =========================================================
    CONNECT PARTY TO LIVEKIT
