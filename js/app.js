@@ -644,18 +644,6 @@ function render() {
     case "live":
       renderLive();
       break;
-
-case "soloMute":
-  toggleSoloMicrophone();
-  break;
-
-case "flipCamera":
-  flipCamera();
-  break;
-
-case "liveMenu":
-  openLiveMenu();
-  break;
         
     case "chat":
       renderChat();
@@ -683,14 +671,6 @@ case "liveMenu":
 
     default:
       renderHome();
-
-        case "partyMute":
-  togglePartyMicrophone();
-  break;
-
-case "partyFlip":
-  flipPartyCamera();
-  break;
   }
 
 }
