@@ -1494,3 +1494,28 @@ function renderPartySetup() {
 
     <div class="form-card">
       
+document.addEventListener("DOMContentLoaded", function () {
+  const screen = document.getElementById("screen");
+
+  if (screen) {
+    screen.innerHTML = `
+      <div style="
+        min-height:70vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+        padding:20px;
+        background:#111;
+        color:white;
+      ">
+        <div>
+          <div style="font-size:60px;">🎥</div>
+          <h1>Eman Live</h1>
+          <p>JavaScript is working.</p>
+          <p style="color:#aaa;">Testing the app screen...</p>
+        </div>
+      </div>
+    `;
+  }
+});
