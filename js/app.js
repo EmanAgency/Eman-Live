@@ -18,7 +18,6 @@ const SUPABASE_KEY =
 
 let supabaseClient = null;
 
-
 if (window.supabase) {
   supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -31,6 +30,7 @@ if (window.supabase) {
 }
 
 let currentSupabaseUser = null;
+
 const supabase = supabaseClient;
 
 /* =========================================================
